@@ -61,6 +61,11 @@ export interface Warnung {
   faIcon?: string;
 }
 
+export interface Nowcast {
+  text: string;
+  balken: number[];
+}
+
 export interface Luft {
   aqi: number;
   label: string;

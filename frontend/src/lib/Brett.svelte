@@ -262,9 +262,9 @@
           <span class="kw-titel">Regen-Nowcast <span class="ort">Köln</span></span>
         </div>
         <div class="kw-koerper">
-          <div class="nowcast-text">Regen in <b>25 Minuten</b> &middot; leicht, dann stärker</div>
+          <div class="nowcast-text">{wetter.nowcast?.text ?? "Kein Regen in den nächsten 3 Stunden"}</div>
           <div class="nowcast-balken">
-            {#each [6, 6, 8, 10, 18, 34, 52, 70, 86, 72, 60, 40] as h}
+            {#each wetter.nowcast?.balken ?? [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] as h}
               <span class="nb" style="height: {h}%"></span>
             {/each}
           </div>

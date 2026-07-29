@@ -41,7 +41,7 @@ def _zustand(code: int, tag: bool) -> tuple[str, str]:
     if code == 0:
         return (f"clear-{z}", "Klar")
     if code == 1:
-        return (f"partly-cloudy-{z}", "Ueberwiegend klar")
+        return (f"partly-cloudy-{z}", "Überwiegend klar")
     if code == 2:
         return (f"partly-cloudy-{z}", "Wolkig")
     if code == 3:
@@ -60,7 +60,7 @@ def _zustand(code: int, tag: bool) -> tuple[str, str]:
         return ("thunderstorms-day-rain" if tag else "thunderstorms-night", "Gewitter")
     if code in (96, 99):
         return ("thunderstorms-day-rain" if tag else "thunderstorms-night", "Gewitter mit Hagel")
-    return ("cloudy", "Wechselnd bewoelkt")
+    return ("cloudy", "Wechselnd bewölkt")
 
 
 def _jetzt_index(zeiten: list[str], jetzt: str) -> int:
@@ -97,6 +97,7 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,cloud_cover,dew_point_2m,uv_index,is_day"
         ),
         "hourly": "temperature_2m,weather_code,precipitation_probability,visibility,is_day",
+        "minutely_15": "precipitation",
         "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
         "timezone": "Europe/Berlin",
         "forecast_days": 7,
@@ -145,6 +146,22 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
             "regen": h["precipitation_probability"][i] or 0,
         })
 
+    mm = d.get("minutely_15") or {}
+    nowcast = None
+    if mm.get("time"):
+        i15 = _jetzt_index(mm["time"], c["time"])
+        werte = [w or 0 for w in mm["precipitation"][i15 : i15 + 12]]
+        maxw = max(werte) if werte else 0
+        balken = [round(w / maxw * 100) if maxw > 0 else 3 for w in werte]
+        minuten = next((i * 15 for i, w in enumerate(werte) if w >= 0.1), None)
+        if minuten == 0:
+            text = "Regen jetzt"
+        elif minuten:
+            text = f"Regen in {minuten} Minuten"
+        else:
+            text = "Kein Regen in den nächsten 3 Stunden"
+        nowcast = {"text": text, "balken": balken}
+
     dl = d["daily"]
     hoch = [round(x) for x in dl["temperature_2m_max"]]
     tief = [round(x) for x in dl["temperature_2m_min"]]
@@ -176,4 +193,5 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
         "stunden": stunden,
         "tage": tage,
         "sonne": sonne,
+        "nowcast": nowcast,
     }
