@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Kopf from "./lib/Kopf.svelte";
   import Nav from "./lib/Nav.svelte";
   import Dashboard from "./lib/Dashboard.svelte";
@@ -11,6 +12,11 @@
   import KachelEinstellungen from "./lib/KachelEinstellungen.svelte";
   import { route } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
+  import { ladeLayouts } from "./lib/layout.svelte";
+
+  onMount(() => {
+    void ladeLayouts();
+  });
 </script>
 
 <div class="app">

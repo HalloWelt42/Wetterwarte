@@ -5,9 +5,13 @@
   import { aktuell, stunden, tage, warnungen } from "./platzhalter";
   import { gehe } from "./route.svelte";
   import { ui } from "./ui.svelte";
-  import { hole, sende } from "./api";
+  import { sende } from "./api";
+  import { layoutState } from "./layout.svelte";
 
   let brettEl: HTMLElement;
+  let grid: GridStack | undefined;
+  let angewendet: string | null = null;
+  let ladend = false;
 
   // Stabile IDs in DOM-Reihenfolge - fuer Speichern/Laden der Anordnung.
   const kachelIds = [
@@ -15,14 +19,28 @@
     "wind", "sonnemond", "luftqualitaet", "uv", "barometer", "verlauf",
   ];
 
-  interface LayoutEintrag {
+  interface Position {
     id: string;
-    ist_standard: boolean;
-    daten: { id: string; x: number; y: number; w: number; h: number }[];
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }
+
+  function anwenden(daten: Position[]): void {
+    if (!grid || !Array.isArray(daten) || !daten.length) return;
+    ladend = true;
+    grid.batchUpdate();
+    for (const p of daten) {
+      const el = brettEl.querySelector<HTMLElement>(`[gs-id="${p.id}"]`);
+      if (el) grid.update(el, { x: p.x, y: p.y, w: p.w, h: p.h });
+    }
+    grid.commit();
+    ladend = false;
   }
 
   onMount(() => {
-    const grid = GridStack.init(
+    grid = GridStack.init(
       {
         column: 12,
         cellHeight: 74,
@@ -44,38 +62,37 @@
       if (knoten) knoten.id = id;
     });
 
-    let layoutId: string | null = null;
     let entprellen: ReturnType<typeof setTimeout> | undefined;
+    grid.on("change", () => {
+      const id = layoutState.aktivId;
+      if (ladend || !id || !grid) return;
+      const daten = grid.save(false) as Position[];
+      clearTimeout(entprellen);
+      entprellen = setTimeout(() => {
+        void sende(`/layouts/${id}`, "PUT", { daten });
+        const l = layoutState.liste.find((x) => x.id === id);
+        if (l) l.daten = daten;
+      }, 600);
+    });
 
-    void (async () => {
-      try {
-        const layouts = await hole<LayoutEintrag[]>("/layouts");
-        const standard = layouts.find((l) => l.ist_standard) ?? layouts[0];
-        if (standard) {
-          layoutId = standard.id;
-          if (Array.isArray(standard.daten) && standard.daten.length) {
-            grid.batchUpdate();
-            for (const eintrag of standard.daten) {
-              const el = brettEl.querySelector<HTMLElement>(`[gs-id="${eintrag.id}"]`);
-              if (el) grid.update(el, { x: eintrag.x, y: eintrag.y, w: eintrag.w, h: eintrag.h });
-            }
-            grid.commit();
-          }
-        }
-      } catch {
-        // Backend nicht erreichbar - die Platzhalter-Anordnung bleibt bestehen.
-      }
-      // Erst nach dem Laden auf Aenderungen hoeren, damit das Laden nicht sofort speichert.
-      grid.on("change", () => {
-        if (!layoutId) return;
-        clearTimeout(entprellen);
-        entprellen = setTimeout(() => {
-          void sende(`/layouts/${layoutId}`, "PUT", { daten: grid.save(false) });
-        }, 600);
-      });
-    })();
+    return () => grid?.destroy(false);
+  });
 
-    return () => grid.destroy(false);
+  // Auf Layout-Wechsel reagieren: gespeicherte Anordnung anwenden oder ein leeres
+  // Layout mit der aktuellen Anordnung initialisieren.
+  $effect(() => {
+    const id = layoutState.aktivId;
+    if (!grid || !id || id === angewendet) return;
+    const l = layoutState.liste.find((x) => x.id === id);
+    if (!l) return;
+    angewendet = id;
+    if (Array.isArray(l.daten) && l.daten.length) {
+      anwenden(l.daten as Position[]);
+    } else {
+      const daten = grid.save(false) as Position[];
+      l.daten = daten;
+      void sende(`/layouts/${id}`, "PUT", { daten });
+    }
   });
 </script>
 

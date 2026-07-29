@@ -2,14 +2,17 @@
   import { meteocon } from "./icons";
   import { thema, themaUmschalten } from "./thema.svelte";
   import { ui } from "./ui.svelte";
+  import { layoutState, setzeAktiv } from "./layout.svelte";
 
-  const layouts = [
-    { name: "Zuhause", icon: "fa-house" },
-    { name: "Garten", icon: "fa-seedling" },
-    { name: "Reise", icon: "fa-suitcase-rolling" },
-    { name: "Unwetter", icon: "fa-triangle-exclamation" },
-  ];
-  let aktiv = $state("Zuhause");
+  const iconMap: Record<string, string> = {
+    Zuhause: "fa-house",
+    Garten: "fa-seedling",
+    Reise: "fa-suitcase-rolling",
+    Unwetter: "fa-triangle-exclamation",
+  };
+  function iconFuer(name: string): string {
+    return iconMap[name] ?? "fa-table-cells-large";
+  }
 </script>
 
 <header class="kopf">
@@ -19,13 +22,13 @@
     <input type="text" placeholder="Ort suchen ..." />
   </div>
   <div class="layout-tabs">
-    {#each layouts as l}
-      <button class:aktiv={aktiv === l.name} onclick={() => (aktiv = l.name)}>
-        <i class="fa-solid {l.icon}"></i>
+    {#each layoutState.liste as l}
+      <button class:aktiv={layoutState.aktivId === l.id} onclick={() => setzeAktiv(l.id)}>
+        <i class="fa-solid {iconFuer(l.name)}"></i>
         {l.name}
       </button>
     {/each}
-    <button class="still" title="Neues Layout"><i class="fa-solid fa-plus"></i></button>
+    <button class="still" title="Neues Layout" onclick={() => (ui.layouts = true)}><i class="fa-solid fa-plus"></i></button>
   </div>
   <div class="kopf-rechts">
     <button class="knopf primaer" onclick={() => (ui.katalog = true)}><i class="fa-solid fa-plus"></i> Kachel</button>

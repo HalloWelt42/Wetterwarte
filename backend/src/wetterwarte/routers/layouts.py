@@ -20,7 +20,7 @@ class LayoutEingabe(BaseModel):
 
 @router.get("")
 async def liste(session: AsyncSession = Depends(get_session)) -> dict:
-    ergebnis = await session.execute(select(Layout))
+    ergebnis = await session.execute(select(Layout).order_by(Layout.ist_standard.desc(), Layout.name))
     return wrap([l.model_dump() for l in ergebnis.scalars().all()])
 
 
