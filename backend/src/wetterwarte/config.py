@@ -16,5 +16,9 @@ class Settings(BaseSettings):
     app_secret: str = "entwicklung"
     version: str = "0.1.0"
 
+    # Basis-URL fuer Open-Meteo. Vorerst der oeffentliche Dienst (nutzt fuer
+    # Deutschland die DWD-ICON-Modelle); spaeter der lokal gespiegelte Dienst.
+    open_meteo_base: str = "https://api.open-meteo.com/v1"
+
 
 settings = Settings()

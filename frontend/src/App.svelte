@@ -13,9 +13,11 @@
   import { route } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts } from "./lib/layout.svelte";
+  import { ladeWetter } from "./lib/wetter.svelte";
 
   onMount(() => {
     void ladeLayouts();
+    void ladeWetter("koeln");
   });
 </script>
 

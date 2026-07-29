@@ -7,6 +7,12 @@
   import { ui } from "./ui.svelte";
   import { sende } from "./api";
   import { layoutState } from "./layout.svelte";
+  import { wetter } from "./wetter.svelte";
+
+  // Echte Daten mit Rueckfall auf Platzhalter, solange nichts geladen ist.
+  const jetzt = $derived(wetter.aktuell ?? aktuell);
+  const stundenListe = $derived(wetter.stunden.length ? wetter.stunden : stunden);
+  const tageListe = $derived(wetter.tage.length ? wetter.tage : tage);
 
   let brettEl: HTMLElement;
   let grid: GridStack | undefined;
@@ -110,20 +116,20 @@
         </div>
         <div class="kw-koerper">
           <div class="aktuell-haupt">
-            <img class="mc gross" src={meteocon(aktuell.icon)} alt="" />
+            <img class="mc gross" src={meteocon(jetzt.icon)} alt="" />
             <div class="aktuell-block">
-              <span class="temp temp-gross {aktuell.tempKlasse}">{aktuell.temperatur}&deg;</span>
-              <span class="aktuell-zustand">{aktuell.zustandText}</span>
-              <span class="aktuell-gefuehlt">Gefühlt {aktuell.gefuehlt}&deg; &middot; Tageshoch {aktuell.tageshoch}&deg;</span>
+              <span class="temp temp-gross {jetzt.tempKlasse}">{jetzt.temperatur}&deg;</span>
+              <span class="aktuell-zustand">{jetzt.zustandText}</span>
+              <span class="aktuell-gefuehlt">Gefühlt {jetzt.gefuehlt}&deg; &middot; Tageshoch {jetzt.tageshoch}&deg;</span>
             </div>
           </div>
           <div class="kv-gitter">
-            <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">{aktuell.feuchte} %</span><span class="kv-lab">Feuchte</span></span></div>
-            <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">{aktuell.wind} km/h</span><span class="kv-lab">Wind {aktuell.windRichtung}</span></span></div>
-            <div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">{aktuell.druck} hPa</span><span class="kv-lab">Druck</span></span></div>
-            <div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">{aktuell.sicht} km</span><span class="kv-lab">Sicht</span></span></div>
-            <div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">{aktuell.taupunkt}&deg;</span><span class="kv-lab">Taupunkt</span></span></div>
-            <div class="kv"><i class="fa-solid fa-cloud"></i><span class="kv-txt"><span class="kv-wert">{aktuell.bewoelkung} %</span><span class="kv-lab">Bewölkung</span></span></div>
+            <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">{jetzt.feuchte} %</span><span class="kv-lab">Feuchte</span></span></div>
+            <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">{jetzt.wind} km/h</span><span class="kv-lab">Wind {jetzt.windRichtung}</span></span></div>
+            <div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">{jetzt.druck} hPa</span><span class="kv-lab">Druck</span></span></div>
+            <div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">{jetzt.sicht} km</span><span class="kv-lab">Sicht</span></span></div>
+            <div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">{jetzt.taupunkt}&deg;</span><span class="kv-lab">Taupunkt</span></span></div>
+            <div class="kv"><i class="fa-solid fa-cloud"></i><span class="kv-txt"><span class="kv-wert">{jetzt.bewoelkung} %</span><span class="kv-lab">Bewölkung</span></span></div>
           </div>
         </div>
         <span class="kw-griff"></span>
@@ -141,7 +147,7 @@
         </div>
         <div class="kw-koerper">
           <div class="stunden">
-            {#each stunden as s}
+            {#each stundenListe as s}
               <div class="stunde">
                 <span class="zeit">{s.zeit}</span>
                 <img class="mc mittel" src={meteocon(s.icon)} alt="" />
@@ -223,7 +229,7 @@
         </div>
         <div class="kw-koerper">
           <div class="tage">
-            {#each tage as t}
+            {#each tageListe as t}
               <div class="tag">
                 <span class="wtag">{t.kurz}</span>
                 <img class="mc klein" src={meteocon(t.icon)} alt="" />
