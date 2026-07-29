@@ -28,8 +28,8 @@
 
   <div class="nav-titel" style="margin-top: var(--a3)">Ansichten</div>
   <button class="nav-eintrag" class:aktiv={route.ansicht === "karte"} onclick={() => gehe("karte")}><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></button>
-  <button class="nav-eintrag"><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></button>
-  <button class="nav-eintrag"><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv und Analyse</span></button>
+  <button class="nav-eintrag" class:aktiv={route.ansicht === "aufzeichnung"} onclick={() => gehe("aufzeichnung")}><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></button>
+  <button class="nav-eintrag" class:aktiv={route.ansicht === "archiv"} onclick={() => gehe("archiv")}><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv und Analyse</span></button>
 
   <div class="nav-fuss">
     <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
