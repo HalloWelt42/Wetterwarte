@@ -11,6 +11,7 @@ from typing import TypeVar
 import httpx
 from fastapi import APIRouter, HTTPException
 
+from .. import cache
 from ..orte import ORTE
 from ..providers import luftqualitaet, openmeteo, warnungen
 from ..schemas.envelope import wrap
@@ -34,6 +35,12 @@ async def complete(ort: str) -> dict:
     o = ORTE.get(ort.lower())
     if o is None:
         raise HTTPException(status_code=404, detail="Ort nicht bekannt")
+
+    schluessel = f"weather:complete:{ort.lower()}"
+    gecacht = await cache.hole(schluessel)
+    if gecacht is not None:
+        return wrap(gecacht)
+
     try:
         basis = await openmeteo.komplett(o["lat"], o["lon"], o["name"], o["region"])
     except httpx.HTTPError as fehler:
@@ -45,6 +52,7 @@ async def complete(ort: str) -> dict:
     )
     basis["luft"] = luft
     basis["warnungen"] = warn or []
+    await cache.setze(schluessel, basis, ttl=600)
     return wrap(basis)
 
 
