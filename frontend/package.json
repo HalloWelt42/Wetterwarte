@@ -1,0 +1,11 @@
+{
+  "name": "wetterwarte-frontend",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Wetterwarte - Frontend (Abhaengigkeiten fuer Mockup und spaeteren Stack)",
+  "dependencies": {
+    "@fontsource/barlow": "^5.3.0",
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "@meteocons/svg": "^0.1.0"
+  }
+}

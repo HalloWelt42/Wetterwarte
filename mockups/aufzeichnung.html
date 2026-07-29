@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Aufzeichnungs-Manager</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ======================= Kopfleiste ======================= -->
+      <header class="kopf">
+        <div class="marke">
+          <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          Wetterwarte
+        </div>
+        <div class="kopf-suche">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Ort suchen ..." />
+        </div>
+        <div class="kopf-rechts">
+          <a class="knopf primaer" href="/mockups/katalog.html"><i class="fa-solid fa-plus"></i> Kachel</a>
+          <a class="icon-knopf" href="/mockups/hilfe.html" title="Hilfe"><i class="fa-solid fa-circle-question"></i></a>
+        </div>
+      </header>
+
+      <!-- ======================= Navigation ======================= -->
+      <nav class="nav">
+        <div class="nav-titel">Orte <button class="plus" title="Ort hinzufügen"><i class="fa-solid fa-plus"></i></button></div>
+        <a class="nav-eintrag" href="/mockups/dashboard.html">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          <span class="haupt">Köln <small>Sachsen-Anhalt</small></span>
+          <span class="grad">24&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" />
+          <span class="haupt">Frankfurt <small>Sachsen</small></span>
+          <span class="grad">26&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" />
+          <span class="haupt">Berlin <small>Berlin</small></span>
+          <span class="grad">22&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" />
+          <span class="haupt">Hamburg <small>Hamburg</small></span>
+          <span class="grad">19&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day.svg" alt="" />
+          <span class="haupt">München <small>Bayern</small></span>
+          <span class="grad">21&deg;</span>
+        </a>
+
+        <div class="nav-titel" style="margin-top: var(--a3)">Ansichten</div>
+        <a class="nav-eintrag" href="/mockups/karte.html"><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></a>
+        <a class="nav-eintrag aktiv" href="/mockups/aufzeichnung.html"><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></a>
+        <a class="nav-eintrag" href="/mockups/archiv.html"><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv &amp; Analyse</span></a>
+        <a class="nav-eintrag" href="/mockups/kacheln.html"><i class="fa-solid fa-shapes"></i> <span class="haupt">Kachel-Katalog</span></a>
+
+        <div class="nav-fuss">
+          <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
+          <div class="nav-version">Wetterwarte v0.1.0 - lokal</div>
+        </div>
+      </nav>
+
+      <!-- ======================= Inhalt ======================= -->
+      <section class="inhalt">
+        <div class="seite">
+          <h1>Aufzeichnungs-Manager</h1>
+          <p class="unter-gross">
+            Die große PostgreSQL zeichnet ausgewählte Stationen und Orte langfristig auf. Lege pro Station/Ort
+            und Variable fest, was dauerhaft archiviert wird.
+          </p>
+
+          <!-- ======================= Panel 1: Stationen & Orte ======================= -->
+          <div class="panel">
+            <h2><i class="fa-solid fa-database"></i> Aufgezeichnete Stationen &amp; Orte</h2>
+            <p class="unter">Vier Quellen laufen dauerhaft in das Archiv. Schalter je Zeile beendet oder startet die Aufzeichnung.</p>
+
+            <div class="tabzeile tabkopf">
+              <span></span>
+              <span>Station / Ort</span>
+              <span>Variablen</span>
+              <span>Zeitraum</span>
+              <span>Aktiv</span>
+            </div>
+
+            <div class="tabzeile">
+              <i class="fa-solid fa-tower-broadcast" style="color: var(--akzent)"></i>
+              <span class="tz-name">Köln <small>DWD 04501 &middot; 51,05&deg; N 12,14&deg; O</small></span>
+              <span class="reihe" style="flex-wrap: wrap; gap: var(--a1)">
+                <span class="chip">Temperatur</span>
+                <span class="chip">Niederschlag</span>
+                <span class="chip">Wind</span>
+                <span class="chip">Druck</span>
+                <span class="chip">Feuchte</span>
+              </span>
+              <span class="tz-meta">seit 2019</span>
+              <button class="schalter an" title="Aufzeichnung aktiv"></button>
+            </div>
+
+            <div class="tabzeile">
+              <i class="fa-solid fa-tower-broadcast" style="color: var(--akzent)"></i>
+              <span class="tz-name">Frankfurt-Holzhausen <small>DWD 02928 &middot; 51,31&deg; N 12,45&deg; O</small></span>
+              <span class="reihe" style="flex-wrap: wrap; gap: var(--a1)">
+                <span class="chip">Temperatur</span>
+                <span class="chip">Niederschlag</span>
+                <span class="chip">Wind</span>
+                <span class="chip">Feuchte</span>
+              </span>
+              <span class="tz-meta">seit 2021</span>
+              <button class="schalter an" title="Aufzeichnung aktiv"></button>
+            </div>
+
+            <div class="tabzeile">
+              <i class="fa-solid fa-tower-broadcast" style="color: var(--akzent)"></i>
+              <span class="tz-name">Berlin-Tempelhof <small>DWD 00433 &middot; 52,47&deg; N 13,40&deg; O</small></span>
+              <span class="reihe" style="flex-wrap: wrap; gap: var(--a1)">
+                <span class="chip">Temperatur</span>
+                <span class="chip">Niederschlag</span>
+                <span class="chip">Druck</span>
+              </span>
+              <span class="tz-meta">unbegrenzt</span>
+              <button class="schalter an" title="Aufzeichnung aktiv"></button>
+            </div>
+
+            <div class="tabzeile">
+              <i class="fa-solid fa-location-dot" style="color: var(--akzent)"></i>
+              <span class="tz-name">Garten Köln <small>Eigener Punkt &middot; 51,05&deg; N 12,14&deg; O</small></span>
+              <span class="reihe" style="flex-wrap: wrap; gap: var(--a1)">
+                <span class="chip">Temperatur</span>
+                <span class="chip">Niederschlag</span>
+                <span class="chip">Feuchte</span>
+              </span>
+              <span class="tz-meta">seit 2023</span>
+              <button class="schalter an" title="Aufzeichnung aktiv"></button>
+            </div>
+          </div>
+
+          <!-- ======================= Panel 2: Speicher & Aufbewahrung ======================= -->
+          <div class="panel">
+            <h2><i class="fa-solid fa-hard-drive"></i> Speicher &amp; Aufbewahrung</h2>
+            <p class="unter">Wie lange und wie sparsam die Zeitreihen abgelegt werden.</p>
+
+            <div class="formzeile-quer">
+              <span class="fz-lab">Aufbewahrung <small>Aeltere Werte werden nach Ablauf entfernt.</small></span>
+              <span class="segment">
+                <button class="aktiv">Unbegrenzt</button>
+                <button>10 Jahre</button>
+                <button>5 Jahre</button>
+              </span>
+            </div>
+
+            <div class="formzeile" style="margin-top: var(--a3)">
+              <label>Archiv 3,8 GB von 200 GB (externe SSD)</label>
+              <div style="height: 6px; border-radius: 3px; background: var(--flaeche-3)">
+                <span style="display: block; height: 100%; width: 12%; background: var(--akzent); border-radius: 3px"></span>
+              </div>
+            </div>
+
+            <div class="klein-txt dimm" style="margin-top: var(--a2)">
+              <i class="fa-solid fa-compress"></i> Kompression aktiv (TimescaleDB) - ältere Daten werden verdichtet.
+            </div>
+          </div>
+
+          <!-- ======================= Panel 3: Aufnehmen ======================= -->
+          <div class="panel">
+            <h2><i class="fa-solid fa-plus"></i> Station oder Ort aufnehmen</h2>
+            <p class="unter">Suche im DWD-Stationsnetz oder gib einen eigenen Punkt ein und nimm ihn in die Aufzeichnung auf.</p>
+
+            <div class="reihe" style="gap: var(--a2)">
+              <div class="feld-such" style="flex: 1">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Station oder Ort suchen (DWD-Stationsnetz) ..." />
+              </div>
+              <button class="knopf primaer"><i class="fa-solid fa-plus"></i> Aufnehmen</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => {
+        document.documentElement.dataset.theme = t;
+        document.querySelectorAll("[data-theme-btn]").forEach((b) => b.classList.toggle("aktiv", b.dataset.themeBtn === t));
+      };
+      document.querySelectorAll("[data-theme-btn]").forEach((b) => (b.onclick = () => setzeThema(b.dataset.themeBtn)));
+      setzeThema("hell");
+      document.querySelectorAll(".tabgruppe, .segment").forEach((g) => {
+        g.querySelectorAll("button").forEach((b) =>
+          b.addEventListener("click", () => {
+            if (b.classList.contains("still")) return;
+            g.querySelectorAll("button").forEach((x) => x.classList.remove("aktiv"));
+            b.classList.add("aktiv");
+          }),
+        );
+      });
+      document.querySelectorAll(".overlay-leiste .chip").forEach((c) => c.addEventListener("click", () => c.classList.toggle("aktiv")));
+      document.querySelectorAll(".schalter").forEach((s) => s.addEventListener("click", () => s.classList.toggle("an")));
+    </script>
+  </body>
+</html>

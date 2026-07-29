@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Kachel-Katalog</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+  </head>
+  <body>
+    <div class="galerie-seite" style="max-width: 1200px">
+      <div class="galerie-kopf">
+        <div class="marke">
+          <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          Wetterwarte
+        </div>
+      </div>
+      <p class="galerie-unter">
+        Kachel-Katalog - alle Kacheltypen im Überblick. 28 Kacheln in sechs Familien, jede mit
+        realistischen Beispieldaten für einen Gewittersommer Ende Juli. Hell und dunkel unten rechts umschaltbar.
+      </p>
+
+      <!-- ============================================================ FAMILIE WETTER -->
+      <p class="galerie-titel">Familie Wetter</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--a3)">
+        <!-- 1) Aktuell -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Aktuell <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="aktuell-haupt">
+              <img class="mc gross" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+              <div class="aktuell-block">
+                <span class="temp temp-gross t-warm">24&deg;</span>
+                <span class="aktuell-zustand">Wolkig, später Schauer</span>
+                <span class="aktuell-gefuehlt">Gefühlt 26&deg; &middot; Hoch 27&deg;</span>
+              </div>
+            </div>
+            <div class="kv-gitter">
+              <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">68 %</span><span class="kv-lab">Feuchte</span></span></div>
+              <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">14 km/h</span><span class="kv-lab">Wind NW</span></span></div>
+              <div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">1012 hPa</span><span class="kv-lab">Druck</span></span></div>
+              <div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">17&deg;</span><span class="kv-lab">Taupunkt</span></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 2) Stundenvorhersage -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Stundenvorhersage <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="stunden">
+              <div class="stunde"><span class="zeit">jetzt</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="st-temp t-warm">24&deg;</span><span class="st-regen">&nbsp;</span></div>
+              <div class="stunde"><span class="zeit">15</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="st-temp t-heiss">25&deg;</span><span class="st-regen">10%</span></div>
+              <div class="stunde"><span class="zeit">16</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="st-temp t-warm">24&deg;</span><span class="st-regen">30%</span></div>
+              <div class="stunde"><span class="zeit">17</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day-rain.svg" alt="" /><span class="st-temp t-warm">23&deg;</span><span class="st-regen">70%</span></div>
+              <div class="stunde"><span class="zeit">18</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="st-temp t-mild">21&deg;</span><span class="st-regen">65%</span></div>
+              <div class="stunde"><span class="zeit">19</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="st-temp t-mild">20&deg;</span><span class="st-regen">40%</span></div>
+              <div class="stunde"><span class="zeit">20</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="st-temp t-mild">19&deg;</span><span class="st-regen">&nbsp;</span></div>
+              <div class="stunde"><span class="zeit">21</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-night.svg" alt="" /><span class="st-temp t-mild">18&deg;</span><span class="st-regen">&nbsp;</span></div>
+              <div class="stunde"><span class="zeit">22</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-night.svg" alt="" /><span class="st-temp t-kuehl">17&deg;</span><span class="st-regen">&nbsp;</span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 3) Tagesvorhersage 7 Tage -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">7-Tage-Vorhersage <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="tage">
+              <div class="tag"><span class="wtag">Heute</span><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day-rain.svg" alt="" /><span class="temp-band"><span style="left: 30%; right: 8%"></span></span><span class="hilo"><span class="hi">27&deg;</span> <span class="lo">15&deg;</span></span></div>
+              <div class="tag"><span class="wtag">Mi</span><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp-band"><span style="left: 22%; right: 20%"></span></span><span class="hilo"><span class="hi">23&deg;</span> <span class="lo">14&deg;</span></span></div>
+              <div class="tag"><span class="wtag">Do</span><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="temp-band"><span style="left: 26%; right: 10%"></span></span><span class="hilo"><span class="hi">26&deg;</span> <span class="lo">15&deg;</span></span></div>
+              <div class="tag"><span class="wtag">Fr</span><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="temp-band"><span style="left: 30%; right: 4%"></span></span><span class="hilo"><span class="hi">29&deg;</span> <span class="lo">16&deg;</span></span></div>
+              <div class="tag"><span class="wtag">Sa</span><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="temp-band"><span style="left: 34%; right: 2%"></span></span><span class="hilo"><span class="hi">31&deg;</span> <span class="lo">18&deg;</span></span></div>
+              <div class="tag"><span class="wtag">So</span><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="temp-band"><span style="left: 28%; right: 12%"></span></span><span class="hilo"><span class="hi">25&deg;</span> <span class="lo">17&deg;</span></span></div>
+              <div class="tag"><span class="wtag">Mo</span><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp-band"><span style="left: 24%; right: 16%"></span></span><span class="hilo"><span class="hi">24&deg;</span> <span class="lo">15&deg;</span></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 4) Mini-Kachel -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Mini</span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper mini">
+            <span class="mini-ort">Frankfurt</span>
+            <img class="mc gross" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" />
+            <span class="temp temp-gross t-heiss">26&deg;</span>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 5) Orte-Vergleich -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Orte-Vergleich</span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Orte wählen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="reihe luecke" style="padding: var(--a2) 0; border-bottom: 1px solid var(--rand)">
+              <img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+              <span>Köln</span><span class="spacer"></span>
+              <span class="tnum t-warm" style="font-weight: 600; font-size: 1.05rem">24&deg;</span>
+            </div>
+            <div class="reihe luecke" style="padding: var(--a2) 0; border-bottom: 1px solid var(--rand)">
+              <img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" />
+              <span>Frankfurt</span><span class="spacer"></span>
+              <span class="tnum t-heiss" style="font-weight: 600; font-size: 1.05rem">26&deg;</span>
+            </div>
+            <div class="reihe luecke" style="padding: var(--a2) 0">
+              <img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" />
+              <span>Berlin</span><span class="spacer"></span>
+              <span class="tnum t-warm" style="font-weight: 600; font-size: 1.05rem">22&deg;</span>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 6) Wetterbericht in Worten -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Wetterbericht <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Neu erzeugen"><i class="fa-solid fa-rotate"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <p style="margin: 0; font-size: 0.9rem; color: var(--text-2)">
+              Am Nachmittag ziehen von Südwesten kräftige Gewitter auf, örtlich mit Starkregen und
+              Böen bis 60 km/h. Bis zum Abend beruhigt sich die Lage, nachts bleibt es mild bei 17&deg;.
+            </p>
+            <div class="klein-txt dimm" style="margin-top: auto"><i class="fa-solid fa-wand-magic-sparkles"></i> erzeugt lokal - optional</div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+
+      <!-- ============================================================ FAMILIE KARTE -->
+      <p class="galerie-titel">Familie Karte</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--a3)">
+        <!-- 7) Karte -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Karte <span class="ort">Radar</span></span>
+            <span class="kw-werkz"><a class="icon-knopf" href="/mockups/karte.html" title="Groß"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></a></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="karten-flaeche" style="min-height: 0">
+              <div class="radar-blob" style="width: 84px; height: 64px; left: 26%; top: 30%"></div>
+              <div class="radar-blob" style="width: 48px; height: 42px; left: 58%; top: 54%; opacity: 0.55"></div>
+              <div class="overlay-leiste">
+                <span class="chip aktiv">Radar</span>
+                <span class="chip">Wind</span>
+                <span class="chip">Warnungen</span>
+              </div>
+              <div class="karten-legende">mm/h<div class="legende-skala"></div></div>
+              <div class="attribution">&copy; OpenStreetMap &middot; DWD RADOLAN</div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 8) Radar-Animation -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Radar-Animation <span class="ort">letzte 2 h</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="karten-flaeche" style="min-height: 0">
+              <div class="radar-blob" style="width: 70px; height: 56px; left: 40%; top: 34%"></div>
+              <div class="radar-blob" style="width: 40px; height: 34px; left: 20%; top: 56%; opacity: 0.5"></div>
+              <div class="attribution">DWD RADOLAN RV</div>
+            </div>
+            <div class="reihe" style="gap: var(--a2); margin-top: var(--a2)">
+              <button class="icon-knopf" title="Abspielen"><i class="fa-solid fa-play"></i></button>
+              <div style="flex: 1; height: 6px; border-radius: 3px; background: var(--flaeche-3); position: relative">
+                <span style="position: absolute; left: 0; top: 0; bottom: 0; width: 78%; border-radius: 3px; background: var(--akzent)"></span>
+                <span style="position: absolute; left: 78%; top: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--akzent); transform: translateX(-50%)"></span>
+              </div>
+            </div>
+            <div class="reihe luecke klein-txt dimm tnum" style="margin-top: 2px">
+              <span>-2 h</span><span class="spacer"></span><span>-1 h</span><span class="spacer"></span><span>jetzt</span>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 9) Blitze -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Blitze <span class="ort">Umkreis 50 km</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Live"><i class="fa-solid fa-satellite-dish"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="reihe" style="gap: var(--a3)">
+              <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/lightning-bolt.svg" alt="" />
+              <div><span class="blitz-zahl">23</span> <span class="dimm klein-txt">letzte Stunde</span></div>
+            </div>
+            <div class="blitz-liste">
+              <div class="bz"><span>vor 2 Min</span><span>12 km SO</span></div>
+              <div class="bz"><span>vor 6 Min</span><span>18 km S</span></div>
+              <div class="bz"><span>vor 11 Min</span><span>27 km SW</span></div>
+              <div class="bz"><span>vor 18 Min</span><span>34 km SW</span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 10) Regen-Nowcast -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Regen-Nowcast <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="nowcast-text">Regen in <b>25 Minuten</b> &middot; leicht, dann stärker</div>
+            <div class="nowcast-balken">
+              <span class="nb" style="height: 6%"></span><span class="nb" style="height: 6%"></span>
+              <span class="nb" style="height: 8%"></span><span class="nb" style="height: 10%"></span>
+              <span class="nb" style="height: 18%"></span><span class="nb" style="height: 34%"></span>
+              <span class="nb" style="height: 52%"></span><span class="nb" style="height: 70%"></span>
+              <span class="nb" style="height: 86%"></span><span class="nb" style="height: 72%"></span>
+              <span class="nb" style="height: 60%"></span><span class="nb" style="height: 40%"></span>
+            </div>
+            <div class="nowcast-achse"><span>jetzt</span><span>+30</span><span>+60</span><span>+90 Min</span></div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 11) Wind-Overlay -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Wind-Overlay <span class="ort">10 m</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Höhe wählen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="karten-flaeche" style="min-height: 0">
+              <i class="fa-solid fa-location-arrow" style="position: absolute; left: 16%; top: 22%; color: var(--akzent); transform: rotate(90deg)"></i>
+              <i class="fa-solid fa-location-arrow" style="position: absolute; left: 44%; top: 28%; color: var(--akzent); transform: rotate(105deg)"></i>
+              <i class="fa-solid fa-location-arrow" style="position: absolute; left: 72%; top: 24%; color: var(--akzent); transform: rotate(90deg)"></i>
+              <i class="fa-solid fa-location-arrow" style="position: absolute; left: 24%; top: 54%; color: var(--akzent-stark); transform: rotate(120deg)"></i>
+              <i class="fa-solid fa-location-arrow" style="position: absolute; left: 54%; top: 58%; color: var(--akzent-stark); transform: rotate(110deg)"></i>
+              <i class="fa-solid fa-location-arrow" style="position: absolute; left: 80%; top: 60%; color: var(--akzent); transform: rotate(100deg)"></i>
+              <div class="karten-legende">Böen bis 45 km/h</div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+
+      <!-- ============================================================ FAMILIE UMWELT -->
+      <p class="galerie-titel">Familie Umwelt</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--a3)">
+        <!-- 12) Warnungen -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Warnungen <span class="ort">Burgenlandkreis</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="warnbanner warnstufe-3">
+              <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day.svg" alt="" />
+              <div class="wb-txt"><div class="wb-titel">Markantes Gewitter</div><div class="wb-zeit">Heute 17:00 - 21:00 Uhr &middot; Stufe 3</div></div>
+            </div>
+            <div class="warnbanner warnstufe-1">
+              <i class="fa-solid fa-wind fa-lg"></i>
+              <div class="wb-txt"><div class="wb-titel">Windböen bis 60 km/h</div><div class="wb-zeit">Heute 16:00 - 22:00 Uhr &middot; Stufe 1</div></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 13) Luftqualität -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Luftqualität <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="gauge-zeile">
+              <div class="gauge">
+                <svg class="spark" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet">
+                  <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--flaeche-3); stroke-width: 9; stroke-linecap: round" />
+                  <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--gut); stroke-width: 9; stroke-linecap: round" pathLength="100" stroke-dasharray="17 100" />
+                </svg>
+                <span class="gwert" style="color: var(--gut)">34</span>
+              </div>
+              <div class="spalte">
+                <div><b>Gut</b> <span class="dimm klein-txt">(EU-AQI)</span></div>
+                <div class="klein-txt tnum">PM2,5 8 &middot; PM10 15</div>
+                <div class="klein-txt tnum">O3 62 &middot; NO2 11</div>
+              </div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 14) Pollenflug -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Pollenflug <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="pollen-liste">
+              <div class="pollen-zeile"><span>Gräser</span><span class="pollen-stufen"><span class="ps an1"></span><span class="ps an2"></span><span class="ps an3"></span></span></div>
+              <div class="pollen-zeile"><span>Beifuß</span><span class="pollen-stufen"><span class="ps an1"></span><span class="ps an2"></span><span class="ps"></span></span></div>
+              <div class="pollen-zeile"><span>Roggen</span><span class="pollen-stufen"><span class="ps an1"></span><span class="ps"></span><span class="ps"></span></span></div>
+              <div class="pollen-zeile"><span>Birke</span><span class="pollen-stufen"><span class="ps"></span><span class="ps"></span><span class="ps"></span></span></div>
+              <div class="pollen-zeile"><span>Ambrosia</span><span class="pollen-stufen"><span class="ps"></span><span class="ps"></span><span class="ps"></span></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 15) UV-Index -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">UV-Index <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="gauge-zeile">
+              <div class="gauge">
+                <svg class="spark" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet">
+                  <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--flaeche-3); stroke-width: 9; stroke-linecap: round" />
+                  <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--t-heiss); stroke-width: 9; stroke-linecap: round" pathLength="100" stroke-dasharray="55 100" />
+                </svg>
+                <span class="gwert" style="color: var(--t-heiss)">6</span>
+              </div>
+              <div class="spalte">
+                <div><b>Hoch</b></div>
+                <div class="klein-txt dimm">Schutz 11 - 15 Uhr</div>
+                <div class="klein-txt dimm">Maximum 13:20 Uhr</div>
+              </div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 16) Sonne & Mond -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Sonne &amp; Mond <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <svg class="sonnenbogen" viewBox="0 0 200 70" preserveAspectRatio="xMidYMid meet">
+              <path d="M8,62 Q100,-4 192,62" style="fill: none; stroke: var(--rand); stroke-width: 2; stroke-dasharray: 3 4" />
+              <path d="M8,62 Q100,-4 192,62" style="fill: none; stroke: var(--warn); stroke-width: 2.5" pathLength="100" stroke-dasharray="66 100" />
+              <circle cx="140" cy="17" r="6" style="fill: var(--warn)" />
+            </svg>
+            <div class="sm-zeiten">
+              <span><i class="fa-solid fa-arrow-up dimm"></i> 05:42</span>
+              <span class="reihe"><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/moon-waxing-gibbous.svg" alt="" /> zunehmend 78%</span>
+              <span><i class="fa-solid fa-arrow-down dimm"></i> 21:18</span>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 17) Komfort / Gesundheit -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Komfort <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="reihe" style="gap: var(--a2)">
+              <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/thermometer.svg" alt="" />
+              <span class="klein-txt dimm">Schwül-warm, spürbar drückend</span>
+            </div>
+            <div class="kv-gitter">
+              <div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">26&deg;</span><span class="kv-lab">Gefühlt</span></span></div>
+              <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">17&deg;</span><span class="kv-lab">Taupunkt</span></span></div>
+              <div class="kv"><i class="fa-solid fa-sun"></i><span class="kv-txt"><span class="kv-wert">28&deg;</span><span class="kv-lab">Hitzeindex</span></span></div>
+              <div class="kv"><i class="fa-solid fa-water"></i><span class="kv-txt"><span class="kv-wert">mäßig</span><span class="kv-lab">Schwüle</span></span></div>
+              <div class="kv"><i class="fa-solid fa-snowflake"></i><span class="kv-txt"><span class="kv-wert">keine</span><span class="kv-lab">Frostgefahr</span></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+
+      <!-- ============================================================ FAMILIE DETAIL -->
+      <p class="galerie-titel">Familie Detail</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--a3)">
+        <!-- 18) Wind -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Wind <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="gauge-zeile">
+              <svg class="kompass" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" style="fill: none; stroke: var(--rand); stroke-width: 2" />
+                <g style="stroke: var(--rand-stark); stroke-width: 2">
+                  <line x1="50" y1="7" x2="50" y2="15" /><line x1="93" y1="50" x2="85" y2="50" />
+                  <line x1="50" y1="93" x2="50" y2="85" /><line x1="7" y1="50" x2="15" y2="50" />
+                </g>
+                <text x="50" y="22" text-anchor="middle" style="fill: var(--text-3); font-size: 9px">N</text>
+                <line x1="50" y1="50" x2="32" y2="32" style="stroke: var(--akzent); stroke-width: 3; stroke-linecap: round" />
+                <polygon points="32,32 43,34 34,43" style="fill: var(--akzent)" />
+                <circle cx="50" cy="50" r="4" style="fill: var(--akzent)" />
+              </svg>
+              <div class="spalte">
+                <div><span class="temp temp-mittel">14</span> <span class="dimm">km/h</span></div>
+                <div class="klein-txt">Böen <b class="tnum">32 km/h</b></div>
+                <div class="klein-txt dimm">aus Nordwest (315&deg;)</div>
+              </div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 19) Niederschlag / Schnee -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Niederschlag <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="reihe" style="gap: var(--a2)">
+              <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/raindrop.svg" alt="" />
+              <span class="klein-txt dimm">Leichter Regen, nachlassend</span>
+            </div>
+            <div class="kv-gitter">
+              <div class="kv"><i class="fa-solid fa-cloud-rain"></i><span class="kv-txt"><span class="kv-wert">2,4 mm/h</span><span class="kv-lab">Rate</span></span></div>
+              <div class="kv"><i class="fa-solid fa-water"></i><span class="kv-txt"><span class="kv-wert">12 mm</span><span class="kv-lab">Summe 24 h</span></span></div>
+              <div class="kv"><i class="fa-solid fa-snowflake"></i><span class="kv-txt"><span class="kv-wert">0 cm</span><span class="kv-lab">Schneehöhe</span></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 20) Barometer -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Luftdruck <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center">
+            <div class="baro-wert"><span class="zahl">1012</span><span class="dimm">hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
+            <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 40px; margin-top: 8px">
+              <polyline points="0,8 16,7 32,9 48,13 64,17 80,20 100,24" style="fill: none; stroke: var(--gefahr); stroke-width: 2" />
+            </svg>
+            <div class="klein-txt dimm">Fallend - Wetterverschlechterung wahrscheinlich</div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 21) Sicht / Nebel -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Sicht &amp; Nebel <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="reihe" style="gap: var(--a2)">
+              <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/fog.svg" alt="" />
+              <span class="klein-txt dimm">Klare Fernsicht, kein Nebel</span>
+            </div>
+            <div class="kv-gitter">
+              <div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">24 km</span><span class="kv-lab">Sicht</span></span></div>
+              <div class="kv"><i class="fa-solid fa-cloud"></i><span class="kv-txt"><span class="kv-wert">900 m</span><span class="kv-lab">Wolkenbasis</span></span></div>
+              <div class="kv"><i class="fa-solid fa-smog"></i><span class="kv-txt"><span class="kv-wert">gering</span><span class="kv-lab">Nebelrisiko</span></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+
+      <!-- ============================================================ FAMILIE ARCHIV -->
+      <p class="galerie-titel">Familie Archiv</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--a3)">
+        <!-- 22) Historie-Graph -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Temperaturverlauf <span class="ort">Archiv</span></span>
+            <span class="kw-werkz"><span class="segment"><button class="aktiv">24 h</button><button>7 T</button><button>30 T</button></span></span>
+          </div>
+          <div class="kw-koerper">
+            <svg class="chart-flaeche" viewBox="0 0 320 96" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="tflaeche" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#2f7ce0" stop-opacity="0.30" />
+                  <stop offset="1" stop-color="#2f7ce0" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M0,72 L26,74 L52,78 L78,70 L104,54 L130,40 L156,30 L182,26 L208,30 L234,38 L260,50 L286,60 L320,64 L320,96 L0,96 Z" fill="url(#tflaeche)" />
+              <polyline points="0,72 26,74 52,78 78,70 104,54 130,40 156,30 182,26 208,30 234,38 260,50 286,60 320,64" style="fill: none; stroke: var(--akzent); stroke-width: 2" />
+            </svg>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 23) Rekorde & Klima-Abweichung -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Rekorde &amp; Abweichung <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center; gap: var(--a2)">
+            <div class="reihe luecke"><span class="dimm klein-txt">Monatsmittel Juli</span><span class="spacer"></span><span class="tnum" style="font-weight: 600">18,4&deg;</span> <span class="pille warn">+1,2 K</span></div>
+            <div class="reihe luecke"><span class="dimm klein-txt">Tagesrekord</span><span class="spacer"></span><span class="tnum" style="font-weight: 600">34,6&deg;</span> <span class="dimm klein-txt">2019</span></div>
+            <div class="reihe luecke"><span class="dimm klein-txt">Frosttage 2026</span><span class="spacer"></span><span class="tnum" style="font-weight: 600">0</span></div>
+            <div class="reihe luecke"><span class="dimm klein-txt">Niederschlag Monat</span><span class="spacer"></span><span class="tnum" style="font-weight: 600">42 mm</span> <span class="pille gut">-18 %</span></div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 24) Jahres-Heatmap -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Jahres-Heatmap <span class="ort">Tageshöchstwert</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Jahr wählen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center; gap: var(--a2)">
+            <div class="heatmap" id="jahres-heatmap"></div>
+            <div class="reihe luecke klein-txt dimm">
+              <span>Jan</span><span class="spacer"></span><span>Apr</span><span class="spacer"></span><span>Jul</span><span class="spacer"></span><span>Okt</span><span class="spacer"></span><span>Dez</span>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 25) Aufzeichnungs-Manager -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Aufzeichnung <span class="ort">Stationen</span></span>
+            <span class="kw-werkz"><a class="icon-knopf" href="/mockups/aufzeichnung.html" title="Verwalten"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></a></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center; gap: var(--a1)">
+            <div class="reihe luecke" style="padding: var(--a1) 0">
+              <span class="spalte" style="gap: 0"><b class="klein-txt">Köln Zentrum</b><small class="dimm" style="font-size: 0.72rem">Temp, Feuchte, Druck</small></span>
+              <span class="spacer"></span><button class="schalter an"></button>
+            </div>
+            <div class="reihe luecke" style="padding: var(--a1) 0">
+              <span class="spalte" style="gap: 0"><b class="klein-txt">Frankfurt-Halle</b><small class="dimm" style="font-size: 0.72rem">Temp, Wind, Regen</small></span>
+              <span class="spacer"></span><button class="schalter an"></button>
+            </div>
+            <div class="reihe luecke" style="padding: var(--a1) 0">
+              <span class="spalte" style="gap: 0"><b class="klein-txt">Berlin-Tegel</b><small class="dimm" style="font-size: 0.72rem">nur Temperatur</small></span>
+              <span class="spacer"></span><button class="schalter"></button>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+
+      <!-- ============================================================ FAMILIE RAHMEN -->
+      <p class="galerie-titel">Familie Rahmen</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--a3)">
+        <!-- 26) Uhr / Standort-Header -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Uhr &amp; Standort</span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center; align-items: center; text-align: center; gap: var(--a1)">
+            <div class="tnum" style="font-size: 2.8rem; font-weight: 700; line-height: 1">14:37</div>
+            <div class="dimm klein-txt">Dienstag, 29. Juli 2026</div>
+            <div class="reihe" style="gap: var(--a2)">
+              <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+              <b>Köln</b> <span class="dimm tnum">24&deg;, wolkig</span>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 27) Schwellenwert-Alarm -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Schwellenwert-Alarm <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Regel hinzufügen"><i class="fa-solid fa-plus"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center; gap: var(--a1)">
+            <div class="reihe luecke" style="padding: var(--a1) 0">
+              <span class="klein-txt">Temperatur &lt; 0&deg;C</span><span class="spacer"></span><button class="schalter an"></button>
+            </div>
+            <div class="reihe luecke" style="padding: var(--a1) 0">
+              <span class="klein-txt">Regen &gt; 5 mm/h</span><span class="spacer"></span><button class="schalter an"></button>
+            </div>
+            <div class="reihe luecke" style="padding: var(--a1) 0">
+              <span class="klein-txt">Windböen &gt; 70 km/h</span><span class="spacer"></span><button class="schalter"></button>
+            </div>
+            <div class="reihe luecke" style="padding: var(--a1) 0">
+              <span class="klein-txt">UV-Index &gt; 7</span><span class="spacer"></span><button class="schalter"></button>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- 28) Datenquellen / Status -->
+        <div class="kachel-w" style="height: 200px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Datenquellen</span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Aktualisieren"><i class="fa-solid fa-rotate"></i></button></span>
+          </div>
+          <div class="kw-koerper" style="justify-content: center; gap: var(--a2)">
+            <div class="reihe luecke">
+              <span class="pulspunkt"></span><span class="klein-txt">DWD RADOLAN</span><span class="spacer"></span><span class="pille gut">aktuell</span>
+            </div>
+            <div class="reihe luecke">
+              <span class="pulspunkt"></span><span class="klein-txt">Open-Meteo</span><span class="spacer"></span><span class="pille akz">vor 8 Min</span>
+            </div>
+            <div class="reihe luecke">
+              <span class="pulspunkt"></span><span class="klein-txt">Bright Sky - Warnungen</span><span class="spacer"></span><span class="pille gut">aktuell</span>
+            </div>
+            <div class="reihe luecke">
+              <span class="pulspunkt" style="background: var(--warn)"></span><span class="klein-txt">Blitzortung</span><span class="spacer"></span><span class="pille warn">verzögert</span>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => {
+        document.documentElement.dataset.theme = t;
+        document.querySelectorAll("[data-theme-btn]").forEach((b) => b.classList.toggle("aktiv", b.dataset.themeBtn === t));
+      };
+      document.querySelectorAll("[data-theme-btn]").forEach((b) => (b.onclick = () => setzeThema(b.dataset.themeBtn)));
+      setzeThema("hell");
+      document.querySelectorAll(".tabgruppe, .segment").forEach((g) => {
+        g.querySelectorAll("button").forEach((b) =>
+          b.addEventListener("click", () => {
+            if (b.classList.contains("still")) return;
+            g.querySelectorAll("button").forEach((x) => x.classList.remove("aktiv"));
+            b.classList.add("aktiv");
+          }),
+        );
+      });
+      document.querySelectorAll(".overlay-leiste .chip").forEach((c) => c.addEventListener("click", () => c.classList.toggle("aktiv")));
+      document.querySelectorAll(".schalter").forEach((s) => s.addEventListener("click", () => s.classList.toggle("an")));
+      // Jahres-Heatmap mit saisonalem Verlauf füllen (kalt bis warm bis kalt)
+      const hm = document.getElementById("jahres-heatmap");
+      if (hm) {
+        const farben = ["var(--t-frost)", "var(--t-kalt)", "var(--t-kuehl)", "var(--t-mild)", "var(--t-warm)", "var(--t-heiss)", "var(--t-extrem)"];
+        const n = 90;
+        for (let i = 0; i < n; i++) {
+          const saison = Math.sin((i / (n - 1)) * Math.PI);
+          let idx = Math.round(saison * 6) + ((i % 3) - 1);
+          idx = Math.max(0, Math.min(6, idx));
+          const z = document.createElement("span");
+          z.className = "hz";
+          z.style.background = farben[idx];
+          hm.appendChild(z);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Archiv &amp; Analyse</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ======================= Kopfleiste ======================= -->
+      <header class="kopf">
+        <div class="marke">
+          <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          Wetterwarte
+        </div>
+        <div class="kopf-suche">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Ort suchen ..." />
+        </div>
+        <div class="layout-tabs tabgruppe">
+          <button class="aktiv"><i class="fa-solid fa-house"></i> Zuhause</button>
+          <button><i class="fa-solid fa-seedling"></i> Garten</button>
+          <button><i class="fa-solid fa-suitcase-rolling"></i> Reise</button>
+          <button><i class="fa-solid fa-triangle-exclamation"></i> Unwetter</button>
+          <button class="still" title="Neues Layout"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div class="kopf-rechts">
+          <a class="knopf primaer" href="/mockups/katalog.html"><i class="fa-solid fa-plus"></i> Kachel</a>
+          <a class="icon-knopf" href="/mockups/layouts.html" title="Layout bearbeiten"><i class="fa-solid fa-pen"></i></a>
+          <a class="icon-knopf" href="/mockups/hilfe.html" title="Hilfe"><i class="fa-solid fa-circle-question"></i></a>
+        </div>
+      </header>
+
+      <!-- ======================= Navigation ======================= -->
+      <nav class="nav">
+        <div class="nav-titel">Orte <button class="plus" title="Ort hinzufügen"><i class="fa-solid fa-plus"></i></button></div>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          <span class="haupt">Köln <small>Sachsen-Anhalt</small></span>
+          <span class="grad">24&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" />
+          <span class="haupt">Frankfurt <small>Sachsen</small></span>
+          <span class="grad">26&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" />
+          <span class="haupt">Berlin <small>Berlin</small></span>
+          <span class="grad">22&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" />
+          <span class="haupt">Hamburg <small>Hamburg</small></span>
+          <span class="grad">19&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day.svg" alt="" />
+          <span class="haupt">München <small>Bayern</small></span>
+          <span class="grad">21&deg;</span>
+        </a>
+
+        <div class="nav-titel" style="margin-top: var(--a3)">Ansichten</div>
+        <a class="nav-eintrag" href="/mockups/karte.html"><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></a>
+        <a class="nav-eintrag" href="/mockups/aufzeichnung.html"><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></a>
+        <a class="nav-eintrag aktiv" href="/mockups/archiv.html"><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv &amp; Analyse</span></a>
+        <a class="nav-eintrag" href="/mockups/kacheln.html"><i class="fa-solid fa-shapes"></i> <span class="haupt">Kachel-Katalog</span></a>
+
+        <div class="nav-fuss">
+          <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
+          <div class="nav-version">Wetterwarte v0.1.0 - lokal</div>
+        </div>
+      </nav>
+
+      <!-- ======================= Inhalt ======================= -->
+      <section class="inhalt">
+        <div class="seite">
+          <h1>Archiv &amp; Analyse</h1>
+          <p class="unter-gross">
+            Langzeitdaten aus der eigenen PostgreSQL - Verläufe, Rekorde und Abweichungen vom
+            Klimamittel (Normalperiode 1991-2020).
+          </p>
+
+          <!-- Steuerzeile -->
+          <div class="reihe" style="gap: var(--a3); flex-wrap: wrap; margin-bottom: var(--a4)">
+            <select class="feld" style="width: auto; min-width: 210px">
+              <option>Station: Köln (04501)</option>
+              <option>Station: Frankfurt-Holzhausen (04502)</option>
+              <option>Station: Berlin-Tempelhof (10384)</option>
+              <option>Station: Hamburg-Fuhlsbüttel (10147)</option>
+              <option>Station: München-Stadt (10865)</option>
+            </select>
+            <span class="segment">
+              <button class="aktiv">Temperatur</button>
+              <button>Niederschlag</button>
+              <button>Wind</button>
+              <button>Druck</button>
+            </span>
+            <span class="segment">
+              <button>24 h</button>
+              <button>7 Tage</button>
+              <button class="aktiv">30 Tage</button>
+              <button>Jahr</button>
+            </span>
+          </div>
+
+          <!-- Panel: Verlauf -->
+          <div class="panel">
+            <h2><i class="fa-solid fa-chart-line"></i> Verlauf</h2>
+            <p class="unter">Tagesmittel der Lufttemperatur, letzte 30 Tage &middot; Station Köln (04501)</p>
+            <svg class="chart-flaeche" viewBox="0 0 600 180" preserveAspectRatio="none" style="height: 180px; width: 100%">
+              <defs>
+                <linearGradient id="tflaeche" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#2f7ce0" stop-opacity="0.30" />
+                  <stop offset="1" stop-color="#2f7ce0" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <!-- waagerechte Hilfslinien -->
+              <g style="stroke: var(--rand); stroke-width: 1">
+                <line x1="0" y1="46" x2="600" y2="46" />
+                <line x1="0" y1="98" x2="600" y2="98" />
+                <line x1="0" y1="150" x2="600" y2="150" />
+              </g>
+              <path
+                d="M0,137 L21,131 L41,118 L62,124 L83,111 L103,98 L124,105 L145,118 L165,131 L186,124 L207,111 L228,92 L248,79 L269,66 L290,53 L310,40 L331,46 L352,59 L372,85 L393,105 L414,118 L434,98 L455,85 L476,72 L497,59 L517,46 L538,66 L559,92 L579,111 L600,124 L600,180 L0,180 Z"
+                fill="url(#tflaeche)"
+              />
+              <polyline
+                points="0,137 21,131 41,118 62,124 83,111 103,98 124,105 145,118 165,131 186,124 207,111 228,92 248,79 269,66 290,53 310,40 331,46 352,59 372,85 393,105 414,118 434,98 455,85 476,72 497,59 517,46 538,66 559,92 579,111 600,124"
+                style="fill: none; stroke: var(--akzent); stroke-width: 2"
+              />
+            </svg>
+            <div class="reihe" style="justify-content: space-between; margin-top: var(--a2)">
+              <span class="klein-txt dimm">30. Juni</span>
+              <span class="klein-txt dimm">14. Juli</span>
+              <span class="klein-txt dimm">29. Juli</span>
+            </div>
+          </div>
+
+          <!-- Panel: Rekorde & Klima-Abweichung -->
+          <div class="panel">
+            <h2><i class="fa-solid fa-award"></i> Rekorde &amp; Klima-Abweichung</h2>
+            <p class="unter">Juli 2026 im Vergleich zur Normalperiode 1991-2020</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--a3)">
+              <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
+                <div class="tnum t-mild" style="font-size: 1.9rem; font-weight: 600; line-height: 1">18,4&deg;</div>
+                <div class="klein-txt dimm" style="margin: 4px 0 var(--a2)">Monatsmittel</div>
+                <span class="pille warn">+1,2 K vs. Normal</span>
+              </div>
+              <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
+                <div class="tnum t-extrem" style="font-size: 1.9rem; font-weight: 600; line-height: 1">34,6&deg;</div>
+                <div class="klein-txt dimm" style="margin: 4px 0 var(--a2)">Tagesrekord Höchstwert</div>
+                <small class="dimm tnum">20.07.2022</small>
+              </div>
+              <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
+                <div class="tnum" style="font-size: 1.9rem; font-weight: 600; line-height: 1">42 mm</div>
+                <div class="klein-txt dimm" style="margin: 4px 0 var(--a2)">Niederschlag</div>
+                <span class="pille">78% des Solls</span>
+              </div>
+              <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
+                <div class="tnum" style="font-size: 1.9rem; font-weight: 600; line-height: 1">232 h</div>
+                <div class="klein-txt dimm" style="margin: 4px 0 var(--a2)">Sonnenstunden</div>
+                <span class="pille gut">+18 h vs. Normal</span>
+              </div>
+              <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
+                <div class="tnum t-frost" style="font-size: 1.9rem; font-weight: 600; line-height: 1">0</div>
+                <div class="klein-txt dimm" style="margin: 4px 0 var(--a2)">Frosttage</div>
+                <small class="dimm">unter 0&deg; Tiefstwert</small>
+              </div>
+              <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
+                <div class="tnum t-heiss" style="font-size: 1.9rem; font-weight: 600; line-height: 1">6</div>
+                <div class="klein-txt dimm" style="margin: 4px 0 var(--a2)">Hitzetage</div>
+                <small class="dimm">ab 30&deg; Höchstwert</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel: Jahresrückblick -->
+          <div class="panel">
+            <h2><i class="fa-solid fa-calendar"></i> Jahresrückblick (Temperatur je Tag)</h2>
+            <p class="unter">Tagesmittel Januar bis Dezember - eine Zelle je Tag, Farbe nach Temperatur</p>
+            <div class="heatmap">
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-frost)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-extrem)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-heiss)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-warm)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-mild)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kuehl)"></span>
+              <span class="hz" style="background:var(--t-kalt)"></span>
+            </div>
+            <div class="reihe" style="justify-content: flex-end; gap: var(--a2); margin-top: var(--a3)">
+              <span class="klein-txt dimm">kühl</span>
+              <span class="reihe" style="gap: 3px"><span style="width:14px;height:14px;border-radius:2px;background:var(--t-frost)"></span><span style="width:14px;height:14px;border-radius:2px;background:var(--t-kalt)"></span><span style="width:14px;height:14px;border-radius:2px;background:var(--t-kuehl)"></span><span style="width:14px;height:14px;border-radius:2px;background:var(--t-mild)"></span><span style="width:14px;height:14px;border-radius:2px;background:var(--t-warm)"></span><span style="width:14px;height:14px;border-radius:2px;background:var(--t-heiss)"></span><span style="width:14px;height:14px;border-radius:2px;background:var(--t-extrem)"></span></span>
+              <span class="klein-txt dimm">heiß</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => { document.documentElement.dataset.theme = t; document.querySelectorAll('[data-theme-btn]').forEach((b)=>b.classList.toggle('aktiv', b.dataset.themeBtn===t)); };
+      document.querySelectorAll('[data-theme-btn]').forEach((b)=>(b.onclick=()=>setzeThema(b.dataset.themeBtn)));
+      setzeThema('hell');
+      document.querySelectorAll('.tabgruppe, .segment').forEach((g)=>{ g.querySelectorAll('button').forEach((b)=>b.addEventListener('click',()=>{ if(b.classList.contains('still'))return; g.querySelectorAll('button').forEach((x)=>x.classList.remove('aktiv')); b.classList.add('aktiv'); })); });
+      document.querySelectorAll('.overlay-leiste .chip').forEach((c)=>c.addEventListener('click',()=>c.classList.toggle('aktiv')));
+    </script>
+  </body>
+</html>

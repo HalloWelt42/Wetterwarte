@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Kachel-Zustände</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+  </head>
+  <body>
+    <div class="galerie-seite">
+      <!-- ======================= Kopf ======================= -->
+      <div class="galerie-kopf">
+        <div class="marke">
+          <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          Wetterwarte
+        </div>
+      </div>
+      <p class="galerie-unter">Kachel-Zustände - Daten / Laden / Leer / Fehler</p>
+
+      <!-- ======================= Aktuell ======================= -->
+      <div class="galerie-titel">Aktuell-Kachel</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--a3)">
+        <!-- DATEN -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Aktuell <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="aktuell-haupt">
+              <img class="mc gross" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+              <div class="aktuell-block">
+                <span class="temp temp-gross t-warm">24&deg;</span>
+                <span class="aktuell-zustand">Wolkig, später Schauer</span>
+                <span class="aktuell-gefuehlt">Gefühlt 26&deg;</span>
+              </div>
+            </div>
+            <div class="kv-gitter">
+              <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">68 %</span><span class="kv-lab">Feuchte</span></span></div>
+              <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">14 km/h</span><span class="kv-lab">Wind NW</span></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- LADEN -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Aktuell <span class="ort">Frankfurt</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="reihe" style="gap: var(--a3)">
+              <span class="sk" style="width: 44px; height: 44px; border-radius: 50%; flex: none"></span>
+              <div class="spalte" style="flex: 1">
+                <span class="sk" style="width: 70%; height: 26px"></span>
+                <span class="sk" style="width: 90%; height: 12px"></span>
+                <span class="sk" style="width: 55%; height: 12px"></span>
+              </div>
+            </div>
+            <div class="kv-gitter">
+              <div class="reihe" style="gap: var(--a2)"><span class="sk" style="width: 18px; height: 18px; border-radius: 50%; flex: none"></span><span class="sk" style="width: 60%; height: 14px"></span></div>
+              <div class="reihe" style="gap: var(--a2)"><span class="sk" style="width: 18px; height: 18px; border-radius: 50%; flex: none"></span><span class="sk" style="width: 60%; height: 14px"></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- LEER -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Aktuell <span class="ort">Berlin</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="kw-leer">
+              <i class="fa-solid fa-inbox"></i>
+              <div>Keine Daten für diesen Ort</div>
+              <div class="klein-txt">Anderen Ort wählen</div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- FEHLER -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Aktuell <span class="ort">Hamburg</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="kw-fehler">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <div>Quelle nicht erreichbar</div>
+              <button class="knopf klein">Erneut versuchen</button>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+
+      <!-- ======================= Stundenvorhersage ======================= -->
+      <div class="galerie-titel">Stundenvorhersage-Kachel</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--a3)">
+        <!-- DATEN -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Stundenvorhersage <span class="ort">Köln</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="stunden">
+              <div class="stunde"><span class="zeit">jetzt</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="st-temp t-warm">24&deg;</span><span class="st-regen">&nbsp;</span></div>
+              <div class="stunde"><span class="zeit">15</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="st-temp t-warm">25&deg;</span><span class="st-regen">&nbsp;</span></div>
+              <div class="stunde"><span class="zeit">16</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="st-temp t-warm">24&deg;</span><span class="st-regen">30%</span></div>
+              <div class="stunde"><span class="zeit">17</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day-rain.svg" alt="" /><span class="st-temp t-warm">23&deg;</span><span class="st-regen">70%</span></div>
+              <div class="stunde"><span class="zeit">18</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="st-temp t-mild">21&deg;</span><span class="st-regen">65%</span></div>
+              <div class="stunde"><span class="zeit">19</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="st-temp t-mild">20&deg;</span><span class="st-regen">55%</span></div>
+              <div class="stunde"><span class="zeit">20</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="st-temp t-mild">19&deg;</span><span class="st-regen">30%</span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- LADEN -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Stundenvorhersage <span class="ort">Frankfurt</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="reihe" style="gap: var(--a3); align-items: flex-end; flex: 1">
+              <div class="spalte" style="align-items: center; gap: var(--a1); flex: 1"><span class="sk" style="width: 60%; height: 10px"></span><span class="sk" style="width: 28px; height: 28px; border-radius: 50%"></span><span class="sk" style="width: 70%; height: 12px"></span></div>
+              <div class="spalte" style="align-items: center; gap: var(--a1); flex: 1"><span class="sk" style="width: 60%; height: 10px"></span><span class="sk" style="width: 28px; height: 28px; border-radius: 50%"></span><span class="sk" style="width: 70%; height: 12px"></span></div>
+              <div class="spalte" style="align-items: center; gap: var(--a1); flex: 1"><span class="sk" style="width: 60%; height: 10px"></span><span class="sk" style="width: 28px; height: 28px; border-radius: 50%"></span><span class="sk" style="width: 70%; height: 12px"></span></div>
+              <div class="spalte" style="align-items: center; gap: var(--a1); flex: 1"><span class="sk" style="width: 60%; height: 10px"></span><span class="sk" style="width: 28px; height: 28px; border-radius: 50%"></span><span class="sk" style="width: 70%; height: 12px"></span></div>
+              <div class="spalte" style="align-items: center; gap: var(--a1); flex: 1"><span class="sk" style="width: 60%; height: 10px"></span><span class="sk" style="width: 28px; height: 28px; border-radius: 50%"></span><span class="sk" style="width: 70%; height: 12px"></span></div>
+              <div class="spalte" style="align-items: center; gap: var(--a1); flex: 1"><span class="sk" style="width: 60%; height: 10px"></span><span class="sk" style="width: 28px; height: 28px; border-radius: 50%"></span><span class="sk" style="width: 70%; height: 12px"></span></div>
+              <div class="spalte" style="align-items: center; gap: var(--a1); flex: 1"><span class="sk" style="width: 60%; height: 10px"></span><span class="sk" style="width: 28px; height: 28px; border-radius: 50%"></span><span class="sk" style="width: 70%; height: 12px"></span></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- LEER -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Stundenvorhersage <span class="ort">Berlin</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="kw-leer">
+              <i class="fa-solid fa-inbox"></i>
+              <div>Keine Daten für diesen Ort</div>
+              <div class="klein-txt">Anderen Ort wählen</div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- FEHLER -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Stundenvorhersage <span class="ort">München</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="kw-fehler">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <div>Quelle nicht erreichbar</div>
+              <button class="knopf klein">Erneut versuchen</button>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+
+      <!-- ======================= Karte ======================= -->
+      <div class="galerie-titel">Karten-Kachel</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--a3)">
+        <!-- DATEN -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Karte <span class="ort">Radar</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="karten-flaeche">
+              <div class="radar-blob" style="width: 80px; height: 62px; left: 26%; top: 32%"></div>
+              <div class="radar-blob" style="width: 48px; height: 40px; left: 56%; top: 54%; opacity: 0.55"></div>
+              <div class="overlay-leiste">
+                <span class="chip aktiv">Radar</span>
+                <span class="chip">Wind</span>
+              </div>
+              <div class="karten-legende">mm/h<div class="legende-skala"></div></div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- LADEN -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Karte <span class="ort">Radar</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="sk" style="flex: 1; border-radius: var(--r2); min-height: 0"></div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- LEER -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Karte <span class="ort">Radar</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="kw-leer">
+              <i class="fa-solid fa-inbox"></i>
+              <div>Keine Daten für diesen Ort</div>
+              <div class="klein-txt">Anderen Ort wählen</div>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+
+        <!-- FEHLER -->
+        <div class="kachel-w" style="height: 190px">
+          <div class="kw-kopf">
+            <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+            <span class="kw-titel">Karte <span class="ort">Radar</span></span>
+            <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+          </div>
+          <div class="kw-koerper">
+            <div class="kw-fehler">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <div>Quelle nicht erreichbar</div>
+              <button class="knopf klein">Erneut versuchen</button>
+            </div>
+          </div>
+          <span class="kw-griff"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => {
+        document.documentElement.dataset.theme = t;
+        document.querySelectorAll("[data-theme-btn]").forEach((b) => b.classList.toggle("aktiv", b.dataset.themeBtn === t));
+      };
+      document.querySelectorAll("[data-theme-btn]").forEach((b) => (b.onclick = () => setzeThema(b.dataset.themeBtn)));
+      setzeThema("hell");
+      document.querySelectorAll(".tabgruppe, .segment").forEach((g) => {
+        g.querySelectorAll("button").forEach((b) =>
+          b.addEventListener("click", () => {
+            if (b.classList.contains("still")) return;
+            g.querySelectorAll("button").forEach((x) => x.classList.remove("aktiv"));
+            b.classList.add("aktiv");
+          }),
+        );
+      });
+      document.querySelectorAll(".overlay-leiste .chip").forEach((c) => c.addEventListener("click", () => c.classList.toggle("aktiv")));
+    </script>
+  </body>
+</html>

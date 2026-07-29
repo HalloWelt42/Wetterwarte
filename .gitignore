@@ -1,0 +1,9 @@
+# Abhaengigkeiten
+node_modules/
+frontend/node_modules/
+
+# Laufzeit des Mockup-Viewers
+.run/
+
+# System
+.DS_Store

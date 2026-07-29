@@ -1,0 +1,1796 @@
+/* Wetterwarte - Design-System (Mockup). Echtes CSS, spaeter in den Svelte-Stack
+   uebernehmbar. Hell und dunkel ueber [data-theme] auf <html>. Schrift Barlow,
+   UI-Icons Font Awesome, Wetter-Icons Meteocons. Auswahl/Aktiv wird als
+   Flaechen-Toenung gezeigt, nie als Seitenrand-Akzent. Grundlage: Kellerwolke-
+   Design-Tokens, erweitert um Wetter-Bausteine (Kachelraster, Wetter-Kacheln,
+   Temperatur-Farbskala, atmosphaerische Hintergruende). */
+
+/* ============================================================ Token: hell */
+:root {
+  --bg: #eef1f5;
+  --flaeche: #ffffff;
+  --flaeche-2: #f4f6f9;
+  --flaeche-3: #e9edf2;
+  --rand: #dde3ea;
+  --rand-stark: #c9d2dc;
+  --text: #1b2735;
+  --text-2: #5d6b7b;
+  --text-3: #8593a2;
+  --akzent: #2f7ce0;
+  --akzent-stark: #1f63bd;
+  --akzent-text: #ffffff;
+  --akzent-weich: #e6f0fd;
+  --gut: #2faf5b;
+  --gut-weich: #e3f6ea;
+  --gefahr: #df524f;
+  --gefahr-weich: #fbe7e6;
+  --warn: #d99500;
+  --warn-weich: #fdf1d8;
+  --schatten-1: 0 1px 2px rgba(20, 30, 45, 0.08);
+  --schatten-2: 0 8px 28px rgba(20, 30, 45, 0.18);
+  --a1: 4px;
+  --a2: 8px;
+  --a3: 12px;
+  --a4: 16px;
+  --a5: 24px;
+  --a6: 32px;
+  --r1: 6px;
+  --r2: 10px;
+  --r3: 14px;
+  --zeile-h: 46px;
+  --schnell: 0.12s ease;
+
+  /* Temperatur-Farbskala (in beiden Themes gleich, damit Werte vergleichbar bleiben) */
+  --t-frost: #4aa8ff;
+  --t-kalt: #57c1e0;
+  --t-kuehl: #48b98a;
+  --t-mild: #7bbf4b;
+  --t-warm: #e0a52f;
+  --t-heiss: #e8734a;
+  --t-extrem: #df524f;
+
+  /* Warnstufen DWD (gelb, orange, rot, violett) */
+  --w1: #e6b800;
+  --w2: #e8804a;
+  --w3: #df524f;
+  --w4: #8e44ad;
+  --w1-weich: #fbf1cf;
+  --w2-weich: #fbe6d8;
+  --w3-weich: #fbe0df;
+  --w4-weich: #efe1f5;
+
+  --himmel: #8ec9f2;
+}
+
+/* ============================================================ Token: dunkel */
+:root[data-theme="dunkel"] {
+  --bg: #0f1419;
+  --flaeche: #171d26;
+  --flaeche-2: #1c2430;
+  --flaeche-3: #232d3a;
+  --rand: #2b3543;
+  --rand-stark: #3a4757;
+  --text: #e7edf3;
+  --text-2: #93a1b1;
+  --text-3: #6b7a8a;
+  --akzent: #4aa8ff;
+  --akzent-stark: #6cb8ff;
+  --akzent-text: #06121f;
+  --akzent-weich: #15324d;
+  --gut: #4ade80;
+  --gut-weich: #16321f;
+  --gefahr: #ff6b6b;
+  --gefahr-weich: #3a1d1d;
+  --warn: #e8b54a;
+  --warn-weich: #33290f;
+  --schatten-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --schatten-2: 0 10px 34px rgba(0, 0, 0, 0.5);
+
+  --w1: #e8c34a;
+  --w2: #e89a5a;
+  --w3: #ff6b6b;
+  --w4: #b06cd0;
+  --w1-weich: #33290f;
+  --w2-weich: #33220f;
+  --w3-weich: #3a1d1d;
+  --w4-weich: #2a1633;
+
+  --himmel: #24405c;
+}
+
+/* ============================================================ Grundlagen */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  font-family: "Barlow", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14.5px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+.app,
+.modal-hg {
+  user-select: none;
+}
+input,
+textarea,
+.waehlbar {
+  user-select: text;
+}
+
+/* ============================================================ App-Raster */
+.app {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  grid-template-rows: 56px 1fr;
+  grid-template-areas:
+    "kopf kopf"
+    "nav inhalt";
+}
+.app.mit-detail {
+  grid-template-columns: 264px 1fr 340px;
+  grid-template-areas:
+    "kopf kopf kopf"
+    "nav inhalt detail";
+}
+.app.nav-aus {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "kopf"
+    "inhalt";
+}
+.app.nav-aus > .nav {
+  display: none;
+}
+
+/* ============================================================ Kopfleiste */
+.kopf {
+  grid-area: kopf;
+  display: flex;
+  align-items: center;
+  gap: var(--a4);
+  padding: 0 var(--a4);
+  background: var(--flaeche);
+  border-bottom: 1px solid var(--rand);
+  z-index: 10;
+}
+.marke {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.marke i,
+.marke .mc {
+  color: var(--akzent);
+}
+.marke .mc {
+  width: 26px;
+  height: 26px;
+}
+.kopf-suche {
+  flex: 1;
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  background: var(--flaeche-2);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  padding: 0 var(--a3);
+  height: 38px;
+}
+.kopf-suche i {
+  color: var(--text-3);
+}
+.kopf-suche input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+/* Layout-Umschalter (benannte Dashboards) in der Kopfleiste */
+.layout-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--a1);
+  background: var(--flaeche-2);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  padding: 3px;
+}
+.layout-tabs button {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.86rem;
+  padding: var(--a1) var(--a3);
+  border-radius: var(--r1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a2);
+  white-space: nowrap;
+}
+.layout-tabs button.aktiv {
+  background: var(--akzent-weich);
+  color: var(--akzent-stark);
+  font-weight: 600;
+}
+.layout-tabs button:hover:not(.aktiv) {
+  color: var(--text);
+}
+.kopf-rechts {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+}
+.nutzer-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  color: var(--text-2);
+  padding: var(--a1) var(--a2);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--r2);
+  cursor: pointer;
+  font: inherit;
+}
+.nutzer-chip:hover {
+  background: var(--flaeche-2);
+}
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--akzent);
+  color: var(--akzent-text);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* ============================================================ Navigation */
+.nav {
+  grid-area: nav;
+  background: var(--flaeche);
+  border-right: 1px solid var(--rand);
+  padding: var(--a3) var(--a2);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.nav-fuss {
+  margin-top: auto;
+}
+.nav-titel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a2);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+  padding: var(--a3) var(--a3) var(--a1);
+}
+.nav-titel .plus {
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--r1);
+}
+.nav-titel .plus:hover {
+  color: var(--akzent);
+  background: var(--flaeche-2);
+}
+.nav-eintrag {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a2) var(--a3);
+  border-radius: var(--r2);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--schnell);
+}
+.nav-eintrag > i:first-child,
+.nav-eintrag > .mc {
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  color: var(--text-2);
+  flex: none;
+}
+.nav-eintrag:hover {
+  background: var(--flaeche-2);
+}
+.nav-eintrag.aktiv {
+  background: var(--akzent-weich);
+  color: var(--akzent-stark);
+  font-weight: 600;
+}
+.nav-eintrag.aktiv > i:first-child {
+  color: var(--akzent);
+}
+.nav-eintrag .haupt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.nav-eintrag .haupt small {
+  color: var(--text-3);
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+.nav-eintrag .grad {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+  font-size: 0.9rem;
+}
+.nav-version {
+  margin: var(--a3) var(--a3) var(--a1);
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+.nav-quelle {
+  margin: 0 var(--a3);
+  font-size: 0.72rem;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+}
+.pulspunkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gut);
+  flex: none;
+}
+
+/* ============================================================ Inhalt */
+.inhalt {
+  grid-area: inhalt;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+.werkzeuge {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  padding: var(--a3) var(--a4);
+  flex-wrap: wrap;
+}
+.werkzeuge .luecke {
+  flex: 1;
+}
+.orts-titel {
+  display: flex;
+  align-items: baseline;
+  gap: var(--a2);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.orts-titel small {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--text-3);
+}
+.ansicht-umschalter {
+  display: flex;
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  overflow: hidden;
+}
+.ansicht-umschalter button {
+  border: none;
+  background: var(--flaeche);
+  color: var(--text-2);
+  padding: 0 var(--a3);
+  height: 36px;
+  cursor: pointer;
+  font: inherit;
+}
+.ansicht-umschalter button.aktiv {
+  background: var(--akzent-weich);
+  color: var(--akzent-stark);
+}
+
+/* ============================================================ Buttons / Felder */
+.knopf {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a2);
+  height: 36px;
+  padding: 0 var(--a3);
+  border-radius: var(--r2);
+  border: 1px solid var(--rand);
+  background: var(--flaeche);
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--schnell), border-color var(--schnell);
+  white-space: nowrap;
+}
+.knopf:hover {
+  background: var(--flaeche-2);
+  border-color: var(--rand-stark);
+}
+.knopf.primaer {
+  background: var(--akzent);
+  border-color: var(--akzent);
+  color: var(--akzent-text);
+  font-weight: 600;
+}
+.knopf.primaer:hover {
+  background: var(--akzent-stark);
+}
+.knopf.still {
+  border-color: transparent;
+  background: transparent;
+}
+.knopf.still:hover {
+  background: var(--flaeche-2);
+}
+.knopf.klein {
+  height: 30px;
+  font-size: 0.85rem;
+}
+.icon-knopf {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r2);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--schnell), color var(--schnell);
+}
+.icon-knopf:hover {
+  background: var(--flaeche-2);
+  color: var(--text);
+}
+.icon-knopf.gefahr:hover {
+  background: var(--gefahr-weich);
+  color: var(--gefahr);
+}
+.feld {
+  font: inherit;
+  color: var(--text);
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  padding: 0 var(--a3);
+  height: 38px;
+  width: 100%;
+  outline: none;
+}
+.feld:focus {
+  border-color: var(--akzent);
+}
+.feld-such {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  background: var(--flaeche-2);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  padding: 0 var(--a3);
+  height: 36px;
+}
+.feld-such i {
+  color: var(--text-3);
+}
+.feld-such input {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+  width: 100%;
+}
+/* Schalter (Toggle) */
+.schalter {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--rand-stark);
+  border: none;
+  position: relative;
+  cursor: pointer;
+  flex: none;
+  transition: background var(--schnell);
+}
+.schalter::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left var(--schnell);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.schalter.an {
+  background: var(--akzent);
+}
+.schalter.an::after {
+  left: 20px;
+}
+/* Segment-Umschalter innerhalb einer Kachel */
+.segment {
+  display: inline-flex;
+  border: 1px solid var(--rand);
+  border-radius: var(--r1);
+  overflow: hidden;
+}
+.segment button {
+  border: none;
+  background: var(--flaeche);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 3px var(--a2);
+  cursor: pointer;
+}
+.segment button.aktiv {
+  background: var(--akzent-weich);
+  color: var(--akzent-stark);
+}
+
+/* ============================================================ Badges / Pills / Chips */
+.pille {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a1);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1px var(--a2);
+  border-radius: 999px;
+  border: 1px solid;
+}
+.pille.akz {
+  color: var(--akzent);
+  border-color: var(--akzent);
+}
+.pille.gut {
+  color: var(--gut);
+  border-color: var(--gut);
+}
+.pille.warn {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.pille.gefahr {
+  color: var(--gefahr);
+  border-color: var(--gefahr);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a2);
+  padding: var(--a1) var(--a3);
+  border-radius: 999px;
+  background: var(--flaeche-2);
+  border: 1px solid var(--rand);
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+.chip.aktiv {
+  background: var(--akzent-weich);
+  border-color: var(--akzent);
+  color: var(--akzent-stark);
+}
+.chip .schliessen {
+  color: var(--text-3);
+}
+
+/* ============================================================ Kachelraster (gridstack-Optik) */
+.brett {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: 74px;
+  grid-auto-flow: row dense;
+  gap: var(--a3);
+  padding: var(--a4);
+  align-content: start;
+}
+/* Spalten-/Zeilen-Spannweiten */
+.w2 { grid-column: span 2; }
+.w3 { grid-column: span 3; }
+.w4 { grid-column: span 4; }
+.w5 { grid-column: span 5; }
+.w6 { grid-column: span 6; }
+.w7 { grid-column: span 7; }
+.w8 { grid-column: span 8; }
+.w12 { grid-column: span 12; }
+.h1 { grid-row: span 1; }
+.h2 { grid-row: span 2; }
+.h3 { grid-row: span 3; }
+.h4 { grid-row: span 4; }
+.h5 { grid-row: span 5; }
+
+/* Wetter-Kachel */
+.kachel-w {
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--r3);
+  padding: var(--a3) var(--a4);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--schatten-1);
+  transition: border-color var(--schnell);
+}
+.kachel-w:hover {
+  border-color: var(--rand-stark);
+}
+.kw-kopf {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  margin-bottom: var(--a2);
+  cursor: grab;
+}
+.kw-griffpunkte {
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity var(--schnell);
+  font-size: 0.8rem;
+}
+.kachel-w:hover .kw-griffpunkte {
+  opacity: 0.6;
+}
+.kw-titel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kw-titel .ort {
+  color: var(--text-2);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+.kw-werkz {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--schnell);
+}
+.kachel-w:hover .kw-werkz {
+  opacity: 1;
+}
+.kw-werkz .icon-knopf {
+  width: 26px;
+  height: 26px;
+}
+.kw-koerper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Resize-Griff unten rechts (deutet gridstack-Groessenaenderung an) */
+.kw-griff {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid var(--text-3);
+  border-bottom: 2px solid var(--text-3);
+  border-bottom-right-radius: 3px;
+  opacity: 0;
+  transition: opacity var(--schnell);
+}
+.kachel-w:hover .kw-griff {
+  opacity: 0.45;
+}
+
+/* Meteocons-Groessen */
+.mc {
+  display: inline-block;
+  width: 44px;
+  height: 44px;
+  vertical-align: middle;
+}
+.mc.gross { width: 84px; height: 84px; }
+.mc.mittel { width: 40px; height: 40px; }
+.mc.klein { width: 28px; height: 28px; }
+.mc.winzig { width: 20px; height: 20px; }
+
+/* ============================================================ Temperatur */
+.temp {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+.temp-gross {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+.temp-mittel {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.t-frost { color: var(--t-frost); }
+.t-kalt { color: var(--t-kalt); }
+.t-kuehl { color: var(--t-kuehl); }
+.t-mild { color: var(--t-mild); }
+.t-warm { color: var(--t-warm); }
+.t-heiss { color: var(--t-heiss); }
+.t-extrem { color: var(--t-extrem); }
+
+/* Aktuell-Kachel */
+.aktuell-haupt {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+}
+.aktuell-haupt .mc {
+  flex: none;
+}
+.aktuell-block {
+  display: flex;
+  flex-direction: column;
+}
+.aktuell-zustand {
+  color: var(--text-2);
+  font-size: 0.92rem;
+}
+.aktuell-gefuehlt {
+  color: var(--text-3);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Kennwert-Gitter (Feuchte, Wind, Druck ...) */
+.kv-gitter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: var(--a2) var(--a3);
+  margin-top: auto;
+  padding-top: var(--a3);
+}
+.kv {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  min-width: 0;
+}
+.kv > i,
+.kv > .mc {
+  color: var(--text-3);
+  width: 18px;
+  text-align: center;
+  flex: none;
+}
+.kv .kv-txt {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+.kv .kv-wert {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.kv .kv-lab {
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+/* ============================================================ Stundenvorhersage */
+.stunden {
+  display: flex;
+  gap: var(--a1);
+  overflow-x: auto;
+  padding-bottom: var(--a1);
+  flex: 1;
+  align-items: stretch;
+}
+.stunde {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 46px;
+  padding: var(--a1) 2px;
+  border-radius: var(--r1);
+}
+.stunde:hover {
+  background: var(--flaeche-2);
+}
+.stunde .zeit {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.stunde .st-temp {
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.stunde .st-regen {
+  font-size: 0.66rem;
+  color: var(--akzent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================ Tagesvorhersage */
+.tage {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.tag {
+  display: grid;
+  grid-template-columns: 2.4rem 1.6rem 1fr 3.4rem;
+  align-items: center;
+  gap: var(--a2);
+  padding: var(--a1) 0;
+  border-bottom: 1px solid var(--rand);
+}
+.tag:last-child {
+  border-bottom: none;
+}
+.tag .wtag {
+  font-size: 0.86rem;
+  color: var(--text-2);
+}
+.tag .t-regen {
+  font-size: 0.66rem;
+  color: var(--akzent);
+  font-variant-numeric: tabular-nums;
+}
+.temp-band {
+  height: 6px;
+  border-radius: 3px;
+  position: relative;
+  background: var(--flaeche-3);
+}
+.temp-band > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--t-kuehl), var(--t-warm));
+}
+.tag .hilo {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+}
+.tag .hilo .lo {
+  color: var(--text-3);
+}
+
+/* ============================================================ Karte / Overlay */
+.karten-flaeche {
+  flex: 1;
+  border-radius: var(--r2);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 120% at 30% 20%, color-mix(in srgb, var(--akzent) 12%, transparent), transparent 60%),
+    repeating-linear-gradient(0deg, transparent 0 27px, color-mix(in srgb, var(--rand) 50%, transparent) 27px 28px),
+    repeating-linear-gradient(90deg, transparent 0 27px, color-mix(in srgb, var(--rand) 50%, transparent) 27px 28px),
+    var(--flaeche-3);
+  min-height: 120px;
+}
+.karten-flaeche.dunkelkarte {
+  background:
+    radial-gradient(120% 120% at 70% 30%, color-mix(in srgb, var(--akzent) 22%, transparent), transparent 55%),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(255,255,255,0.05) 27px 28px),
+    repeating-linear-gradient(90deg, transparent 0 27px, rgba(255,255,255,0.05) 27px 28px),
+    #0c1a26;
+  color: #dfe9f2;
+}
+/* Radar-/Niederschlags-Blobs als Deko */
+.radar-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(6px);
+  opacity: 0.75;
+  background: radial-gradient(circle, #2f7ce0 0%, #47b0e6 40%, rgba(120, 210, 120, 0.6) 70%, transparent 75%);
+}
+.karten-steuer {
+  position: absolute;
+  top: var(--a2);
+  right: var(--a2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--a1);
+  z-index: 3;
+}
+.karten-steuer .icon-knopf {
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  width: 32px;
+  height: 32px;
+  box-shadow: var(--schatten-1);
+}
+.overlay-leiste {
+  position: absolute;
+  left: var(--a2);
+  bottom: var(--a2);
+  display: flex;
+  gap: var(--a1);
+  flex-wrap: wrap;
+  z-index: 3;
+}
+.overlay-leiste .chip {
+  background: color-mix(in srgb, var(--flaeche) 85%, transparent);
+  backdrop-filter: blur(4px);
+  font-size: 0.78rem;
+  padding: 3px var(--a2);
+}
+.karten-legende {
+  position: absolute;
+  right: var(--a2);
+  bottom: var(--a2);
+  background: color-mix(in srgb, var(--flaeche) 85%, transparent);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--rand);
+  border-radius: var(--r1);
+  padding: var(--a1) var(--a2);
+  font-size: 0.7rem;
+  color: var(--text-2);
+  z-index: 3;
+}
+.legende-skala {
+  height: 8px;
+  width: 120px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #a6d8ff, #2f7ce0, #47b048, #e0c02f, #e8734a, #df524f);
+  margin-top: 2px;
+}
+.attribution {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  font-size: 0.6rem;
+  color: var(--text-3);
+  background: color-mix(in srgb, var(--flaeche) 70%, transparent);
+  padding: 0 4px;
+  border-radius: 3px;
+  z-index: 3;
+}
+
+/* ============================================================ Warnungen */
+.warnbanner {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a2) var(--a3);
+  border-radius: var(--r2);
+  border: 1px solid;
+  margin-bottom: var(--a2);
+}
+.warnbanner .mc,
+.warnbanner > i {
+  flex: none;
+}
+.warnbanner .wb-txt {
+  min-width: 0;
+}
+.warnbanner .wb-titel {
+  font-weight: 600;
+}
+.warnbanner .wb-zeit {
+  font-size: 0.78rem;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+.warnstufe-1 { background: var(--w1-weich); border-color: var(--w1); color: color-mix(in srgb, var(--w1) 70%, var(--text)); }
+.warnstufe-2 { background: var(--w2-weich); border-color: var(--w2); color: color-mix(in srgb, var(--w2) 70%, var(--text)); }
+.warnstufe-3 { background: var(--w3-weich); border-color: var(--w3); color: color-mix(in srgb, var(--w3) 75%, var(--text)); }
+.warnstufe-4 { background: var(--w4-weich); border-color: var(--w4); color: color-mix(in srgb, var(--w4) 75%, var(--text)); }
+.warn-punkt {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* ============================================================ Gauges / Kompass / Charts */
+.gauge-zeile {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  flex: 1;
+}
+.gauge {
+  width: 96px;
+  height: 60px;
+  flex: none;
+  position: relative;
+}
+.gauge .gwert {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.kompass {
+  width: 96px;
+  height: 96px;
+  flex: none;
+}
+.spark {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.chart-flaeche {
+  flex: 1;
+  min-height: 0;
+  display: block;
+}
+
+/* Nowcast "Regen in x Minuten" */
+.nowcast-balken {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 54px;
+  margin-top: var(--a2);
+}
+.nowcast-balken .nb {
+  flex: 1;
+  background: var(--akzent);
+  border-radius: 2px 2px 0 0;
+  min-height: 3px;
+  opacity: 0.85;
+}
+.nowcast-achse {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.66rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.nowcast-text {
+  font-size: 0.92rem;
+}
+.nowcast-text b {
+  color: var(--akzent);
+}
+
+/* Blitze-Liste */
+.blitz-zahl {
+  font-size: 2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.blitz-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--a2);
+  font-size: 0.8rem;
+}
+.blitz-liste .bz {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pollen */
+.pollen-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a1);
+  flex: 1;
+}
+.pollen-zeile {
+  display: grid;
+  grid-template-columns: 1fr 88px;
+  align-items: center;
+  gap: var(--a2);
+  font-size: 0.86rem;
+}
+.pollen-stufen {
+  display: flex;
+  gap: 3px;
+}
+.pollen-stufen .ps {
+  height: 8px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--flaeche-3);
+}
+.pollen-stufen .ps.an1 { background: var(--t-mild); }
+.pollen-stufen .ps.an2 { background: var(--t-warm); }
+.pollen-stufen .ps.an3 { background: var(--t-heiss); }
+
+/* Sonne & Mond */
+.sonnenbogen {
+  width: 100%;
+  height: 66px;
+  display: block;
+}
+.sm-zeiten {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--a1);
+}
+
+/* Heatmap (Jahresrueckblick) */
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(53, 1fr);
+  gap: 2px;
+  flex: 1;
+  align-content: center;
+}
+.heatmap .hz {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--flaeche-3);
+}
+
+/* Barometer-Tendenz */
+.baro-wert {
+  display: flex;
+  align-items: baseline;
+  gap: var(--a2);
+}
+.baro-wert .zahl {
+  font-size: 1.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.tendenz {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a1);
+  font-size: 0.82rem;
+}
+.tendenz.steigt { color: var(--gut); }
+.tendenz.faellt { color: var(--gefahr); }
+
+/* Mini-Kachel (nur Temp + Icon) */
+.mini {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.mini .mini-ort {
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+/* ============================================================ Kachel-Katalog (Hinzufuegen) */
+.katalog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a2);
+}
+.kat-gruppe {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  margin: var(--a3) 0 var(--a1);
+}
+.kat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a2) var(--a3);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  background: var(--flaeche);
+  cursor: grab;
+  transition: border-color var(--schnell), background var(--schnell);
+}
+.kat-item:hover {
+  border-color: var(--akzent);
+  background: var(--flaeche-2);
+}
+.kat-item > i:first-child,
+.kat-item > .mc {
+  color: var(--akzent);
+  width: 22px;
+  text-align: center;
+  flex: none;
+}
+.kat-item .kat-txt {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.kat-item .kat-txt small {
+  color: var(--text-3);
+  font-size: 0.75rem;
+}
+.kat-item .griff {
+  margin-left: auto;
+  color: var(--text-3);
+}
+
+/* Kachel-Platzhalter beim Ziehen */
+.kachel-platz {
+  border: 2px dashed var(--akzent);
+  border-radius: var(--r3);
+  background: color-mix(in srgb, var(--akzent) 8%, transparent);
+  display: grid;
+  place-items: center;
+  color: var(--akzent-stark);
+  font-size: 0.85rem;
+}
+
+/* ============================================================ Detail-Pane (Einstellungen) */
+.detail {
+  grid-area: detail;
+  background: var(--flaeche);
+  border-left: 1px solid var(--rand);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.detail-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--a3) var(--a4);
+  border-bottom: 1px solid var(--rand);
+}
+.detail-kopf h2 {
+  font-size: 0.95rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+}
+.detail-block {
+  padding: var(--a4);
+  border-bottom: 1px solid var(--rand);
+}
+.detail-block h3 {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  margin: 0 0 var(--a2);
+}
+.formzeile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a1);
+  margin-bottom: var(--a3);
+}
+.formzeile > label {
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+.formzeile-quer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a3);
+  padding: var(--a2) 0;
+}
+.formzeile-quer .fz-lab {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.formzeile-quer .fz-lab small {
+  color: var(--text-3);
+  font-size: 0.75rem;
+}
+
+/* ============================================================ Modal */
+.modal-hg {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 14, 22, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+}
+.modal {
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--r3);
+  box-shadow: var(--schatten-2);
+  width: min(480px, 92vw);
+  overflow: hidden;
+}
+.modal.breit {
+  width: min(760px, 94vw);
+}
+.modal-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--a3) var(--a4);
+  border-bottom: 1px solid var(--rand);
+}
+.modal-kopf h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+}
+.modal-inhalt {
+  padding: var(--a4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--a4);
+  max-height: 72vh;
+  overflow-y: auto;
+}
+.modal-fuss {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--a2);
+  padding: var(--a3) var(--a4);
+  border-top: 1px solid var(--rand);
+}
+
+/* ============================================================ Karte (Panel) fuer Verwaltungs-Seiten */
+.panel {
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--r3);
+  padding: var(--a4);
+  margin-bottom: var(--a4);
+}
+.panel > h2 {
+  font-size: 0.95rem;
+  margin: 0 0 var(--a1);
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+}
+.panel > h2 i,
+.panel > h2 .mc {
+  color: var(--akzent);
+}
+.panel .unter {
+  color: var(--text-2);
+  font-size: 0.85rem;
+  margin: 0 0 var(--a3);
+}
+.seite {
+  overflow-y: auto;
+  padding: var(--a5) var(--a6);
+  max-width: 960px;
+}
+.seite h1 {
+  font-size: 1.3rem;
+  margin: 0 0 var(--a1);
+}
+.seite .unter-gross {
+  color: var(--text-2);
+  margin: 0 0 var(--a5);
+  max-width: 720px;
+}
+
+/* Tabellen-artige Zeile (Aufzeichnung) */
+.tabzeile {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr 130px 120px 44px;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a2) 0;
+  border-bottom: 1px solid var(--rand);
+}
+.tabzeile:last-child { border-bottom: none; }
+.tabkopf {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+}
+.tabzeile .tz-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+.tabzeile .tz-name small {
+  color: var(--text-3);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.tabzeile .tz-meta {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================ Skelett / Leer / Fehler */
+.sk {
+  background: linear-gradient(90deg, var(--flaeche-2), var(--flaeche-3), var(--flaeche-2));
+  background-size: 200% 100%;
+  animation: schimmer 1.3s infinite;
+  border-radius: 6px;
+}
+@keyframes schimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.kw-leer,
+.kw-fehler {
+  flex: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--a2);
+  text-align: center;
+  color: var(--text-3);
+}
+.kw-leer i,
+.kw-fehler i,
+.kw-leer .mc {
+  font-size: 1.8rem;
+  opacity: 0.6;
+}
+.kw-fehler {
+  color: var(--gefahr);
+}
+.kw-fehler .knopf {
+  color: var(--text);
+}
+
+/* ============================================================ Theme-Schalter (Mockup-Leiste) */
+.mock-leiste {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  gap: var(--a2);
+  align-items: center;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: 999px;
+  padding: var(--a1);
+  box-shadow: var(--schatten-2);
+  z-index: 60;
+}
+.mock-leiste a.zur-galerie {
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 0.8rem;
+  padding: 0 var(--a2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a1);
+}
+.mock-leiste a.zur-galerie:hover { color: var(--akzent); }
+.mock-leiste .trenn { width: 1px; height: 20px; background: var(--rand); }
+.mock-leiste button {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.mock-leiste button.aktiv {
+  background: var(--akzent-weich);
+  color: var(--akzent-stark);
+}
+
+/* ============================================================ Schwebe-Hilfe */
+.hilfe-fenster {
+  position: fixed;
+  right: var(--a5);
+  bottom: 64px;
+  width: min(420px, 92vw);
+  max-height: 70vh;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--r3);
+  box-shadow: var(--schatten-2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 55;
+}
+.hilfe-kopf {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  padding: var(--a3);
+  border-bottom: 1px solid var(--rand);
+  cursor: move;
+}
+.hilfe-kopf h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  flex: 1;
+}
+.hilfe-inhalt {
+  padding: var(--a3) var(--a4);
+  overflow-y: auto;
+}
+.hilfe-inhalt h4 {
+  font-size: 0.8rem;
+  margin: var(--a3) 0 var(--a1);
+}
+.hilfe-inhalt p {
+  color: var(--text-2);
+  font-size: 0.88rem;
+  margin: 0 0 var(--a2);
+}
+.hilfe-inhalt a {
+  color: var(--akzent);
+  text-decoration: none;
+}
+.tiefenlink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a1);
+  font-size: 0.82rem;
+  color: var(--akzent);
+  cursor: pointer;
+}
+
+/* ============================================================ Atmosphaerisch */
+.atmo {
+  color: #0d1b2a;
+}
+.atmo.tag-klar {
+  background: linear-gradient(160deg, #8ecbff 0%, #b9deff 45%, #eaf4ff 100%);
+}
+.atmo.tag-wolkig {
+  background: linear-gradient(160deg, #9db4c7 0%, #c7d4de 55%, #e7edf2 100%);
+}
+.atmo.regen {
+  background: linear-gradient(160deg, #4a6274 0%, #6b8394 55%, #9fb2bf 100%);
+  color: #eaf1f6;
+}
+.atmo.nacht-klar {
+  background: linear-gradient(170deg, #0b1a33 0%, #16294a 50%, #23406b 100%);
+  color: #e7eefb;
+}
+.atmo.sonnenuntergang {
+  background: linear-gradient(160deg, #ffb36b 0%, #ff8f7a 40%, #a56cae 80%, #5d5a9c 100%);
+  color: #23132a;
+}
+/* Auf atmosphaerischem Grund werden Kopf/Nav und Kacheln zu Glas */
+.atmo .kopf,
+.atmo .nav {
+  background: color-mix(in srgb, var(--flaeche) 55%, transparent);
+  backdrop-filter: blur(14px);
+  border-color: color-mix(in srgb, #ffffff 24%, transparent);
+}
+.atmo .kachel-w {
+  background: color-mix(in srgb, var(--flaeche) 60%, transparent);
+  backdrop-filter: blur(14px) saturate(1.1);
+  border-color: color-mix(in srgb, #ffffff 26%, transparent);
+  box-shadow: 0 6px 24px rgba(10, 20, 40, 0.18);
+}
+.atmo.nacht-klar .kachel-w,
+.atmo.regen .kachel-w,
+.atmo.sonnenuntergang .kachel-w {
+  background: color-mix(in srgb, #0d1b2e 42%, transparent);
+  border-color: color-mix(in srgb, #ffffff 16%, transparent);
+  color: #eef4fb;
+}
+.atmo.nacht-klar .kw-titel,
+.atmo.regen .kw-titel,
+.atmo.sonnenuntergang .kw-titel {
+  color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+/* ============================================================ Galerie (index) */
+.galerie-seite {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--a6) var(--a4);
+}
+.galerie-kopf {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  margin-bottom: var(--a1);
+}
+.galerie-kopf .marke {
+  font-size: 1.6rem;
+}
+.galerie-unter {
+  color: var(--text-2);
+  margin: 0 0 var(--a5);
+}
+.galerie-titel {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+  margin: var(--a5) 0 var(--a3);
+}
+.galerie {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--a3);
+}
+.karte-link {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  padding: var(--a4);
+  transition: border-color var(--schnell), background var(--schnell);
+}
+.karte-link:hover {
+  border-color: var(--akzent);
+  background: var(--flaeche-2);
+}
+.karte-link .nr {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.karte-link h3 {
+  margin: var(--a1) 0;
+  font-size: 1.02rem;
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+}
+.karte-link h3 i,
+.karte-link h3 .mc {
+  color: var(--akzent);
+  width: 22px;
+  height: 22px;
+  text-align: center;
+}
+.karte-link p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+/* ============================================================ Hilfsklassen */
+.reihe { display: flex; align-items: center; gap: var(--a2); }
+.reihe.luecke > .spacer { flex: 1; }
+.spalte { display: flex; flex-direction: column; gap: var(--a2); }
+.dimm { color: var(--text-3); }
+.klein-txt { font-size: 0.8rem; }
+.nowrap { white-space: nowrap; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ============================================================ Mobil */
+@media (max-width: 720px) {
+  .app,
+  .app.mit-detail {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "kopf"
+      "inhalt";
+  }
+  .nav,
+  .detail {
+    display: none;
+  }
+  .kopf-suche { max-width: none; }
+  .layout-tabs { display: none; }
+  .brett {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    padding: var(--a3);
+  }
+  /* Hoehere Spezifitaet als .w4/.h2, damit ohne !important auf eine Spalte gestapelt wird */
+  .brett .kachel-w {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    min-height: 150px;
+  }
+  .seite { padding: var(--a4); }
+}
+
+/* Erzwungene Schmal-Ansicht: mobiles Layout unabhaengig vom Viewport (fuer handy.html) */
+.app.schmal {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "kopf"
+    "inhalt";
+}
+.app.schmal > .nav,
+.app.schmal > .detail {
+  display: none;
+}
+.app.schmal .kopf-suche,
+.app.schmal .layout-tabs {
+  display: none;
+}
+.app.schmal .brett {
+  grid-template-columns: 1fr;
+  grid-auto-rows: auto;
+  padding: var(--a3);
+}
+.app.schmal .brett .kachel-w {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  min-height: 140px;
+}
+
+/* Handy-Rahmen fuer die Vorschau (handy.html) */
+.handy-buehne {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--a5);
+  background: var(--bg);
+}
+.handy {
+  width: 390px;
+  max-width: 100%;
+  height: 780px;
+  border: 10px solid #0b0f14;
+  border-radius: 38px;
+  overflow: hidden;
+  box-shadow: var(--schatten-2);
+  background: var(--bg);
+  position: relative;
+}
+.handy .app {
+  height: 100%;
+}

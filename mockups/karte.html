@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Karte &amp; Overlays</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ======================= Kopfleiste ======================= -->
+      <header class="kopf">
+        <div class="marke">
+          <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          Wetterwarte
+        </div>
+        <div class="kopf-suche">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Ort suchen ..." />
+        </div>
+        <div class="layout-tabs tabgruppe">
+          <button class="aktiv"><i class="fa-solid fa-house"></i> Zuhause</button>
+          <button><i class="fa-solid fa-seedling"></i> Garten</button>
+          <button><i class="fa-solid fa-suitcase-rolling"></i> Reise</button>
+          <button><i class="fa-solid fa-triangle-exclamation"></i> Unwetter</button>
+          <button class="still" title="Neues Layout"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div class="kopf-rechts">
+          <a class="knopf primaer" href="/mockups/katalog.html"><i class="fa-solid fa-plus"></i> Kachel</a>
+          <a class="icon-knopf" href="/mockups/layouts.html" title="Layout bearbeiten"><i class="fa-solid fa-pen"></i></a>
+          <a class="icon-knopf" href="/mockups/hilfe.html" title="Hilfe"><i class="fa-solid fa-circle-question"></i></a>
+        </div>
+      </header>
+
+      <!-- ======================= Navigation ======================= -->
+      <nav class="nav">
+        <div class="nav-titel">Orte <button class="plus" title="Ort hinzufügen"><i class="fa-solid fa-plus"></i></button></div>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          <span class="haupt">Köln <small>Sachsen-Anhalt</small></span>
+          <span class="grad">24&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" />
+          <span class="haupt">Frankfurt <small>Sachsen</small></span>
+          <span class="grad">26&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" />
+          <span class="haupt">Berlin <small>Berlin</small></span>
+          <span class="grad">22&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" />
+          <span class="haupt">Hamburg <small>Hamburg</small></span>
+          <span class="grad">19&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day.svg" alt="" />
+          <span class="haupt">München <small>Bayern</small></span>
+          <span class="grad">21&deg;</span>
+        </a>
+
+        <div class="nav-titel" style="margin-top: var(--a3)">Ansichten</div>
+        <a class="nav-eintrag aktiv" href="/mockups/karte.html"><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></a>
+        <a class="nav-eintrag" href="/mockups/aufzeichnung.html"><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></a>
+        <a class="nav-eintrag" href="/mockups/archiv.html"><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv &amp; Analyse</span></a>
+        <a class="nav-eintrag" href="/mockups/kacheln.html"><i class="fa-solid fa-shapes"></i> <span class="haupt">Kachel-Katalog</span></a>
+
+        <div class="nav-fuss">
+          <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
+          <div class="nav-version">Wetterwarte v0.1.0 - lokal</div>
+        </div>
+      </nav>
+
+      <!-- ======================= Inhalt: große Karte ======================= -->
+      <section class="inhalt">
+        <div style="flex: 1; position: relative; margin: var(--a4)">
+          <div class="karten-flaeche dunkelkarte" style="position: absolute; inset: 0">
+            <!-- Radar-/Niederschlags-Blobs -->
+            <div class="radar-blob" style="width: 150px; height: 118px; left: 40%; top: 30%"></div>
+            <div class="radar-blob" style="width: 92px; height: 78px; left: 58%; top: 46%; opacity: 0.85"></div>
+            <div class="radar-blob" style="width: 64px; height: 54px; left: 66%; top: 58%; opacity: 0.6"></div>
+            <div class="radar-blob" style="width: 108px; height: 70px; left: 22%; top: 62%; opacity: 0.45"></div>
+            <div class="radar-blob" style="width: 46px; height: 40px; left: 33%; top: 22%; opacity: 0.5"></div>
+
+            <!-- Warn-Polygon (Gewitter, Stufe 3) über dem Burgenlandkreis -->
+            <svg style="position: absolute; inset: 0; width: 100%; height: 100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <polygon points="46,34 62,30 72,40 70,54 60,62 48,58 42,46" style="fill: var(--w3); opacity: 0.18; stroke: var(--w3); stroke-width: 2" />
+            </svg>
+
+            <!-- Attribution -->
+            <div class="attribution">&copy; OpenStreetMap-Mitwirkende &middot; DWD RADOLAN &middot; Blitzortung</div>
+
+            <!-- Kartensteuerung oben rechts -->
+            <div class="karten-steuer">
+              <button class="icon-knopf" title="Ebenen"><i class="fa-solid fa-layer-group"></i></button>
+              <button class="icon-knopf" title="Vergrößern"><i class="fa-solid fa-plus"></i></button>
+              <button class="icon-knopf" title="Verkleinern"><i class="fa-solid fa-minus"></i></button>
+              <button class="icon-knopf" title="Mein Standort"><i class="fa-solid fa-location-crosshairs"></i></button>
+              <button class="icon-knopf" title="Vollbild"><i class="fa-solid fa-expand"></i></button>
+            </div>
+
+            <!-- Schwebendes Ebenen-Panel links -->
+            <div class="panel" style="position: absolute; left: var(--a4); top: var(--a4); width: 230px; margin: 0; box-shadow: var(--schatten-2)">
+              <h2><i class="fa-solid fa-layer-group"></i> Ebenen</h2>
+
+              <div class="kat-gruppe" style="margin-top: var(--a3)">Basiskarte</div>
+              <div class="segment" style="display: flex">
+                <button style="flex: 1">Hell</button>
+                <button class="aktiv" style="flex: 1">Dunkel</button>
+                <button style="flex: 1">Satellit</button>
+              </div>
+
+              <div class="kat-gruppe">Overlays</div>
+              <div class="formzeile-quer">
+                <span class="fz-lab">Radar <small>DWD RADOLAN</small></span>
+                <button class="schalter an" title="Radar"></button>
+              </div>
+              <div class="formzeile-quer">
+                <span class="fz-lab">Niederschlag-Nowcast <small>+2 h Prognose</small></span>
+                <button class="schalter" title="Nowcast"></button>
+              </div>
+              <div class="formzeile-quer">
+                <span class="fz-lab">Wind <small>Böen &amp; Richtung</small></span>
+                <button class="schalter" title="Wind"></button>
+              </div>
+              <div class="formzeile-quer">
+                <span class="fz-lab">Temperatur <small>2 m Flächen</small></span>
+                <button class="schalter" title="Temperatur"></button>
+              </div>
+              <div class="formzeile-quer">
+                <span class="fz-lab">Warnungen <small>DWD amtlich</small></span>
+                <button class="schalter an" title="Warnungen"></button>
+              </div>
+              <div class="formzeile-quer">
+                <span class="fz-lab">Blitze <small>Live-Entladungen</small></span>
+                <button class="schalter an" title="Blitze"></button>
+              </div>
+            </div>
+
+            <!-- Ort-Popup nahe der Mitte -->
+            <div class="panel" style="position: absolute; left: 44%; top: 40%; width: 190px; margin: 0; padding: var(--a3); box-shadow: var(--schatten-2)">
+              <button class="icon-knopf" title="Schließen" style="position: absolute; top: 2px; right: 2px; width: 24px; height: 24px"><i class="fa-solid fa-xmark"></i></button>
+              <div class="reihe" style="gap: var(--a2)">
+                <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                <div class="spalte" style="gap: 0">
+                  <div class="reihe" style="gap: var(--a2)"><b>Köln</b> <span class="temp temp-mittel t-warm tnum">24&deg;</span></div>
+                  <span class="klein-txt dimm">Wolkig, später Schauer</span>
+                </div>
+              </div>
+              <div class="klein-txt dimm tnum" style="margin-top: var(--a2)">Regen 0,2 mm/h &middot; Böen 32 km/h</div>
+            </div>
+
+            <!-- Radar-Zeitleiste unten mittig -->
+            <div class="panel" style="position: absolute; left: 50%; bottom: var(--a4); transform: translateX(-50%); margin: 0; padding: var(--a2) var(--a3); box-shadow: var(--schatten-2); display: flex; align-items: center; gap: var(--a3)">
+              <button class="icon-knopf" title="Abspielen"><i class="fa-solid fa-play"></i></button>
+              <div style="display: flex; flex-direction: column; gap: 5px; width: 340px">
+                <div style="position: relative; height: 8px; background: var(--flaeche-3); border-radius: 4px">
+                  <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 66%; background: var(--akzent); opacity: 0.35; border-radius: 4px"></div>
+                  <span style="position: absolute; left: 0%; top: -3px; width: 1px; height: 14px; background: var(--rand-stark)"></span>
+                  <span style="position: absolute; left: 33%; top: -3px; width: 1px; height: 14px; background: var(--rand-stark)"></span>
+                  <span style="position: absolute; left: 66%; top: -3px; width: 1px; height: 14px; background: var(--rand-stark)"></span>
+                  <span style="position: absolute; left: 100%; top: -3px; width: 1px; height: 14px; background: var(--rand-stark)"></span>
+                  <span style="position: absolute; left: 66%; top: 50%; transform: translate(-50%, -50%); width: 13px; height: 13px; border-radius: 50%; background: var(--akzent); border: 2px solid var(--flaeche); box-shadow: var(--schatten-1)"></span>
+                </div>
+                <div class="tnum" style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-3)">
+                  <span>-2 h</span><span>-1 h</span><span>jetzt</span><span>+1 h</span>
+                </div>
+              </div>
+              <span class="segment">
+                <button class="aktiv">1x</button>
+                <button>2x</button>
+              </span>
+            </div>
+
+            <!-- Legende unten rechts -->
+            <div class="karten-legende">Niederschlag mm/h<div class="legende-skala"></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => {
+        document.documentElement.dataset.theme = t;
+        document.querySelectorAll("[data-theme-btn]").forEach((b) => b.classList.toggle("aktiv", b.dataset.themeBtn === t));
+      };
+      document.querySelectorAll("[data-theme-btn]").forEach((b) => (b.onclick = () => setzeThema(b.dataset.themeBtn)));
+      setzeThema("hell");
+      document.querySelectorAll(".tabgruppe, .segment").forEach((g) => {
+        g.querySelectorAll("button").forEach((b) =>
+          b.addEventListener("click", () => {
+            if (b.classList.contains("still")) return;
+            g.querySelectorAll("button").forEach((x) => x.classList.remove("aktiv"));
+            b.classList.add("aktiv");
+          }),
+        );
+      });
+      document.querySelectorAll(".overlay-leiste .chip").forEach((c) => c.addEventListener("click", () => c.classList.toggle("aktiv")));
+      // Ebenen-Schalter durchklickbar
+      document.querySelectorAll(".schalter").forEach((s) => s.addEventListener("click", () => s.classList.toggle("an")));
+      // Abspielen-Knopf wechselt Symbol
+      document.querySelectorAll(".karten-flaeche .icon-knopf").forEach((b) => {
+        const ic = b.querySelector("i.fa-play, i.fa-pause");
+        if (!ic) return;
+        b.addEventListener("click", () => ic.classList.toggle("fa-play"));
+        b.addEventListener("click", () => ic.classList.toggle("fa-pause"));
+      });
+    </script>
+  </body>
+</html>

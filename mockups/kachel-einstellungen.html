@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Kachel-Einstellungen</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ======================= Kopfleiste ======================= -->
+      <header class="kopf">
+        <div class="marke">
+          <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          Wetterwarte
+        </div>
+        <div class="kopf-suche">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Ort suchen ..." />
+        </div>
+        <div class="layout-tabs tabgruppe">
+          <button class="aktiv"><i class="fa-solid fa-house"></i> Zuhause</button>
+          <button><i class="fa-solid fa-seedling"></i> Garten</button>
+          <button><i class="fa-solid fa-suitcase-rolling"></i> Reise</button>
+          <button class="still" title="Neues Layout"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div class="kopf-rechts">
+          <a class="knopf primaer" href="/mockups/katalog.html"><i class="fa-solid fa-plus"></i> Kachel</a>
+          <a class="icon-knopf" href="/mockups/hilfe.html" title="Hilfe"><i class="fa-solid fa-circle-question"></i></a>
+        </div>
+      </header>
+
+      <!-- ======================= Navigation ======================= -->
+      <nav class="nav">
+        <div class="nav-titel">Orte <button class="plus" title="Ort hinzufügen"><i class="fa-solid fa-plus"></i></button></div>
+        <a class="nav-eintrag aktiv">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          <span class="haupt">Köln <small>Sachsen-Anhalt</small></span>
+          <span class="grad">24&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" />
+          <span class="haupt">Frankfurt <small>Sachsen</small></span>
+          <span class="grad">26&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" />
+          <span class="haupt">Berlin <small>Berlin</small></span>
+          <span class="grad">22&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" />
+          <span class="haupt">Hamburg <small>Hamburg</small></span>
+          <span class="grad">19&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day.svg" alt="" />
+          <span class="haupt">München <small>Bayern</small></span>
+          <span class="grad">21&deg;</span>
+        </a>
+
+        <div class="nav-titel" style="margin-top: var(--a3)">Ansichten</div>
+        <a class="nav-eintrag" href="/mockups/karte.html"><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></a>
+        <a class="nav-eintrag" href="/mockups/aufzeichnung.html"><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></a>
+        <a class="nav-eintrag" href="/mockups/archiv.html"><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv &amp; Analyse</span></a>
+        <a class="nav-eintrag" href="/mockups/kacheln.html"><i class="fa-solid fa-shapes"></i> <span class="haupt">Kachel-Katalog</span></a>
+
+        <div class="nav-fuss">
+          <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
+          <div class="nav-version">Wetterwarte v0.1.0 - lokal</div>
+        </div>
+      </nav>
+
+      <!-- ======================= Inhalt (ruhig gedimmt hinter dem Modal) ======================= -->
+      <section class="inhalt">
+        <div class="werkzeuge">
+          <div class="orts-titel">Köln <small>Sachsen-Anhalt &middot; aktualisiert vor 3 Min</small></div>
+          <span class="luecke"></span>
+          <a class="knopf klein" href="/mockups/layouts.html"><i class="fa-solid fa-pen"></i> Layout bearbeiten</a>
+        </div>
+
+        <div class="brett">
+          <!-- Aktuell (die Kachel, die gerade bearbeitet wird) -->
+          <div class="kachel-w w4 h3">
+            <div class="kw-kopf">
+              <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+              <span class="kw-titel">Aktuell <span class="ort">Köln</span></span>
+              <span class="kw-werkz">
+                <button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button>
+                <button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button>
+              </span>
+            </div>
+            <div class="kw-koerper">
+              <div class="aktuell-haupt">
+                <img class="mc gross" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                <div class="aktuell-block">
+                  <span class="temp temp-gross t-warm">24&deg;</span>
+                  <span class="aktuell-zustand">Wolkig, später Schauer</span>
+                  <span class="aktuell-gefuehlt">Gefühlt 26&deg; &middot; Tageshoch 27&deg;</span>
+                </div>
+              </div>
+              <div class="kv-gitter">
+                <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">68 %</span><span class="kv-lab">Feuchte</span></span></div>
+                <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">14 km/h</span><span class="kv-lab">Wind NW</span></span></div>
+                <div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">1012 hPa</span><span class="kv-lab">Druck</span></span></div>
+                <div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">24 km</span><span class="kv-lab">Sicht</span></span></div>
+              </div>
+            </div>
+            <span class="kw-griff"></span>
+          </div>
+
+          <!-- 7-Tage -->
+          <div class="kachel-w w4 h3">
+            <div class="kw-kopf">
+              <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+              <span class="kw-titel">7-Tage-Vorhersage</span>
+              <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+            </div>
+            <div class="kw-koerper">
+              <div class="tage">
+                <div class="tag"><span class="wtag">Heute</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day-rain.svg" alt="" /><span class="temp-band"><span style="left: 30%; right: 8%"></span></span><span class="hilo"><span class="hi">27&deg;</span> <span class="lo">15&deg;</span></span></div>
+                <div class="tag"><span class="wtag">Mi</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp-band"><span style="left: 22%; right: 20%"></span></span><span class="hilo"><span class="hi">23&deg;</span> <span class="lo">14&deg;</span></span></div>
+                <div class="tag"><span class="wtag">Do</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="temp-band"><span style="left: 26%; right: 10%"></span></span><span class="hilo"><span class="hi">26&deg;</span> <span class="lo">15&deg;</span></span></div>
+                <div class="tag"><span class="wtag">Fr</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="temp-band"><span style="left: 30%; right: 4%"></span></span><span class="hilo"><span class="hi">29&deg;</span> <span class="lo">16&deg;</span></span></div>
+                <div class="tag"><span class="wtag">Sa</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="temp-band"><span style="left: 34%; right: 2%"></span></span><span class="hilo"><span class="hi">31&deg;</span> <span class="lo">18&deg;</span></span></div>
+                <div class="tag"><span class="wtag">So</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="temp-band"><span style="left: 28%; right: 12%"></span></span><span class="hilo"><span class="hi">25&deg;</span> <span class="lo">17&deg;</span></span></div>
+                <div class="tag"><span class="wtag">Mo</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp-band"><span style="left: 24%; right: 16%"></span></span><span class="hilo"><span class="hi">24&deg;</span> <span class="lo">15&deg;</span></span></div>
+              </div>
+            </div>
+            <span class="kw-griff"></span>
+          </div>
+
+          <!-- Wind -->
+          <div class="kachel-w w4 h2">
+            <div class="kw-kopf">
+              <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+              <span class="kw-titel">Wind</span>
+              <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+            </div>
+            <div class="kw-koerper">
+              <div class="gauge-zeile">
+                <svg class="kompass" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="44" style="fill: none; stroke: var(--rand); stroke-width: 2" />
+                  <g style="stroke: var(--rand-stark); stroke-width: 2">
+                    <line x1="50" y1="7" x2="50" y2="15" /><line x1="93" y1="50" x2="85" y2="50" />
+                    <line x1="50" y1="93" x2="50" y2="85" /><line x1="7" y1="50" x2="15" y2="50" />
+                  </g>
+                  <text x="50" y="22" text-anchor="middle" style="fill: var(--text-3); font-size: 9px">N</text>
+                  <line x1="50" y1="50" x2="32" y2="32" style="stroke: var(--akzent); stroke-width: 3; stroke-linecap: round" />
+                  <polygon points="32,32 43,34 34,43" style="fill: var(--akzent)" />
+                  <circle cx="50" cy="50" r="4" style="fill: var(--akzent)" />
+                </svg>
+                <div class="spalte">
+                  <div><span class="temp temp-mittel">14</span> <span class="dimm">km/h</span></div>
+                  <div class="klein-txt">Böen <b class="tnum">32 km/h</b></div>
+                  <div class="klein-txt dimm">aus Nordwest (315&deg;)</div>
+                </div>
+              </div>
+            </div>
+            <span class="kw-griff"></span>
+          </div>
+
+          <!-- Luftdruck -->
+          <div class="kachel-w w4 h2">
+            <div class="kw-kopf">
+              <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+              <span class="kw-titel">Luftdruck</span>
+              <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+            </div>
+            <div class="kw-koerper">
+              <div class="baro-wert"><span class="zahl">1012</span><span class="dimm">hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
+              <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 34px; margin-top: 8px">
+                <polyline points="0,8 16,7 32,9 48,13 64,17 80,20 100,24" style="fill: none; stroke: var(--gefahr); stroke-width: 2" />
+              </svg>
+              <div class="klein-txt dimm">Fallend - Wetterverschlechterung wahrscheinlich</div>
+            </div>
+            <span class="kw-griff"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ======================= Modal: Kachel-Einstellungen ======================= -->
+    <div class="modal-hg">
+      <div class="modal">
+        <div class="modal-kopf">
+          <h2><i class="fa-solid fa-sliders"></i> Kachel-Einstellungen - Aktuell</h2>
+          <a class="icon-knopf" href="/mockups/dashboard.html" title="Schließen"><i class="fa-solid fa-xmark"></i></a>
+        </div>
+
+        <div class="modal-inhalt">
+          <!-- Ort -->
+          <div class="formzeile">
+            <label>Ort</label>
+            <div class="feld reihe" style="justify-content: space-between; cursor: pointer">
+              <span class="reihe"><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /> Köln, Sachsen-Anhalt</span>
+              <i class="fa-solid fa-chevron-down dimm"></i>
+            </div>
+          </div>
+
+          <!-- Titel -->
+          <div class="formzeile">
+            <label>Titel der Kachel</label>
+            <div class="feld reihe">Aktuell</div>
+          </div>
+
+          <!-- Angezeigte Werte -->
+          <div>
+            <h3 style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); margin: 0 0 var(--a1)">Angezeigte Werte</h3>
+            <div class="formzeile-quer">
+              <span class="fz-lab">Feuchte <small>relative Luftfeuchte in %</small></span>
+              <button class="schalter an" title="Feuchte anzeigen"></button>
+            </div>
+            <div class="formzeile-quer">
+              <span class="fz-lab">Wind <small>Geschwindigkeit und Richtung</small></span>
+              <button class="schalter an" title="Wind anzeigen"></button>
+            </div>
+            <div class="formzeile-quer">
+              <span class="fz-lab">Luftdruck <small>in hPa</small></span>
+              <button class="schalter an" title="Luftdruck anzeigen"></button>
+            </div>
+            <div class="formzeile-quer">
+              <span class="fz-lab">Sicht <small>Sichtweite in km</small></span>
+              <button class="schalter an" title="Sicht anzeigen"></button>
+            </div>
+            <div class="formzeile-quer">
+              <span class="fz-lab">Taupunkt <small>Taupunkttemperatur</small></span>
+              <button class="schalter an" title="Taupunkt anzeigen"></button>
+            </div>
+            <div class="formzeile-quer">
+              <span class="fz-lab">Bewölkung <small>Bedeckungsgrad in %</small></span>
+              <button class="schalter an" title="Bewölkung anzeigen"></button>
+            </div>
+            <div class="formzeile-quer">
+              <span class="fz-lab">UV-Index <small>aktueller UV-Wert</small></span>
+              <button class="schalter" title="UV-Index anzeigen"></button>
+            </div>
+            <div class="formzeile-quer">
+              <span class="fz-lab">Sonnenzeiten <small>Auf- und Untergang</small></span>
+              <button class="schalter" title="Sonnenzeiten anzeigen"></button>
+            </div>
+          </div>
+
+          <!-- Aktualisierung -->
+          <div class="formzeile-quer">
+            <span class="fz-lab">Aktualisierung <small>Wie oft neue Daten geladen werden</small></span>
+            <span class="segment">
+              <button>5 Min</button>
+              <button class="aktiv">10 Min</button>
+              <button>30 Min</button>
+            </span>
+          </div>
+
+          <!-- Größe -->
+          <div class="formzeile-quer">
+            <span class="fz-lab">Größe <small>Belegter Platz im Raster</small></span>
+            <span class="segment">
+              <button>Klein</button>
+              <button class="aktiv">Mittel</button>
+              <button>Groß</button>
+            </span>
+          </div>
+
+          <!-- Icon-Stil -->
+          <div class="formzeile-quer">
+            <span class="fz-lab">Icon-Stil <small>Darstellung der Wetter-Symbole</small></span>
+            <span class="segment">
+              <button class="aktiv">Meteocons</button>
+              <button>Font Awesome</button>
+            </span>
+          </div>
+
+          <div class="klein-txt dimm reihe"><i class="fa-solid fa-circle-info"></i> Aenderungen werden im Layout gespeichert (Backend).</div>
+        </div>
+
+        <div class="modal-fuss">
+          <a class="knopf" href="/mockups/dashboard.html">Abbrechen</a>
+          <a class="knopf primaer" href="/mockups/dashboard.html">Speichern</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => {
+        document.documentElement.dataset.theme = t;
+        document.querySelectorAll("[data-theme-btn]").forEach((b) => b.classList.toggle("aktiv", b.dataset.themeBtn === t));
+      };
+      document.querySelectorAll("[data-theme-btn]").forEach((b) => (b.onclick = () => setzeThema(b.dataset.themeBtn)));
+      setzeThema("hell");
+      document.querySelectorAll(".tabgruppe, .segment").forEach((g) => {
+        g.querySelectorAll("button").forEach((b) =>
+          b.addEventListener("click", () => {
+            if (b.classList.contains("still")) return;
+            g.querySelectorAll("button").forEach((x) => x.classList.remove("aktiv"));
+            b.classList.add("aktiv");
+          }),
+        );
+      });
+      document.querySelectorAll(".overlay-leiste .chip").forEach((c) => c.addEventListener("click", () => c.classList.toggle("aktiv")));
+      // Schalter im Modal umlegbar machen (Durchklickbarkeit)
+      document.querySelectorAll(".modal .schalter").forEach((s) => s.addEventListener("click", () => s.classList.toggle("an")));
+    </script>
+  </body>
+</html>

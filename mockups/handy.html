@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Handy-Ansicht</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+  </head>
+  <body>
+    <div class="handy-buehne">
+      <div class="handy">
+        <div class="app schmal">
+          <!-- ======================= Kopfleiste (kompakt) ======================= -->
+          <header class="kopf">
+            <button class="icon-knopf" title="Menü"><i class="fa-solid fa-bars"></i></button>
+            <div class="marke" style="font-size: 1.05rem; margin: 0 auto">
+              <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+              Wetterwarte
+            </div>
+            <button class="icon-knopf" title="Ort hinzufügen"><i class="fa-solid fa-plus"></i></button>
+          </header>
+
+          <!-- ======================= Inhalt ======================= -->
+          <section class="inhalt">
+            <div class="werkzeuge">
+              <div class="orts-titel">Köln <small>Sachsen-Anhalt &middot; vor 3 Min</small></div>
+              <span class="luecke"></span>
+              <button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button>
+            </div>
+
+            <!-- Orts-Schnellwahl (horizontal scrollbar) -->
+            <div class="reihe" style="gap: var(--a2); overflow-x: auto; padding: 0 var(--a3) var(--a2); flex-wrap: nowrap">
+              <span class="chip aktiv nowrap"><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /> Köln 24&deg;</span>
+              <span class="chip nowrap"><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /> Frankfurt 26&deg;</span>
+              <span class="chip nowrap"><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /> Berlin 22&deg;</span>
+              <span class="chip nowrap"><img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /> Hamburg 19&deg;</span>
+            </div>
+
+            <div class="brett">
+              <!-- 1) Aktuell (gross) -->
+              <div class="kachel-w w4 h3">
+                <div class="kw-kopf">
+                  <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+                  <span class="kw-titel">Aktuell <span class="ort">Köln</span></span>
+                  <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+                </div>
+                <div class="kw-koerper">
+                  <div class="aktuell-haupt">
+                    <img class="mc gross" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                    <div class="aktuell-block">
+                      <span class="temp temp-gross t-warm">24&deg;</span>
+                      <span class="aktuell-zustand">Wolkig, später Schauer</span>
+                      <span class="aktuell-gefuehlt">Gefühlt 26&deg; &middot; Tageshoch 27&deg;</span>
+                    </div>
+                  </div>
+                  <div class="kv-gitter">
+                    <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">68 %</span><span class="kv-lab">Feuchte</span></span></div>
+                    <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">14 km/h</span><span class="kv-lab">Wind NW</span></span></div>
+                    <div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">1012 hPa</span><span class="kv-lab">Druck</span></span></div>
+                    <div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">24 km</span><span class="kv-lab">Sicht</span></span></div>
+                  </div>
+                </div>
+                <span class="kw-griff"></span>
+              </div>
+
+              <!-- 2) Stundenvorhersage -->
+              <div class="kachel-w w8 h3">
+                <div class="kw-kopf">
+                  <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+                  <span class="kw-titel">Stundenvorhersage <span class="ort">48 Stunden</span></span>
+                  <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+                </div>
+                <div class="kw-koerper">
+                  <div class="stunden">
+                    <div class="stunde"><span class="zeit">jetzt</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="st-temp t-warm">24&deg;</span><span class="st-regen">&nbsp;</span></div>
+                    <div class="stunde"><span class="zeit">15</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="st-temp t-warm">25&deg;</span><span class="st-regen">&nbsp;</span></div>
+                    <div class="stunde"><span class="zeit">16</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="st-temp t-heiss">25&deg;</span><span class="st-regen">10%</span></div>
+                    <div class="stunde"><span class="zeit">17</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="st-temp t-warm">24&deg;</span><span class="st-regen">30%</span></div>
+                    <div class="stunde"><span class="zeit">18</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day-rain.svg" alt="" /><span class="st-temp t-warm">23&deg;</span><span class="st-regen">70%</span></div>
+                    <div class="stunde"><span class="zeit">19</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="st-temp t-mild">21&deg;</span><span class="st-regen">65%</span></div>
+                    <div class="stunde"><span class="zeit">20</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="st-temp t-mild">20&deg;</span><span class="st-regen">55%</span></div>
+                    <div class="stunde"><span class="zeit">21</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="st-temp t-mild">19&deg;</span><span class="st-regen">30%</span></div>
+                    <div class="stunde"><span class="zeit">22</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-night.svg" alt="" /><span class="st-temp t-mild">18&deg;</span><span class="st-regen">&nbsp;</span></div>
+                    <div class="stunde"><span class="zeit">23</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-night.svg" alt="" /><span class="st-temp t-mild">18&deg;</span><span class="st-regen">&nbsp;</span></div>
+                    <div class="stunde"><span class="zeit">00</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="st-temp t-kuehl">17&deg;</span><span class="st-regen">&nbsp;</span></div>
+                    <div class="stunde"><span class="zeit">01</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/fog-night.svg" alt="" /><span class="st-temp t-kuehl">16&deg;</span><span class="st-regen">&nbsp;</span></div>
+                    <div class="stunde"><span class="zeit">05</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/sunrise.svg" alt="" /><span class="st-temp t-kuehl">16&deg;</span><span class="st-regen">&nbsp;</span></div>
+                    <div class="stunde"><span class="zeit">06</span><img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="st-temp t-mild">18&deg;</span><span class="st-regen">&nbsp;</span></div>
+                  </div>
+                </div>
+                <span class="kw-griff"></span>
+              </div>
+
+              <!-- 3) Wetterwarnungen -->
+              <div class="kachel-w w4 h2">
+                <div class="kw-kopf">
+                  <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+                  <span class="kw-titel">Wetterwarnungen <span class="ort">Burgenlandkreis</span></span>
+                  <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+                </div>
+                <div class="kw-koerper">
+                  <div class="warnbanner warnstufe-3">
+                    <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day.svg" alt="" />
+                    <div class="wb-txt"><div class="wb-titel">Markantes Gewitter</div><div class="wb-zeit">Heute 17:00 - 21:00 Uhr &middot; Stufe 3</div></div>
+                  </div>
+                </div>
+                <span class="kw-griff"></span>
+              </div>
+
+              <!-- 4) Karte -->
+              <div class="kachel-w w4 h4">
+                <div class="kw-kopf">
+                  <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+                  <span class="kw-titel">Karte <span class="ort">Radar</span></span>
+                  <span class="kw-werkz"><a class="icon-knopf" href="/mockups/karte.html" title="Groß"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></a></span>
+                </div>
+                <div class="kw-koerper">
+                  <div class="karten-flaeche">
+                    <div class="radar-blob" style="width: 90px; height: 70px; left: 28%; top: 34%"></div>
+                    <div class="radar-blob" style="width: 54px; height: 46px; left: 55%; top: 55%; opacity: 0.55"></div>
+                    <div class="karten-steuer">
+                      <button class="icon-knopf" title="Ebenen"><i class="fa-solid fa-layer-group"></i></button>
+                      <button class="icon-knopf" title="Vergrößern"><i class="fa-solid fa-plus"></i></button>
+                      <button class="icon-knopf" title="Verkleinern"><i class="fa-solid fa-minus"></i></button>
+                    </div>
+                    <div class="overlay-leiste">
+                      <span class="chip aktiv">Radar</span>
+                      <span class="chip">Wind</span>
+                      <span class="chip">Warnungen</span>
+                    </div>
+                    <div class="attribution">&copy; OpenStreetMap &middot; DWD RADOLAN</div>
+                  </div>
+                </div>
+                <span class="kw-griff"></span>
+              </div>
+
+              <!-- 5) 7-Tage -->
+              <div class="kachel-w w4 h4">
+                <div class="kw-kopf">
+                  <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+                  <span class="kw-titel">7-Tage-Vorhersage</span>
+                  <span class="kw-werkz"><button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button></span>
+                </div>
+                <div class="kw-koerper">
+                  <div class="tage">
+                    <div class="tag"><span class="wtag">Heute</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/thunderstorms-day-rain.svg" alt="" /><span class="temp-band"><span style="left: 30%; right: 8%"></span></span><span class="hilo"><span class="hi">27&deg;</span> <span class="lo">15&deg;</span></span></div>
+                    <div class="tag"><span class="wtag">Mi</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp-band"><span style="left: 22%; right: 20%"></span></span><span class="hilo"><span class="hi">23&deg;</span> <span class="lo">14&deg;</span></span></div>
+                    <div class="tag"><span class="wtag">Do</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="temp-band"><span style="left: 26%; right: 10%"></span></span><span class="hilo"><span class="hi">26&deg;</span> <span class="lo">15&deg;</span></span></div>
+                    <div class="tag"><span class="wtag">Fr</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="temp-band"><span style="left: 30%; right: 4%"></span></span><span class="hilo"><span class="hi">29&deg;</span> <span class="lo">16&deg;</span></span></div>
+                    <div class="tag"><span class="wtag">Sa</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="temp-band"><span style="left: 34%; right: 2%"></span></span><span class="hilo"><span class="hi">31&deg;</span> <span class="lo">18&deg;</span></span></div>
+                    <div class="tag"><span class="wtag">So</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="temp-band"><span style="left: 28%; right: 12%"></span></span><span class="hilo"><span class="hi">25&deg;</span> <span class="lo">17&deg;</span></span></div>
+                    <div class="tag"><span class="wtag">Mo</span><img class="mc klein" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp-band"><span style="left: 24%; right: 16%"></span></span><span class="hilo"><span class="hi">24&deg;</span> <span class="lo">15&deg;</span></span></div>
+                  </div>
+                </div>
+                <span class="kw-griff"></span>
+              </div>
+
+              <!-- 6) Regen-Nowcast -->
+              <div class="kachel-w w4 h2">
+                <div class="kw-kopf">
+                  <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+                  <span class="kw-titel">Regen-Nowcast <span class="ort">Köln</span></span>
+                  <span class="kw-werkz"><button class="icon-knopf" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button></span>
+                </div>
+                <div class="kw-koerper">
+                  <div class="nowcast-text">Regen in <b>25 Minuten</b> &middot; leicht, dann stärker</div>
+                  <div class="nowcast-balken">
+                    <span class="nb" style="height: 6%"></span><span class="nb" style="height: 6%"></span>
+                    <span class="nb" style="height: 8%"></span><span class="nb" style="height: 10%"></span>
+                    <span class="nb" style="height: 18%"></span><span class="nb" style="height: 34%"></span>
+                    <span class="nb" style="height: 52%"></span><span class="nb" style="height: 70%"></span>
+                    <span class="nb" style="height: 86%"></span><span class="nb" style="height: 72%"></span>
+                    <span class="nb" style="height: 60%"></span><span class="nb" style="height: 40%"></span>
+                  </div>
+                  <div class="nowcast-achse"><span>jetzt</span><span>+30</span><span>+60</span><span>+90 Min</span></div>
+                </div>
+                <span class="kw-griff"></span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => { document.documentElement.dataset.theme = t; document.querySelectorAll('[data-theme-btn]').forEach((b)=>b.classList.toggle('aktiv', b.dataset.themeBtn===t)); };
+      document.querySelectorAll('[data-theme-btn]').forEach((b)=>(b.onclick=()=>setzeThema(b.dataset.themeBtn)));
+      setzeThema('hell');
+      document.querySelectorAll('.tabgruppe, .segment').forEach((g)=>{ g.querySelectorAll('button').forEach((b)=>b.addEventListener('click',()=>{ if(b.classList.contains('still'))return; g.querySelectorAll('button').forEach((x)=>x.classList.remove('aktiv')); b.classList.add('aktiv'); })); });
+      document.querySelectorAll('.overlay-leiste .chip').forEach((c)=>c.addEventListener('click',()=>c.classList.toggle('aktiv')));
+    </script>
+  </body>
+</html>
