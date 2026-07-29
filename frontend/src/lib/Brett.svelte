@@ -3,6 +3,7 @@
   import { GridStack } from "gridstack";
   import { meteocon } from "./icons";
   import { aktuell, stunden, tage, warnungen } from "./platzhalter";
+  import { gehe } from "./route.svelte";
 
   let brettEl: HTMLElement;
 
@@ -114,7 +115,7 @@
         <div class="kw-kopf">
           <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
           <span class="kw-titel">Karte <span class="ort">Radar</span></span>
-          <span class="kw-werkz"><button class="icon-knopf" title="Groß"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button></span>
+          <span class="kw-werkz"><button class="icon-knopf" title="Groß" onclick={() => gehe("karte")}><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button></span>
         </div>
         <div class="kw-koerper">
           <div class="karten-flaeche">

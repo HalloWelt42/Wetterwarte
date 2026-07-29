@@ -11,9 +11,15 @@ export default defineConfig(({ mode }) => {
     server: {
       port: frontendPort,
       strictPort: true,
-      // same-origin: /api wird an das Backend weitergereicht (kein CORS noetig).
+      // same-origin: /api ans Backend, /karte an den lokalen Kartenserver (osmlocal).
+      // So werden Karten-Kacheln same-origin geladen (kein CORS noetig).
       proxy: {
         "/api": { target: `http://localhost:${backendPort}`, changeOrigin: true },
+        "/karte": {
+          target: env.KARTEN_HOST || "http://192.168.178.49:8121",
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/karte/, "/api/v1"),
+        },
       },
     },
   };

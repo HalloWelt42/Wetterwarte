@@ -4,6 +4,7 @@ import "@fontsource/barlow/600.css";
 import "@fontsource/barlow/700.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "gridstack/dist/gridstack.min.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import "./app.css";
 
 import { mount } from "svelte";
