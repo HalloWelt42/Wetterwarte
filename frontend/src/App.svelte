@@ -5,7 +5,12 @@
   import Karte from "./lib/Karte.svelte";
   import Aufzeichnung from "./lib/Aufzeichnung.svelte";
   import Archiv from "./lib/Archiv.svelte";
+  import Katalog from "./lib/Katalog.svelte";
+  import Hilfe from "./lib/Hilfe.svelte";
+  import Layouts from "./lib/Layouts.svelte";
+  import KachelEinstellungen from "./lib/KachelEinstellungen.svelte";
   import { route } from "./lib/route.svelte";
+  import { ui } from "./lib/ui.svelte";
 </script>
 
 <div class="app">
@@ -21,3 +26,8 @@
     <Dashboard />
   {/if}
 </div>
+
+{#if ui.katalog}<Katalog />{/if}
+{#if ui.hilfe}<Hilfe />{/if}
+{#if ui.layouts}<Layouts />{/if}
+{#if ui.einstellungen}<KachelEinstellungen />{/if}

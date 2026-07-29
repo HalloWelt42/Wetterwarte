@@ -4,6 +4,7 @@
   import { meteocon } from "./icons";
   import { aktuell, stunden, tage, warnungen } from "./platzhalter";
   import { gehe } from "./route.svelte";
+  import { ui } from "./ui.svelte";
 
   let brettEl: HTMLElement;
 
@@ -32,7 +33,7 @@
           <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
           <span class="kw-titel">Aktuell <span class="ort">Köln</span></span>
           <span class="kw-werkz">
-            <button class="icon-knopf" title="Einstellungen"><i class="fa-solid fa-sliders"></i></button>
+            <button class="icon-knopf" title="Einstellungen" onclick={() => (ui.einstellungen = "Aktuell")}><i class="fa-solid fa-sliders"></i></button>
           </span>
         </div>
         <div class="kw-koerper">

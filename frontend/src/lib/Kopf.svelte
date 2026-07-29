@@ -1,6 +1,7 @@
 <script lang="ts">
   import { meteocon } from "./icons";
   import { thema, themaUmschalten } from "./thema.svelte";
+  import { ui } from "./ui.svelte";
 
   const layouts = [
     { name: "Zuhause", icon: "fa-house" },
@@ -27,10 +28,10 @@
     <button class="still" title="Neues Layout"><i class="fa-solid fa-plus"></i></button>
   </div>
   <div class="kopf-rechts">
-    <button class="knopf primaer"><i class="fa-solid fa-plus"></i> Kachel</button>
+    <button class="knopf primaer" onclick={() => (ui.katalog = true)}><i class="fa-solid fa-plus"></i> Kachel</button>
     <button class="icon-knopf" title="Erscheinungsbild" onclick={themaUmschalten}>
       <i class="fa-solid {thema.wert === 'hell' ? 'fa-moon' : 'fa-sun'}"></i>
     </button>
-    <button class="icon-knopf" title="Hilfe"><i class="fa-solid fa-circle-question"></i></button>
+    <button class="icon-knopf" title="Hilfe" onclick={() => (ui.hilfe = true)}><i class="fa-solid fa-circle-question"></i></button>
   </div>
 </header>
