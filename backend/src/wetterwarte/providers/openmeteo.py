@@ -77,7 +77,7 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
         "longitude": lon,
         "current": (
             "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,"
-            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,cloud_cover,dew_point_2m,is_day"
+            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,cloud_cover,dew_point_2m,uv_index,is_day"
         ),
         "hourly": "temperature_2m,weather_code,precipitation_probability,visibility,is_day",
         "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
@@ -108,11 +108,13 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
         "feuchte": round(c["relative_humidity_2m"]),
         "wind": round(c["wind_speed_10m"]),
         "windRichtung": _himmelsrichtung(c["wind_direction_10m"]),
+        "windGrad": round(c["wind_direction_10m"]),
         "boeen": round(c.get("wind_gusts_10m") or 0),
         "druck": round(c["pressure_msl"]),
         "sicht": round(sicht_m / 1000) if sicht_m is not None else None,
         "taupunkt": round(c["dew_point_2m"]),
         "bewoelkung": round(c["cloud_cover"]),
+        "uv": round(c.get("uv_index") or 0),
     }
 
     stunden = []

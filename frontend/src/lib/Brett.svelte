@@ -109,7 +109,7 @@
       <div class="kachel-w">
         <div class="kw-kopf">
           <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
-          <span class="kw-titel">Aktuell <span class="ort">Köln</span></span>
+          <span class="kw-titel">Aktuell <span class="ort">{wetter.ort}</span></span>
           <span class="kw-werkz">
             <button class="icon-knopf" title="Einstellungen" onclick={() => (ui.einstellungen = "Aktuell")}><i class="fa-solid fa-sliders"></i></button>
           </span>
@@ -283,14 +283,16 @@
                 <line x1="50" y1="93" x2="50" y2="85" /><line x1="7" y1="50" x2="15" y2="50" />
               </g>
               <text x="50" y="22" text-anchor="middle" style="fill: var(--text-3); font-size: 9px">N</text>
-              <line x1="50" y1="50" x2="32" y2="32" style="stroke: var(--akzent); stroke-width: 3; stroke-linecap: round" />
-              <polygon points="32,32 43,34 34,43" style="fill: var(--akzent)" />
+              <g transform="rotate({(jetzt.windGrad ?? 315) - 315} 50 50)">
+                <line x1="50" y1="50" x2="32" y2="32" style="stroke: var(--akzent); stroke-width: 3; stroke-linecap: round" />
+                <polygon points="32,32 43,34 34,43" style="fill: var(--akzent)" />
+              </g>
               <circle cx="50" cy="50" r="4" style="fill: var(--akzent)" />
             </svg>
             <div class="spalte">
-              <div><span class="temp temp-mittel">14</span> <span class="dimm">km/h</span></div>
-              <div class="klein-txt">Böen <b class="tnum">32 km/h</b></div>
-              <div class="klein-txt dimm">aus Nordwest (315&deg;)</div>
+              <div><span class="temp temp-mittel">{jetzt.wind}</span> <span class="dimm">km/h</span></div>
+              <div class="klein-txt">Böen <b class="tnum">{jetzt.boeen} km/h</b></div>
+              <div class="klein-txt dimm">aus {jetzt.windRichtung}</div>
             </div>
           </div>
         </div>
@@ -314,9 +316,9 @@
             <circle cx="140" cy="17" r="6" style="fill: var(--warn)" />
           </svg>
           <div class="sm-zeiten">
-            <span><i class="fa-solid fa-arrow-up dimm"></i> 05:42</span>
+            <span><i class="fa-solid fa-arrow-up dimm"></i> {wetter.sonne?.aufgang ?? "05:42"}</span>
             <span class="reihe"><img class="mc winzig" src={meteocon("moon-waxing-gibbous")} alt="" /> zunehmend 78%</span>
-            <span><i class="fa-solid fa-arrow-down dimm"></i> 21:18</span>
+            <span><i class="fa-solid fa-arrow-down dimm"></i> {wetter.sonne?.untergang ?? "21:18"}</span>
           </div>
         </div>
         <span class="kw-griff"></span>
@@ -366,9 +368,9 @@
             <div class="gauge">
               <svg class="spark" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet">
                 <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--flaeche-3); stroke-width: 9; stroke-linecap: round" />
-                <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--t-heiss); stroke-width: 9; stroke-linecap: round" pathLength="100" stroke-dasharray="55 100" />
+                <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--t-heiss); stroke-width: 9; stroke-linecap: round" pathLength="100" stroke-dasharray="{Math.round((jetzt.uv ?? 6) / 11 * 100)} 100" />
               </svg>
-              <span class="gwert" style="color: var(--t-heiss)">6</span>
+              <span class="gwert" style="color: var(--t-heiss)">{jetzt.uv ?? 6}</span>
             </div>
             <div class="spalte">
               <div><b>Hoch</b></div>
@@ -391,7 +393,7 @@
           <span class="kw-titel">Luftdruck</span>
         </div>
         <div class="kw-koerper">
-          <div class="baro-wert"><span class="zahl">1012</span><span class="dimm">hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
+          <div class="baro-wert"><span class="zahl">{jetzt.druck}</span><span class="dimm">hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
           <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 34px; margin-top: 8px">
             <polyline points="0,8 16,7 32,9 48,13 64,17 80,20 100,24" style="fill: none; stroke: var(--gefahr); stroke-width: 2" />
           </svg>

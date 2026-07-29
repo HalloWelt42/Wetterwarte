@@ -11,15 +11,17 @@ interface Komplett {
 }
 
 export const wetter = $state<{
+  slug: string;
   ort: string;
   aktuell: Aktuell | null;
   stunden: Stunde[];
   tage: Tag[];
   sonne: { aufgang: string; untergang: string } | null;
   geladen: boolean;
-}>({ ort: "Köln", aktuell: null, stunden: [], tage: [], sonne: null, geladen: false });
+}>({ slug: "koeln", ort: "Köln", aktuell: null, stunden: [], tage: [], sonne: null, geladen: false });
 
 export async function ladeWetter(slug: string): Promise<void> {
+  wetter.slug = slug;
   try {
     const d = await hole<Komplett>(`/weather/complete/${slug}`);
     wetter.ort = d.ort.name;

@@ -10,6 +10,7 @@ export type TempKlasse =
   | "t-extrem";
 
 export interface OrtEintrag {
+  slug: string;
   name: string;
   region: string;
   icon: string;
@@ -27,10 +28,12 @@ export interface Aktuell {
   feuchte: number;
   wind: number;
   windRichtung: string;
+  windGrad?: number;
   druck: number;
   sicht: number;
   taupunkt: number;
   bewoelkung: number;
+  uv?: number;
 }
 
 export interface Stunde {

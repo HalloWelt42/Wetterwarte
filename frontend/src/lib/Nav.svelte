@@ -2,8 +2,7 @@
   import { meteocon } from "./icons";
   import { orte } from "./platzhalter";
   import { route, gehe } from "./route.svelte";
-
-  let aktiverOrt = $state("Köln");
+  import { wetter, ladeWetter } from "./wetter.svelte";
 </script>
 
 <nav class="nav">
@@ -14,9 +13,9 @@
   {#each orte as o}
     <button
       class="nav-eintrag"
-      class:aktiv={route.ansicht === "dashboard" && aktiverOrt === o.name}
+      class:aktiv={route.ansicht === "dashboard" && wetter.slug === o.slug}
       onclick={() => {
-        aktiverOrt = o.name;
+        void ladeWetter(o.slug);
         gehe("dashboard");
       }}
     >

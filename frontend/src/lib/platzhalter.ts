@@ -4,11 +4,11 @@
 import type { Aktuell, OrtEintrag, Stunde, Tag, Warnung } from "./typen";
 
 export const orte: OrtEintrag[] = [
-  { name: "Köln", region: "Sachsen-Anhalt", icon: "partly-cloudy-day", temp: 24, aktiv: true },
-  { name: "Frankfurt", region: "Sachsen", icon: "clear-day", temp: 26 },
-  { name: "Berlin", region: "Berlin", icon: "overcast-day", temp: 22 },
-  { name: "Hamburg", region: "Hamburg", icon: "rain", temp: 19 },
-  { name: "München", region: "Bayern", icon: "thunderstorms-day", temp: 21 },
+  { slug: "koeln", name: "Köln", region: "Sachsen-Anhalt", icon: "partly-cloudy-day", temp: 24, aktiv: true },
+  { slug: "frankfurt", name: "Frankfurt", region: "Sachsen", icon: "clear-day", temp: 26 },
+  { slug: "berlin", name: "Berlin", region: "Berlin", icon: "overcast-day", temp: 22 },
+  { slug: "hamburg", name: "Hamburg", region: "Hamburg", icon: "rain", temp: 19 },
+  { slug: "muenchen", name: "München", region: "Bayern", icon: "thunderstorms-day", temp: 21 },
 ];
 
 export const aktuell: Aktuell = {
@@ -21,10 +21,12 @@ export const aktuell: Aktuell = {
   feuchte: 68,
   wind: 14,
   windRichtung: "NW",
+  windGrad: 315,
   druck: 1012,
   sicht: 24,
   taupunkt: 17,
   bewoelkung: 60,
+  uv: 6,
 };
 
 export const stunden: Stunde[] = [
