@@ -5,12 +5,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .config import settings
-from .db import dispose_engine
-from .routers import health, weather
+from .db import dispose_engine, init_db
+from .routers import health, layouts, weather
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await init_db()
     yield
     await dispose_engine()
 
@@ -26,3 +27,4 @@ app = FastAPI(
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
+app.include_router(layouts.router, prefix="/api/v1")

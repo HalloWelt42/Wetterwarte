@@ -18,3 +18,23 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 async def dispose_engine() -> None:
     await engine.dispose()
+
+
+async def init_db() -> None:
+    """Tabellen anlegen und bei leerer Datenbank Standard-Layouts anlegen.
+
+    Fuer den Anfang genuegt create_all; spaeter uebernehmen Alembic-Migrationen.
+    """
+    from sqlmodel import SQLModel, select
+
+    from .models.layout import Layout
+
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+    async with SessionLocal() as session:
+        vorhanden = (await session.execute(select(Layout))).scalars().first()
+        if vorhanden is None:
+            for name, standard in [("Zuhause", True), ("Garten", False), ("Reise", False), ("Unwetter", False)]:
+                session.add(Layout(name=name, ist_standard=standard, daten=[]))
+            await session.commit()

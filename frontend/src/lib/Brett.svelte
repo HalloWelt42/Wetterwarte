@@ -5,8 +5,21 @@
   import { aktuell, stunden, tage, warnungen } from "./platzhalter";
   import { gehe } from "./route.svelte";
   import { ui } from "./ui.svelte";
+  import { hole, sende } from "./api";
 
   let brettEl: HTMLElement;
+
+  // Stabile IDs in DOM-Reihenfolge - fuer Speichern/Laden der Anordnung.
+  const kachelIds = [
+    "aktuell", "stunden", "warnungen", "karte", "tage", "nowcast",
+    "wind", "sonnemond", "luftqualitaet", "uv", "barometer", "verlauf",
+  ];
+
+  interface LayoutEintrag {
+    id: string;
+    ist_standard: boolean;
+    daten: { id: string; x: number; y: number; w: number; h: number }[];
+  }
 
   onMount(() => {
     const grid = GridStack.init(
@@ -20,6 +33,48 @@
       },
       brettEl,
     );
+
+    // Jeder Kachel eine stabile ID geben.
+    const kacheln = Array.from(brettEl.querySelectorAll<HTMLElement>(".grid-stack-item"));
+    kacheln.forEach((el, i) => {
+      const id = kachelIds[i];
+      if (!id) return;
+      el.setAttribute("gs-id", id);
+      const knoten = (el as unknown as { gridstackNode?: { id?: string } }).gridstackNode;
+      if (knoten) knoten.id = id;
+    });
+
+    let layoutId: string | null = null;
+    let entprellen: ReturnType<typeof setTimeout> | undefined;
+
+    void (async () => {
+      try {
+        const layouts = await hole<LayoutEintrag[]>("/layouts");
+        const standard = layouts.find((l) => l.ist_standard) ?? layouts[0];
+        if (standard) {
+          layoutId = standard.id;
+          if (Array.isArray(standard.daten) && standard.daten.length) {
+            grid.batchUpdate();
+            for (const eintrag of standard.daten) {
+              const el = brettEl.querySelector<HTMLElement>(`[gs-id="${eintrag.id}"]`);
+              if (el) grid.update(el, { x: eintrag.x, y: eintrag.y, w: eintrag.w, h: eintrag.h });
+            }
+            grid.commit();
+          }
+        }
+      } catch {
+        // Backend nicht erreichbar - die Platzhalter-Anordnung bleibt bestehen.
+      }
+      // Erst nach dem Laden auf Aenderungen hoeren, damit das Laden nicht sofort speichert.
+      grid.on("change", () => {
+        if (!layoutId) return;
+        clearTimeout(entprellen);
+        entprellen = setTimeout(() => {
+          void sende(`/layouts/${layoutId}`, "PUT", { daten: grid.save(false) });
+        }, 600);
+      });
+    })();
+
     return () => grid.destroy(false);
   });
 </script>
