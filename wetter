@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Ein Einstiegspunkt fuer die Wetterwarte. Datenbanken laufen als Container,
+# Backend und Frontend in der Entwicklung auf dem Host.
+set -uo pipefail
+HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$HIER"
+
+ensure_env() { [ -f .env ] || bash tools/setup-env.sh; }
+load_env() { set -a; . ./.env 2>/dev/null || true; set +a; }
+
+case "${1:-}" in
+  setup)
+    bash tools/setup-env.sh ;;
+  up|start)
+    ensure_env; load_env
+    docker compose up -d postgres redis
+    echo
+    echo "Datenbanken laufen. Entwicklungsserver von Hand starten:"
+    echo "  Backend:   cd backend  && uv run uvicorn wetterwarte.main:app --reload --port ${BACKEND_PORT:-6150}"
+    echo "  Frontend:  cd frontend && npm run dev"
+    ;;
+  down|stop)
+    docker compose down ;;
+  status)
+    docker compose ps ;;
+  logs)
+    shift; docker compose logs -f "$@" ;;
+  psql)
+    load_env; docker compose exec postgres psql -U "${POSTGRES_USER:-wetterwarte}" -d "${POSTGRES_DB:-wetterwarte}" ;;
+  mockup)
+    ./start-mockups.sh "${2:-start}" ;;
+  *)
+    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup]" ;;
+esac
