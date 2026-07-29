@@ -71,6 +71,23 @@ def _jetzt_index(zeiten: list[str], jetzt: str) -> int:
     return 0
 
 
+async def historie(lat: float, lon: float, tage: int = 30) -> list[tuple[str, float]]:
+    """Stuendliche Temperatur der letzten `tage` Tage (fuer die Erst-Befuellung des Archivs)."""
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "hourly": "temperature_2m",
+        "past_days": tage,
+        "forecast_days": 1,
+        "timezone": "Europe/Berlin",
+    }
+    async with httpx.AsyncClient(timeout=30) as client:
+        antwort = await client.get(f"{settings.open_meteo_base}/forecast", params=params)
+        antwort.raise_for_status()
+        h = antwort.json()["hourly"]
+    return [(t, w) for t, w in zip(h["time"], h["temperature_2m"], strict=False) if w is not None]
+
+
 async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
     params = {
         "latitude": lat,
