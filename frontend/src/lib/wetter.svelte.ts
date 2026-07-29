@@ -1,6 +1,6 @@
 // Echte Wetterdaten des aktiven Ortes (aus dem Backend).
 import { hole } from "./api";
-import type { Aktuell, Stunde, Tag } from "./typen";
+import type { Aktuell, Luft, Stunde, Tag, Warnung } from "./typen";
 
 interface Komplett {
   ort: { name: string; region: string };
@@ -8,6 +8,8 @@ interface Komplett {
   stunden: Stunde[];
   tage: Tag[];
   sonne: { aufgang: string; untergang: string };
+  warnungen: Warnung[];
+  luft: Luft | null;
 }
 
 export const wetter = $state<{
@@ -17,8 +19,20 @@ export const wetter = $state<{
   stunden: Stunde[];
   tage: Tag[];
   sonne: { aufgang: string; untergang: string } | null;
+  warnungen: Warnung[];
+  luft: Luft | null;
   geladen: boolean;
-}>({ slug: "koeln", ort: "Köln", aktuell: null, stunden: [], tage: [], sonne: null, geladen: false });
+}>({
+  slug: "koeln",
+  ort: "Köln",
+  aktuell: null,
+  stunden: [],
+  tage: [],
+  sonne: null,
+  warnungen: [],
+  luft: null,
+  geladen: false,
+});
 
 export async function ladeWetter(slug: string): Promise<void> {
   wetter.slug = slug;
@@ -29,6 +43,8 @@ export async function ladeWetter(slug: string): Promise<void> {
     wetter.stunden = d.stunden;
     wetter.tage = d.tage;
     wetter.sonne = d.sonne;
+    wetter.warnungen = d.warnungen ?? [];
+    wetter.luft = d.luft ?? null;
     wetter.geladen = true;
   } catch {
     // Backend/Quelle nicht erreichbar - Platzhalter bleiben sichtbar.

@@ -13,6 +13,11 @@
   const jetzt = $derived(wetter.aktuell ?? aktuell);
   const stundenListe = $derived(wetter.stunden.length ? wetter.stunden : stunden);
   const tageListe = $derived(wetter.tage.length ? wetter.tage : tage);
+  const warnungenListe = $derived(wetter.geladen ? wetter.warnungen : warnungen);
+  const luft = $derived(wetter.luft);
+  const aqiVar = $derived(
+    !luft ? "var(--gut)" : luft.aqi <= 40 ? "var(--gut)" : luft.aqi <= 60 ? "var(--warn)" : "var(--gefahr)",
+  );
 
   let brettEl: HTMLElement;
   let grid: GridStack | undefined;
@@ -171,16 +176,20 @@
           <span class="kw-titel">Wetterwarnungen <span class="ort">Burgenlandkreis</span></span>
         </div>
         <div class="kw-koerper">
-          {#each warnungen as w}
-            <div class="warnbanner warnstufe-{w.stufe}">
-              {#if w.icon}
-                <img class="mc mittel" src={meteocon(w.icon)} alt="" />
-              {:else}
-                <i class="fa-solid {w.faIcon} fa-lg"></i>
-              {/if}
-              <div class="wb-txt"><div class="wb-titel">{w.titel}</div><div class="wb-zeit">{w.zeit}</div></div>
-            </div>
-          {/each}
+          {#if warnungenListe.length}
+            {#each warnungenListe as w}
+              <div class="warnbanner warnstufe-{w.stufe}">
+                {#if w.icon}
+                  <img class="mc mittel" src={meteocon(w.icon)} alt="" />
+                {:else}
+                  <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+                {/if}
+                <div class="wb-txt"><div class="wb-titel">{w.titel}</div><div class="wb-zeit">{w.zeit}</div></div>
+              </div>
+            {/each}
+          {:else}
+            <div class="kw-leer"><i class="fa-solid fa-shield-halved"></i><div>Keine Warnungen aktiv</div></div>
+          {/if}
         </div>
         <span class="kw-griff"></span>
       </div>
@@ -339,14 +348,14 @@
             <div class="gauge">
               <svg class="spark" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet">
                 <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--flaeche-3); stroke-width: 9; stroke-linecap: round" />
-                <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: var(--gut); stroke-width: 9; stroke-linecap: round" pathLength="100" stroke-dasharray="17 100" />
+                <path d="M8,54 A42,42 0 0 1 92,54" style="fill: none; stroke: {aqiVar}; stroke-width: 9; stroke-linecap: round" pathLength="100" stroke-dasharray="{Math.min(100, luft?.aqi ?? 34)} 100" />
               </svg>
-              <span class="gwert" style="color: var(--gut)">34</span>
+              <span class="gwert" style="color: {aqiVar}">{luft?.aqi ?? 34}</span>
             </div>
             <div class="spalte">
-              <div><b>Gut</b> <span class="dimm klein-txt">(EU-AQI)</span></div>
-              <div class="klein-txt tnum">PM2,5 8 &middot; PM10 15</div>
-              <div class="klein-txt tnum">O3 62 &middot; NO2 11</div>
+              <div><b>{luft?.label ?? "Gut"}</b> <span class="dimm klein-txt">(EU-AQI)</span></div>
+              <div class="klein-txt tnum">PM2,5 {luft?.pm2_5 ?? 8} &middot; PM10 {luft?.pm10 ?? 15}</div>
+              <div class="klein-txt tnum">O3 {luft?.o3 ?? 62} &middot; NO2 {luft?.no2 ?? 11}</div>
             </div>
           </div>
         </div>

@@ -60,3 +60,12 @@ export interface Warnung {
   icon?: string;
   faIcon?: string;
 }
+
+export interface Luft {
+  aqi: number;
+  label: string;
+  pm2_5: number;
+  pm10: number;
+  o3: number;
+  no2: number;
+}
