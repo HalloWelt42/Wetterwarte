@@ -4,11 +4,11 @@ export const ui = $state<{
   hilfe: boolean;
   layouts: boolean;
   ortssuche: boolean;
-  einstellungen: string | null; // Name der Kachel, deren Einstellungen offen sind
+  einstellungen: boolean; // Einstellungs-Modal offen (welche Kachel steht in kachelConf)
 }>({
   katalog: false,
   hilfe: false,
   layouts: false,
   ortssuche: false,
-  einstellungen: null,
+  einstellungen: false,
 });

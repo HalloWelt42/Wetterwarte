@@ -1,73 +1,99 @@
 <script lang="ts">
   import { ui } from "./ui.svelte";
+  import { konf } from "./kachelConf.svelte";
+  import { registry, type Feld } from "./kacheln/registry";
 
-  const werte = ["Feuchte", "Wind", "Luftdruck", "Sicht", "Taupunkt", "Bewölkung", "UV-Index", "Sonnenzeiten"];
-  let zustand = $state([true, true, true, true, true, true, false, false]);
-  let intervall = $state("10 Min");
-  let groesse = $state("Mittel");
-  let iconStil = $state("Meteocons");
+  const def = $derived(registry[konf.typ]);
+  const felder = $derived(def?.einstellungen ?? []);
 
-  function zu() {
-    ui.einstellungen = null;
+  function geaendert(): void {
+    konf.version++;
+  }
+
+  // Mehrfachauswahl (Checkbox-artige Schalter je Option)
+  function istAn(feld: Feld, wert: string | number): boolean {
+    const arr = konf.werte[feld.schluessel] as (string | number)[] | undefined;
+    if (arr === undefined) return !feld.leerStandard;
+    return arr.includes(wert);
+  }
+  function toggle(feld: Feld, wert: string | number): void {
+    let arr = konf.werte[feld.schluessel] as (string | number)[] | undefined;
+    if (arr === undefined) arr = feld.leerStandard ? [] : (feld.optionen ?? []).map((o) => o.wert);
+    arr = arr.includes(wert) ? arr.filter((x) => x !== wert) : [...arr, wert];
+    konf.werte[feld.schluessel] = arr;
+    geaendert();
+  }
+
+  // Einfachauswahl (Segment)
+  function aktuelleAuswahl(feld: Feld): string | number | undefined {
+    const w = konf.werte[feld.schluessel] as string | number | undefined;
+    if (w !== undefined) return w;
+    const opt = feld.optionen ?? [];
+    return opt.length ? opt[opt.length - 1].wert : undefined;
+  }
+  function setzeAuswahl(feld: Feld, wert: string | number): void {
+    konf.werte[feld.schluessel] = wert;
+    geaendert();
+  }
+
+  function titelEingabe(e: Event): void {
+    konf.werte.titel = (e.target as HTMLInputElement).value;
+    geaendert();
+  }
+
+  function zu(): void {
+    ui.einstellungen = false;
   }
 </script>
 
 <div class="modal-hg" role="presentation" onclick={zu}>
   <div class="modal" role="dialog" tabindex="-1" onclick={(e) => e.stopPropagation()}>
     <div class="modal-kopf">
-      <h2><i class="fa-solid fa-sliders"></i> Kachel-Einstellungen - {ui.einstellungen}</h2>
+      <h2><i class="fa-solid {def?.icon ?? 'fa-sliders'}"></i> {def?.titel ?? "Kachel"} - Einstellungen</h2>
       <button class="icon-knopf" onclick={zu} aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-inhalt">
       <div class="formzeile">
-        <label>Ort</label>
-        <div class="feld" style="display: flex; align-items: center; justify-content: space-between">
-          Köln, Sachsen-Anhalt <i class="fa-solid fa-chevron-down dimm"></i>
-        </div>
-      </div>
-      <div class="formzeile">
-        <label>Titel der Kachel</label>
-        <input class="feld" type="text" value="Aktuell" />
+        <label for="kachel-titel">Eigener Titel (optional)</label>
+        <input
+          id="kachel-titel"
+          class="feld"
+          type="text"
+          placeholder={def?.titel ?? ""}
+          value={(konf.werte.titel as string) ?? ""}
+          oninput={titelEingabe}
+        />
       </div>
 
-      <div>
-        <div class="kat-gruppe">Angezeigte Werte</div>
-        {#each werte as w, i}
-          <div class="formzeile-quer">
-            <span class="fz-lab">{w}</span>
-            <button class="schalter" class:an={zustand[i]} onclick={() => (zustand[i] = !zustand[i])} aria-label={w}></button>
+      {#each felder as feld}
+        {#if feld.art === "mehrfach"}
+          <div>
+            <div class="kat-gruppe">{feld.label}</div>
+            {#each feld.optionen ?? [] as o}
+              <div class="formzeile-quer">
+                <span class="fz-lab">{o.label}</span>
+                <button class="schalter" class:an={istAn(feld, o.wert)} onclick={() => toggle(feld, o.wert)} aria-label={o.label}></button>
+              </div>
+            {/each}
           </div>
-        {/each}
-      </div>
+        {:else if feld.art === "auswahl"}
+          <div class="formzeile-quer">
+            <span class="fz-lab">{feld.label}</span>
+            <span class="segment">
+              {#each feld.optionen ?? [] as o}
+                <button class:aktiv={aktuelleAuswahl(feld) === o.wert} onclick={() => setzeAuswahl(feld, o.wert)}>{o.label}</button>
+              {/each}
+            </span>
+          </div>
+        {/if}
+      {/each}
 
-      <div class="formzeile-quer">
-        <span class="fz-lab">Aktualisierung</span>
-        <span class="segment">
-          {#each ["5 Min", "10 Min", "30 Min"] as o}
-            <button class:aktiv={intervall === o} onclick={() => (intervall = o)}>{o}</button>
-          {/each}
-        </span>
-      </div>
-      <div class="formzeile-quer">
-        <span class="fz-lab">Größe</span>
-        <span class="segment">
-          {#each ["Klein", "Mittel", "Groß"] as o}
-            <button class:aktiv={groesse === o} onclick={() => (groesse = o)}>{o}</button>
-          {/each}
-        </span>
-      </div>
-      <div class="formzeile-quer">
-        <span class="fz-lab">Icon-Stil</span>
-        <span class="segment">
-          {#each ["Meteocons", "Font Awesome"] as o}
-            <button class:aktiv={iconStil === o} onclick={() => (iconStil = o)}>{o}</button>
-          {/each}
-        </span>
-      </div>
+      {#if felder.length === 0}
+        <p class="dimm klein-txt" style="padding: var(--a2) 0">Diese Kachel hat ausser dem Titel keine weiteren Optionen.</p>
+      {/if}
     </div>
     <div class="modal-fuss">
-      <button class="knopf" onclick={zu}>Abbrechen</button>
-      <button class="knopf primaer" onclick={zu}>Speichern</button>
+      <button class="knopf primaer" onclick={zu}>Fertig</button>
     </div>
   </div>
 </div>

@@ -6,6 +6,7 @@
   import { sende } from "./api";
   import { layoutState } from "./layout.svelte";
   import { kachelAktion } from "./kachelAktion.svelte";
+  import { konf } from "./kachelConf.svelte";
 
   interface Instanz {
     id: string;
@@ -14,6 +15,7 @@
     y?: number;
     w: number;
     h: number;
+    conf?: Record<string, unknown>;
   }
 
   let brettEl: HTMLElement;
@@ -24,7 +26,7 @@
   let entprellen: ReturnType<typeof setTimeout> | undefined;
 
   function standardInstanzen(): Instanz[] {
-    return standardKacheln.map((typ, i) => ({ id: `${typ}-${i}`, typ, w: registry[typ].w, h: registry[typ].h }));
+    return standardKacheln.map((typ, i) => ({ id: `${typ}-${i}`, typ, w: registry[typ].w, h: registry[typ].h, conf: {} }));
   }
 
   function initGrid(): void {
@@ -54,7 +56,10 @@
     const id = layoutState.aktivId;
     if (!grid || !id) return;
     const pos = grid.save(false) as { id: string; x: number; y: number; w: number; h: number }[];
-    const daten = pos.map((p) => ({ ...p, typ: kacheln.find((k) => k.id === p.id)?.typ }));
+    const daten = pos.map((p) => {
+      const k = kacheln.find((x) => x.id === p.id);
+      return { ...p, typ: k?.typ, conf: k?.conf ?? {} };
+    });
     clearTimeout(entprellen);
     entprellen = setTimeout(() => {
       void sende(`/layouts/${id}`, "PUT", { daten });
@@ -90,6 +95,7 @@
           y: d.y,
           w: d.w,
           h: d.h,
+          conf: (d as { conf?: Record<string, unknown> }).conf ?? {},
         }))
       : standardInstanzen();
     ladend = true;
@@ -120,7 +126,7 @@
     const def = registry[typ];
     if (!def) return;
     void umbauen(() => {
-      kacheln = [...kacheln, { id: `${typ}-${crypto.randomUUID()}`, typ, w: def.w, h: def.h }];
+      kacheln = [...kacheln, { id: `${typ}-${crypto.randomUUID()}`, typ, w: def.w, h: def.h, conf: {} }];
     });
   }
 
@@ -143,6 +149,19 @@
     kachelAktion.add = null;
     hinzufuegen(typ);
   });
+
+  // Geaenderte Einstellungen einer Kachel uebernehmen (ohne Grid-Neuaufbau).
+  let konfAngewandt = 0;
+  $effect(() => {
+    const v = konf.version;
+    if (v === 0 || v === konfAngewandt || konf.id === null) return;
+    konfAngewandt = v;
+    const k = kacheln.find((x) => x.id === konf.id);
+    if (k) {
+      k.conf = { ...konf.werte };
+      speichere();
+    }
+  });
 </script>
 
 <div class="brett-wrap">
@@ -150,7 +169,7 @@
     {#each kacheln as k (k.id)}
       <div class="grid-stack-item" gs-id={k.id} gs-w={k.w} gs-h={k.h} gs-x={k.x} gs-y={k.y}>
         <div class="grid-stack-item-content">
-          <Kachel typ={k.typ} onEntfernen={() => entferne(k.id)} />
+          <Kachel typ={k.typ} id={k.id} conf={k.conf ?? {}} onEntfernen={() => entferne(k.id)} />
         </div>
       </div>
     {/each}

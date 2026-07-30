@@ -1201,6 +1201,13 @@ textarea,
 .pollen-zeile.viel-last {
   background: var(--gefahr-weich);
 }
+.pollen-zeile.allergie {
+  background: var(--gefahr-weich);
+}
+.allergie-punkt {
+  font-size: 0.55rem;
+  margin-left: 3px;
+}
 .pollen-info {
   display: flex;
   align-items: center;

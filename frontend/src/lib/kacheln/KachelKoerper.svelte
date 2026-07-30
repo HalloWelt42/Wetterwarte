@@ -8,7 +8,14 @@
   import { begriffe } from "../begriffe";
   import LinienChart from "../LinienChart.svelte";
 
-  let { typ }: { typ: string } = $props();
+  let { typ, conf = {} }: { typ: string; conf?: Record<string, any> } = $props();
+
+  // Pro-Kachel-Einstellungen (mit sinnvollen Standardwerten, wenn nicht gesetzt).
+  const kennzahlen = $derived((conf.kennzahlen as string[]) ?? ["feuchte", "wind", "druck", "sicht", "taupunkt", "bewoelkung"]);
+  const stundenAnzahl = $derived((conf.anzahl as number) ?? 18);
+  const tageAnzahl = $derived((conf.anzahl as number) ?? 7);
+  const allergien = $derived((conf.allergien as string[]) ?? []);
+  const schadstoffe = $derived((conf.schadstoffe as string[]) ?? ["pm2_5", "pm10", "o3", "no2"]);
 
   const jetzt = $derived(wetter.aktuell ?? aktuell);
   const stundenListe = $derived(wetter.stunden.length ? wetter.stunden : stunden);
@@ -31,8 +38,11 @@
   const pollenSortiert = $derived.by(() => {
     if (!pollenDaten) return [];
     return Object.values(pollenDaten.arten)
-      .map((a) => ({ icon: a.icon, name: a.name, stufe: a[pollenTag] }))
-      .sort((x, y) => y.stufe.value - x.stufe.value);
+      .map((a) => ({ icon: a.icon, name: a.name, stufe: a[pollenTag], allergie: allergien.includes(a.name) }))
+      .sort((x, y) => {
+        if (x.allergie !== y.allergie) return x.allergie ? -1 : 1;
+        return y.stufe.value - x.stufe.value;
+      });
   });
   function pollenBreite(v: number): number {
     return v < 0 ? 0 : Math.min((v / 3) * 100, 100);
@@ -125,16 +135,16 @@
     </div>
   </div>
   <div class="kv-gitter">
-    <div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">{jetzt.feuchte} %</span><span class="kv-lab">Feuchte</span></span></div>
-    <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">{jetzt.wind} km/h</span><span class="kv-lab">Wind {jetzt.windRichtung}</span></span></div>
-    <div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">{jetzt.druck} hPa</span><span class="kv-lab">Druck</span></span></div>
-    <div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">{jetzt.sicht} km</span><span class="kv-lab">Sicht</span></span></div>
-    <div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">{jetzt.taupunkt}&deg;</span><span class="kv-lab" use:tipp={begriffe.taupunkt}>Taupunkt</span></span></div>
-    <div class="kv"><i class="fa-solid fa-cloud"></i><span class="kv-txt"><span class="kv-wert">{jetzt.bewoelkung} %</span><span class="kv-lab">Bewölkung</span></span></div>
+    {#if kennzahlen.includes("feuchte")}<div class="kv"><i class="fa-solid fa-droplet"></i><span class="kv-txt"><span class="kv-wert">{jetzt.feuchte} %</span><span class="kv-lab">Feuchte</span></span></div>{/if}
+    {#if kennzahlen.includes("wind")}<div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">{jetzt.wind} km/h</span><span class="kv-lab">Wind {jetzt.windRichtung}</span></span></div>{/if}
+    {#if kennzahlen.includes("druck")}<div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">{jetzt.druck} hPa</span><span class="kv-lab">Druck</span></span></div>{/if}
+    {#if kennzahlen.includes("sicht")}<div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">{jetzt.sicht} km</span><span class="kv-lab">Sicht</span></span></div>{/if}
+    {#if kennzahlen.includes("taupunkt")}<div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">{jetzt.taupunkt}&deg;</span><span class="kv-lab" use:tipp={begriffe.taupunkt}>Taupunkt</span></span></div>{/if}
+    {#if kennzahlen.includes("bewoelkung")}<div class="kv"><i class="fa-solid fa-cloud"></i><span class="kv-txt"><span class="kv-wert">{jetzt.bewoelkung} %</span><span class="kv-lab">Bewölkung</span></span></div>{/if}
   </div>
 {:else if typ === "stunden"}
   <div class="stunden">
-    {#each stundenListe as s}
+    {#each stundenListe.slice(0, stundenAnzahl) as s}
       <div class="stunde">
         <span class="zeit">{s.zeit}</span>
         <img class="mc mittel" src={meteocon(s.icon)} alt="" />
@@ -169,7 +179,7 @@
   </div>
 {:else if typ === "tage"}
   <div class="tage">
-    {#each tageListe as t}
+    {#each tageListe.slice(0, tageAnzahl) as t}
       <div class="tag">
         <span class="wtag">{t.kurz}</span>
         <img class="mc klein" src={meteocon(t.icon)} alt="" />
@@ -249,10 +259,10 @@
     <div class="spalte">
       <div class="lq-kopf"><b class="lq-stufe">{luft?.label ?? "Gut"}</b> <span class="dimm klein-txt" use:tipp={begriffe.aqi}>EU-AQI</span></div>
       <div class="lq-gitter">
-        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.pm25}>PM2,5</span><span class="lq-wert">{luft?.pm2_5 ?? 8}</span></div>
-        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.pm10}>PM10</span><span class="lq-wert">{luft?.pm10 ?? 15}</span></div>
-        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.ozon}>O&#8323;</span><span class="lq-wert">{luft?.o3 ?? 62}</span></div>
-        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.no2}>NO&#8322;</span><span class="lq-wert">{luft?.no2 ?? 11}</span></div>
+        {#if schadstoffe.includes("pm2_5")}<div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.pm25}>PM2,5</span><span class="lq-wert">{luft?.pm2_5 ?? 8}</span></div>{/if}
+        {#if schadstoffe.includes("pm10")}<div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.pm10}>PM10</span><span class="lq-wert">{luft?.pm10 ?? 15}</span></div>{/if}
+        {#if schadstoffe.includes("o3")}<div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.ozon}>O&#8323;</span><span class="lq-wert">{luft?.o3 ?? 62}</span></div>{/if}
+        {#if schadstoffe.includes("no2")}<div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.no2}>NO&#8322;</span><span class="lq-wert">{luft?.no2 ?? 11}</span></div>{/if}
       </div>
     </div>
   </div>
@@ -282,8 +292,8 @@
     </div>
     <div class="pollen-liste">
       {#each pollenSortiert as p}
-        <div class="pollen-zeile" class:hat-last={p.stufe.value > 0} class:viel-last={p.stufe.value >= 2}>
-          <span class="pollen-info"><span class="pollen-emoji">{p.icon}</span><span class="pollen-name">{p.name}</span></span>
+        <div class="pollen-zeile" class:allergie={p.allergie} class:hat-last={p.stufe.value > 0} class:viel-last={p.stufe.value >= 2}>
+          <span class="pollen-info"><span class="pollen-emoji">{p.icon}</span><span class="pollen-name">{p.name}</span>{#if p.allergie}<span class="allergie-punkt" title="Deine Allergie">🔴</span>{/if}</span>
           <span class="pollen-pegel">
             <span class="pegel-bahn"><span class="pegel-fuell" style="width: {pollenBreite(p.stufe.value)}%; background: {p.stufe.color}"></span></span>
             <span class="pegel-label" style="color: {p.stufe.color}">{p.stufe.label}</span>
