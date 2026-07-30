@@ -32,6 +32,6 @@
 
   <div class="nav-fuss">
     <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
-    <div class="nav-version">Wetterwarte v0.1.0 - lokal</div>
+    <div class="nav-version">Wetterwarte v0.9.0 - lokal</div>
   </div>
 </nav>
