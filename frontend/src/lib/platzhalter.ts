@@ -1,15 +1,7 @@
 // Platzhalterdaten fuer das Dashboard - identisch zur Design-Vorlage.
 // Wird spaeter durch echte Daten (eigener DWD-Ingester, Open-Meteo) ersetzt;
 // die Form bleibt gleich.
-import type { Aktuell, OrtEintrag, Stunde, Tag, Warnung } from "./typen";
-
-export const orte: OrtEintrag[] = [
-  { slug: "koeln", name: "Köln", region: "Nordrhein-Westfalen", icon: "partly-cloudy-day", temp: 24, aktiv: true },
-  { slug: "frankfurt", name: "Frankfurt am Main", region: "Hessen", icon: "clear-day", temp: 26 },
-  { slug: "berlin", name: "Berlin", region: "Berlin", icon: "overcast-day", temp: 22 },
-  { slug: "hamburg", name: "Hamburg", region: "Hamburg", icon: "rain", temp: 19 },
-  { slug: "muenchen", name: "München", region: "Bayern", icon: "thunderstorms-day", temp: 21 },
-];
+import type { Aktuell, Stunde, Tag, Warnung } from "./typen";
 
 export const aktuell: Aktuell = {
   temperatur: 24,

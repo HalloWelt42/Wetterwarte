@@ -7,7 +7,6 @@ mehr im Quellcode - der Nutzer waehlt seine Orte selbst per Suche.
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from .. import ortsdienst
 from ..db import get_session
@@ -27,9 +26,8 @@ class OrtEingabe(BaseModel):
 
 
 @router.get("")
-async def liste(session: AsyncSession = Depends(get_session)) -> dict:
-    ergebnis = await session.execute(select(Ort).order_by(Ort.reihenfolge, Ort.name))
-    return wrap([o.model_dump() for o in ergebnis.scalars().all()])
+async def liste() -> dict:
+    return wrap([o.model_dump() for o in await ortsdienst.alle()])
 
 
 @router.get("/suche")

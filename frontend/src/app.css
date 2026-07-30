@@ -1078,15 +1078,6 @@ textarea,
   display: block;
 }
 
-/* Temperaturverlauf mit Achsen */
-.tchart {
-  flex: 1;
-  min-height: 90px;
-  width: 100%;
-}
-.tchart svg {
-  display: block;
-}
 
 /* Nowcast "Regen in x Minuten" */
 .nowcast-balken {

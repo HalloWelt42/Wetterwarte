@@ -38,21 +38,15 @@
     void laden(station, variable, tage);
   });
 
-  // Diagramm-Geometrie aus den echten Werten berechnen.
-  const chart = $derived.by(() => {
-    const v = verlauf;
-    if (v.length < 2) return { linie: "", flaeche: "", lo: 0, hi: 0, mittel: 0 };
-    const werte = v.map((p) => p.wert);
-    const lo = Math.min(...werte);
-    const hi = Math.max(...werte);
-    const spanne = Math.max(0.1, hi - lo);
-    const n = v.length;
-    const x = (i: number) => (i / (n - 1)) * 600;
-    const y = (w: number) => 164 - ((w - lo) / spanne) * 148;
-    const pts = v.map((p, i) => `${x(i).toFixed(1)},${y(p.wert).toFixed(1)}`);
-    const flaeche = `M${pts.map((p, i) => (i === 0 ? p : "L" + p)).join(" ")} L600,180 L0,180 Z`;
-    const mittel = werte.reduce((a, b) => a + b, 0) / n;
-    return { linie: pts.join(" "), flaeche, lo, hi, mittel };
+  // Kennzahlen aus den echten Werten (das Diagramm selbst zeichnet LinienChart).
+  const kennzahlen = $derived.by(() => {
+    const werte = verlauf.map((p) => p.wert);
+    if (!werte.length) return { lo: 0, hi: 0, mittel: 0 };
+    return {
+      lo: Math.min(...werte),
+      hi: Math.max(...werte),
+      mittel: werte.reduce((a, b) => a + b, 0) / werte.length,
+    };
   });
 
   function datum(iso: string): string {
@@ -105,15 +99,15 @@
       <p class="unter">Berechnet aus den aufgezeichneten Tagesmitteln</p>
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--a3)">
         <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
-          <div class="tnum t-mild" style="font-size: 1.9rem; font-weight: 600; line-height: 1">{rund(chart.mittel)}{einheit}</div>
+          <div class="tnum t-mild" style="font-size: 1.9rem; font-weight: 600; line-height: 1">{rund(kennzahlen.mittel)}{einheit}</div>
           <div class="klein-txt dimm" style="margin-top: 4px">Mittelwert</div>
         </div>
         <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
-          <div class="tnum t-heiss" style="font-size: 1.9rem; font-weight: 600; line-height: 1">{rund(chart.hi)}{einheit}</div>
+          <div class="tnum t-heiss" style="font-size: 1.9rem; font-weight: 600; line-height: 1">{rund(kennzahlen.hi)}{einheit}</div>
           <div class="klein-txt dimm" style="margin-top: 4px">Hoechster Tageswert</div>
         </div>
         <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
-          <div class="tnum t-kalt" style="font-size: 1.9rem; font-weight: 600; line-height: 1">{rund(chart.lo)}{einheit}</div>
+          <div class="tnum t-kalt" style="font-size: 1.9rem; font-weight: 600; line-height: 1">{rund(kennzahlen.lo)}{einheit}</div>
           <div class="klein-txt dimm" style="margin-top: 4px">Tiefster Tageswert</div>
         </div>
         <div style="background: var(--flaeche-2); border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3)">
