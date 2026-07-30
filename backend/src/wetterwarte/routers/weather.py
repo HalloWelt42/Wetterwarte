@@ -31,6 +31,18 @@ TTL_LUFT = 900      # Luftqualitaet - traege, 15 min
 TTL_POLLEN = 3600   # Pollen - sehr traege, 1 h
 
 
+# Ein Lock je Cache-Schluessel: verhindert, dass bei Cache-Miss mehrere gleichzeitige
+# Anfragen denselben Upstream-Abruf parallel ausloesen (Single-Flight / kein Thundering Herd).
+_locks: dict[str, asyncio.Lock] = {}
+
+
+def _lock(schluessel: str) -> asyncio.Lock:
+    sperre = _locks.get(schluessel)
+    if sperre is None:
+        sperre = _locks[schluessel] = asyncio.Lock()
+    return sperre
+
+
 async def _sicher(coro: Awaitable[T]) -> T | None:
     """Zusatzquelle: bei Fehler None statt Abbruch der ganzen Antwort."""
     try:
@@ -52,12 +64,16 @@ async def _basis(o) -> dict:
     gecacht = await cache.hole(schluessel)
     if gecacht is not None:
         return gecacht
-    try:
-        b = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
-    except httpx.HTTPError as fehler:
-        raise HTTPException(status_code=502, detail=f"Wetterquelle nicht erreichbar: {fehler}") from fehler
-    await cache.setze(schluessel, b, ttl=TTL_BASIS)
-    return b
+    async with _lock(schluessel):
+        gecacht = await cache.hole(schluessel)  # ein paralleler Task hat evtl. schon gefuellt
+        if gecacht is not None:
+            return gecacht
+        try:
+            b = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
+        except httpx.HTTPError as fehler:
+            raise HTTPException(status_code=502, detail=f"Wetterquelle nicht erreichbar: {fehler}") from fehler
+        await cache.setze(schluessel, b, ttl=TTL_BASIS)
+        return b
 
 
 async def _gecacht(schluessel: str, ttl: int, quelle: Callable[[], Awaitable[T]], ersatz: T) -> T:
@@ -66,11 +82,15 @@ async def _gecacht(schluessel: str, ttl: int, quelle: Callable[[], Awaitable[T]]
     gecacht = await cache.hole(schluessel)
     if gecacht is not None:
         return gecacht
-    wert = await _sicher(quelle())
-    if wert is None:
-        return ersatz
-    await cache.setze(schluessel, wert, ttl=ttl)
-    return wert
+    async with _lock(schluessel):
+        gecacht = await cache.hole(schluessel)  # ein paralleler Task hat evtl. schon gefuellt
+        if gecacht is not None:
+            return gecacht
+        wert = await _sicher(quelle())
+        if wert is None:
+            return ersatz
+        await cache.setze(schluessel, wert, ttl=ttl)
+        return wert
 
 
 async def _warn(o):
