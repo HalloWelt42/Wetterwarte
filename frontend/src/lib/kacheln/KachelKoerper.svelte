@@ -92,6 +92,11 @@
       naechsterVoll: fmt(((0.5 - phase + 1) % 1) * SYNODISCH),
     };
   });
+  const heuteKurz = $derived.by(() => {
+    const wd = uhr.jetzt.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", "");
+    const dm = `${String(uhr.jetzt.getDate()).padStart(2, "0")}.${String(uhr.jetzt.getMonth() + 1).padStart(2, "0")}`;
+    return `${wd} ${dm}`;
+  });
 
   // Temperaturverlauf 24h mit Achsen (an die Kachelgroesse gebunden, pixelgenau).
   let chartB = $state(0);
@@ -238,6 +243,7 @@
     <span class="rechts"><span class="sm-lab">Untergang</span><b>{wetter.sonne?.untergang ?? "-"} <i class="fa-solid fa-arrow-down dimm"></i></b></span>
   </div>
 {:else if typ === "mond"}
+  <div class="mond-datum">{heuteKurz}</div>
   <div class="mond-haupt">
     <span class="mond-gross">{mond.emoji}</span>
     <span class="mond-werte">
@@ -260,9 +266,13 @@
       <span class="gwert" style="color: {aqiVar}">{luft?.aqi ?? 34}</span>
     </div>
     <div class="spalte">
-      <div><b>{luft?.label ?? "Gut"}</b> <span class="dimm klein-txt">(EU-AQI)</span></div>
-      <div class="klein-txt tnum">PM2,5 {luft?.pm2_5 ?? 8} &middot; PM10 {luft?.pm10 ?? 15}</div>
-      <div class="klein-txt tnum">O3 {luft?.o3 ?? 62} &middot; NO2 {luft?.no2 ?? 11}</div>
+      <div class="lq-kopf"><b class="lq-stufe">{luft?.label ?? "Gut"}</b> <span class="dimm klein-txt">EU-AQI</span></div>
+      <div class="lq-gitter">
+        <div class="lq-paar"><span class="lq-lab">PM2,5</span><span class="lq-wert">{luft?.pm2_5 ?? 8}</span></div>
+        <div class="lq-paar"><span class="lq-lab">PM10</span><span class="lq-wert">{luft?.pm10 ?? 15}</span></div>
+        <div class="lq-paar"><span class="lq-lab">O&#8323;</span><span class="lq-wert">{luft?.o3 ?? 62}</span></div>
+        <div class="lq-paar"><span class="lq-lab">NO&#8322;</span><span class="lq-wert">{luft?.no2 ?? 11}</span></div>
+      </div>
     </div>
   </div>
 {:else if typ === "uv"}

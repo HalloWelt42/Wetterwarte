@@ -1333,6 +1333,42 @@ textarea,
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
+.mond-datum {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: var(--a1);
+}
+
+/* Luftqualitaet: dynamische Werte fett und dunkel hervorgehoben */
+.lq-kopf {
+  margin-bottom: var(--a2);
+}
+.lq-stufe {
+  font-size: 0.95rem;
+}
+.lq-gitter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px var(--a4);
+}
+.lq-paar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--a2);
+}
+.lq-lab {
+  font-size: 0.74rem;
+  color: var(--text-3);
+}
+.lq-wert {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
 
 /* Heatmap (Jahresrueckblick) */
 .heatmap {
