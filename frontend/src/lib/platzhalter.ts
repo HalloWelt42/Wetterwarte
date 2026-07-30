@@ -4,8 +4,8 @@
 import type { Aktuell, OrtEintrag, Stunde, Tag, Warnung } from "./typen";
 
 export const orte: OrtEintrag[] = [
-  { slug: "koeln", name: "Köln", region: "Sachsen-Anhalt", icon: "partly-cloudy-day", temp: 24, aktiv: true },
-  { slug: "frankfurt", name: "Frankfurt", region: "Sachsen", icon: "clear-day", temp: 26 },
+  { slug: "koeln", name: "Köln", region: "Nordrhein-Westfalen", icon: "partly-cloudy-day", temp: 24, aktiv: true },
+  { slug: "frankfurt", name: "Frankfurt am Main", region: "Hessen", icon: "clear-day", temp: 26 },
   { slug: "berlin", name: "Berlin", region: "Berlin", icon: "overcast-day", temp: 22 },
   { slug: "hamburg", name: "Hamburg", region: "Hamburg", icon: "rain", temp: 19 },
   { slug: "muenchen", name: "München", region: "Bayern", icon: "thunderstorms-day", temp: 21 },
