@@ -29,6 +29,7 @@ export interface Aktuell {
   wind: number;
   windRichtung: string;
   windGrad?: number;
+  boeen?: number;
   druck: number;
   sicht: number;
   taupunkt: number;
