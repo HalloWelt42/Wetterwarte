@@ -1072,11 +1072,6 @@ textarea,
   height: 100%;
   display: block;
 }
-.chart-flaeche {
-  flex: 1;
-  min-height: 0;
-  display: block;
-}
 
 
 /* Nowcast "Regen in x Minuten" */
@@ -1433,6 +1428,53 @@ textarea,
 .ort-weg:hover {
   color: var(--gefahr);
   background: var(--gefahr-weich);
+}
+
+/* Layout-Verwaltung */
+.layout-karte {
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  padding: var(--a3);
+  background: var(--flaeche);
+}
+.layout-karte.aktiv-rahmen {
+  box-shadow: 0 0 0 2px var(--akzent);
+  border-color: transparent;
+}
+.layout-vorschau {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 20px;
+  gap: 3px;
+  width: 100%;
+  margin-bottom: var(--a2);
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.layout-vorschau span {
+  border-radius: 3px;
+}
+.layout-neu {
+  border: 2px dashed var(--rand-stark);
+  border-radius: var(--r2);
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  min-height: 160px;
+  cursor: pointer;
+  font: inherit;
+}
+.pille-knopf {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  opacity: 0.6;
+}
+.pille-knopf:hover {
+  opacity: 1;
 }
 
 /* Heatmap (Jahresrueckblick) */

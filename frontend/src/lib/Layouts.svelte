@@ -1,23 +1,52 @@
 <script lang="ts">
   import { ui } from "./ui.svelte";
+  import {
+    layoutState,
+    setzeAktiv,
+    erstelleLayout,
+    benenneLayout,
+    dupliziereLayout,
+    loescheLayout,
+    setzeStandard,
+    type Layout,
+  } from "./layout.svelte";
 
-  interface Layout {
-    name: string;
-    info: string;
-    standard?: boolean;
-    warn?: boolean;
+  let bearbeiteId = $state<string | null>(null);
+  let bearbeiteName = $state("");
+  let loeschId = $state<string | null>(null);
+
+  function starteBearbeiten(l: Layout): void {
+    bearbeiteId = l.id;
+    bearbeiteName = l.name;
+    loeschId = null;
   }
-  const layouts: Layout[] = [
-    { name: "Zuhause", info: "14 Kacheln - 5 Orte", standard: true },
-    { name: "Garten", info: "8 Kacheln - Regen, Frost, Pollen" },
-    { name: "Reise", info: "4 Städte nebeneinander" },
-    { name: "Unwetter", info: "Warnungen, Radar, Blitze, Nowcast", warn: true },
-  ];
-
-  // Mini-Vorschau: acht Bloecke, betonte Kacheln in Akzent bzw. Warnfarbe.
+  async function speichereName(): Promise<void> {
+    if (bearbeiteId) await benenneLayout(bearbeiteId, bearbeiteName);
+    bearbeiteId = null;
+  }
+  function taste(e: KeyboardEvent): void {
+    if (e.key === "Enter") void speichereName();
+    else if (e.key === "Escape") bearbeiteId = null;
+  }
+  async function loeschen(id: string): Promise<void> {
+    if (loeschId !== id) {
+      loeschId = id; // erster Klick schaerft, zweiter loescht
+      return;
+    }
+    loeschId = null;
+    await loescheLayout(id);
+  }
+  async function neu(): Promise<void> {
+    const l = await erstelleLayout();
+    if (l) setzeAktiv(l.id);
+  }
+  function anzahl(l: Layout): number {
+    return Array.isArray(l.daten) ? l.daten.length : 0;
+  }
   function bloecke(l: Layout): string[] {
-    const betont = l.warn ? "var(--gefahr-weich)" : "var(--akzent-weich)";
-    return [betont, "var(--flaeche-3)", "var(--flaeche-3)", betont, "var(--flaeche-3)", betont, "var(--flaeche-3)", "var(--flaeche-3)"];
+    const b = l.ist_standard ? "var(--akzent-weich)" : "var(--flaeche-3)";
+    const f = "var(--flaeche-3)";
+    return [b, f, f, b, f, b, f, f];
   }
 
   function zu() {
@@ -36,28 +65,48 @@
         Ein Layout ist eine benannte Kachel-Anordnung. Du wechselst oben in der Kopfleiste zwischen den Layouts.
       </p>
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--a3)">
-        {#each layouts as l}
-          <div style="border: 1px solid var(--rand); border-radius: var(--r2); padding: var(--a3); background: var(--flaeche)">
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 20px; gap: 3px; margin-bottom: var(--a2)">
-              {#each bloecke(l) as farbe}
-                <span style="background: {farbe}; border-radius: 3px"></span>
-              {/each}
+        {#each layoutState.liste as l (l.id)}
+          <div class="layout-karte" class:aktiv-rahmen={layoutState.aktivId === l.id}>
+            <button class="layout-vorschau" onclick={() => setzeAktiv(l.id)} title="Dieses Layout anzeigen">
+              {#each bloecke(l) as farbe}<span style="background: {farbe}"></span>{/each}
+            </button>
+            <div class="reihe" style="justify-content: space-between; gap: var(--a2)">
+              {#if bearbeiteId === l.id}
+                <!-- svelte-ignore a11y_autofocus -->
+                <input
+                  class="feld"
+                  style="height: 28px; padding: 2px 6px"
+                  bind:value={bearbeiteName}
+                  onkeydown={taste}
+                  onblur={speichereName}
+                  autofocus
+                />
+              {:else}
+                <b>{l.name}</b>
+              {/if}
+              {#if l.ist_standard}
+                <span class="pille gut">Standard</span>
+              {:else}
+                <button class="pille pille-knopf" onclick={() => setzeStandard(l.id)} title="Als Standard setzen">Standard?</button>
+              {/if}
             </div>
-            <div class="reihe" style="justify-content: space-between">
-              <b>{l.name}</b>
-              {#if l.standard}<span class="pille gut">Standard</span>{/if}
-            </div>
-            <div class="klein-txt dimm">{l.info}</div>
+            <div class="klein-txt dimm">{anzahl(l)} Kacheln</div>
             <div class="reihe" style="gap: 2px; margin-top: var(--a2)">
-              <button class="icon-knopf" title="Umbenennen" style="width: 30px; height: 30px"><i class="fa-solid fa-pen"></i></button>
-              <button class="icon-knopf" title="Duplizieren" style="width: 30px; height: 30px"><i class="fa-solid fa-copy"></i></button>
-              <button class="icon-knopf gefahr" title="Löschen" style="width: 30px; height: 30px"><i class="fa-solid fa-trash"></i></button>
+              <button class="icon-knopf" title="Umbenennen" style="width: 30px; height: 30px" onclick={() => starteBearbeiten(l)} aria-label="Umbenennen"><i class="fa-solid fa-pen"></i></button>
+              <button class="icon-knopf" title="Duplizieren" style="width: 30px; height: 30px" onclick={() => dupliziereLayout(l.id)} aria-label="Duplizieren"><i class="fa-solid fa-copy"></i></button>
+              <button
+                class="icon-knopf gefahr"
+                title={loeschId === l.id ? "Wirklich löschen?" : "Löschen"}
+                style="height: 30px; {loeschId === l.id ? 'width: auto; padding: 0 8px' : 'width: 30px'}"
+                onclick={() => loeschen(l.id)}
+                aria-label="Löschen"
+              >
+                {#if loeschId === l.id}<span class="klein-txt">Sicher?</span>{:else}<i class="fa-solid fa-trash"></i>{/if}
+              </button>
             </div>
           </div>
         {/each}
-        <button
-          style="border: 2px dashed var(--rand-stark); border-radius: var(--r2); background: transparent; display: grid; place-items: center; color: var(--text-3); min-height: 160px; cursor: pointer; font: inherit"
-        >
+        <button class="layout-neu" onclick={neu}>
           <span style="text-align: center"><i class="fa-solid fa-plus" style="font-size: 1.4rem"></i><br />Neues Layout</span>
         </button>
       </div>
