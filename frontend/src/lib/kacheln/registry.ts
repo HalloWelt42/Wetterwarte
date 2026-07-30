@@ -20,7 +20,7 @@ export const registry: Record<string, KachelDef> = {
   nowcast: { typ: "nowcast", titel: "Regen-Nowcast", icon: "fa-cloud-showers-heavy", w: 4, h: 2, familie: "Karte", unter: "ORT" },
   blitze: { typ: "blitze", titel: "Blitze", icon: "fa-bolt", w: 4, h: 2, familie: "Karte", unter: "Umkreis 130 km" },
   wind: { typ: "wind", titel: "Wind", icon: "fa-wind", w: 4, h: 2, familie: "Detail" },
-  sonnemond: { typ: "sonnemond", titel: "Sonne und Mond", icon: "fa-sun", w: 4, h: 2, familie: "Umwelt" },
+  sonnemond: { typ: "sonnemond", titel: "Sonne und Mond", icon: "fa-sun", w: 4, h: 4, familie: "Umwelt" },
   luftqualitaet: { typ: "luftqualitaet", titel: "Luftqualität", icon: "fa-smog", w: 4, h: 2, familie: "Umwelt", unter: "ORT" },
   uv: { typ: "uv", titel: "UV-Index", icon: "fa-sun", w: 4, h: 2, familie: "Umwelt" },
   pollen: { typ: "pollen", titel: "Pollenflug", icon: "fa-seedling", w: 4, h: 5, familie: "Umwelt", unter: "ORT" },

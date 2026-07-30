@@ -3,6 +3,7 @@
   import { aktuell, stunden, tage, warnungen } from "../platzhalter";
   import { gehe } from "../route.svelte";
   import { wetter } from "../wetter.svelte";
+  import { uhr } from "../uhr.svelte";
 
   let { typ }: { typ: string } = $props();
 
@@ -33,6 +34,64 @@
   function pollenBreite(v: number): number {
     return v < 0 ? 0 : Math.min((v / 3) * 100, 100);
   }
+
+  // Sonne: Bogen mit Live-Marker (Vorbild alter SunWidget).
+  function zuMinuten(t?: string): number {
+    const m = t ? /^(\d{1,2}):(\d{2})/.exec(t) : null;
+    return m ? +m[1] * 60 + +m[2] : 0;
+  }
+  const sonneAuf = $derived(zuMinuten(wetter.sonne?.aufgang));
+  const sonneUnter = $derived(zuMinuten(wetter.sonne?.untergang));
+  const jetztMin = $derived(uhr.jetzt.getHours() * 60 + uhr.jetzt.getMinutes());
+  const jetztZeit = $derived(uhr.jetzt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }));
+  const istTag = $derived(jetztMin >= sonneAuf && jetztMin <= sonneUnter);
+  const tagLaenge = $derived(sonneUnter - sonneAuf);
+  const sonneWinkel = $derived.by(() => {
+    if (!sonneAuf || !sonneUnter) return Math.PI / 2;
+    if (istTag && tagLaenge > 0) return Math.PI * (1 - (jetztMin - sonneAuf) / tagLaenge);
+    const nachtDauer = 1440 - sonneUnter + sonneAuf;
+    const f = jetztMin >= sonneUnter ? (jetztMin - sonneUnter) / nachtDauer : (1440 - sonneUnter + jetztMin) / nachtDauer;
+    return -Math.PI * f;
+  });
+  const sonneX = $derived(60 + 50 * Math.cos(sonneWinkel));
+  const sonneY = $derived(60 - 50 * Math.sin(sonneWinkel));
+  const sonneFarbe = $derived.by(() => {
+    if (!istTag) return "var(--flaeche-3)";
+    const f = (jetztMin - sonneAuf) / tagLaenge;
+    if (f < 0.12) return "#FF9800";
+    if (f < 0.3) return "#FFB74D";
+    if (f < 0.7) return "#FFF59D";
+    if (f < 0.88) return "#FFB74D";
+    return "#FF7043";
+  });
+
+  // Mondphase: rein rechnerisch (synodischer Monat).
+  const SYNODISCH = 29.530588853;
+  const NEUMOND0 = Date.UTC(2000, 0, 6, 18, 14, 0);
+  const mond = $derived.by(() => {
+    const tage = (uhr.jetzt.getTime() - NEUMOND0) / 86400000;
+    const alter = ((tage % SYNODISCH) + SYNODISCH) % SYNODISCH;
+    const phase = alter / SYNODISCH;
+    const beleuchtung = Math.round(((1 - Math.cos(phase * 2 * Math.PI)) / 2) * 100);
+    let emoji = "🌕";
+    if (phase < 0.025 || phase >= 0.975) emoji = "🌑";
+    else if (phase < 0.235) emoji = "🌒";
+    else if (phase < 0.265) emoji = "🌓";
+    else if (phase < 0.485) emoji = "🌔";
+    else if (phase < 0.515) emoji = "🌕";
+    else if (phase < 0.735) emoji = "🌖";
+    else if (phase < 0.765) emoji = "🌗";
+    else emoji = "🌘";
+    const fmt = (d: number) =>
+      new Date(uhr.jetzt.getTime() + d * 86400000).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+    return {
+      emoji,
+      beleuchtung,
+      zunehmend: phase < 0.5,
+      naechsterNeu: fmt(((1 - phase) % 1) * SYNODISCH),
+      naechsterVoll: fmt(((0.5 - phase + 1) % 1) * SYNODISCH),
+    };
+  });
 </script>
 
 {#if typ === "aktuell"}
@@ -125,15 +184,28 @@
     </div>
   </div>
 {:else if typ === "sonnemond"}
-  <svg class="sonnenbogen" viewBox="0 0 200 70" preserveAspectRatio="xMidYMid meet">
-    <path d="M8,62 Q100,-4 192,62" style="fill: none; stroke: var(--rand); stroke-width: 2; stroke-dasharray: 3 4" />
-    <path d="M8,62 Q100,-4 192,62" style="fill: none; stroke: var(--warn); stroke-width: 2.5" pathLength="100" stroke-dasharray="66 100" />
-    <circle cx="140" cy="17" r="6" style="fill: var(--warn)" />
-  </svg>
-  <div class="sm-zeiten">
-    <span><i class="fa-solid fa-arrow-up dimm"></i> {wetter.sonne?.aufgang ?? "05:42"}</span>
-    <span class="reihe"><img class="mc winzig" src={meteocon("moon-waxing-gibbous")} alt="" /> zunehmend 78%</span>
-    <span><i class="fa-solid fa-arrow-down dimm"></i> {wetter.sonne?.untergang ?? "21:18"}</span>
+  <div class="sm-bogen-wrap">
+    <svg class="sm-bogen" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="sm-tag" x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="0%" stop-color="#FF9800" /><stop offset="50%" stop-color="#FFEB3B" /><stop offset="100%" stop-color="#FF5722" />
+        </linearGradient>
+      </defs>
+      <path d="M 110 60 A 50 50 0 0 1 10 60" fill="none" stroke="var(--rand)" stroke-width="2" stroke-dasharray="3 4" />
+      <path d="M 10 60 A 50 50 0 0 1 110 60" fill="none" stroke="url(#sm-tag)" stroke-width="2" stroke-linecap="round" />
+      <line x1="5" y1="60" x2="115" y2="60" stroke="var(--rand-stark)" stroke-width="1" />
+      <circle cx={sonneX} cy={sonneY} r="11" fill={sonneFarbe} stroke={istTag ? "none" : "var(--rand-stark)"} stroke-width={istTag ? 0 : 2} stroke-dasharray={istTag ? "none" : "3 3"} />
+    </svg>
+    <div class="sm-mitte"><div class="sm-jetzt">Jetzt</div><div class="sm-zeit">{jetztZeit}</div></div>
+  </div>
+  <div class="sm-auf-unter">
+    <span><span class="sm-lab">Aufgang</span><b><i class="fa-solid fa-arrow-up dimm"></i> {wetter.sonne?.aufgang ?? "-"}</b></span>
+    <span class="rechts"><span class="sm-lab">Untergang</span><b>{wetter.sonne?.untergang ?? "-"} <i class="fa-solid fa-arrow-down dimm"></i></b></span>
+  </div>
+  <div class="sm-mond">
+    <span class="sm-mond-emoji">{mond.emoji}</span>
+    <span class="sm-mond-mitte"><b class="tnum">{mond.beleuchtung}%</b><span class="dimm klein-txt">{mond.zunehmend ? "zunehmend" : "abnehmend"}</span></span>
+    <span class="sm-mond-dat"><span class="dimm">🌑 {mond.naechsterNeu}</span><span class="dimm">🌕 {mond.naechsterVoll}</span></span>
   </div>
 {:else if typ === "luftqualitaet"}
   <div class="gauge-zeile">
