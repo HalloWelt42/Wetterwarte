@@ -16,6 +16,7 @@
 
   let kartenEl: HTMLDivElement;
   let map: maplibregl.Map | undefined;
+  let ortMarker: maplibregl.Marker | undefined;
   // Gemerkte Einstellungen (localStorage) laden.
   let basis = $state<"hell" | "dunkel" | "satellit">(lies("karte.basis", "hell"));
   let overlays = $state<Record<string, boolean>>({ ...OVERLAYS_STANDARD, ...lies("karte.overlays", {}) });
@@ -23,6 +24,12 @@
   // ... und bei Aenderung merken.
   $effect(() => schreib("karte.basis", basis));
   $effect(() => schreib("karte.overlays", overlays));
+
+  // Orientierungs-Overlay (Beschriftung, Grenzen, Strassen) - optional einblendbar,
+  // vor allem fuer Satellit und die datenarme Dunkelkarte. Nutzt die detailreichen
+  // voyager-Kacheln halbtransparent ueber der Basiskarte.
+  let orientierung = $state<boolean>(lies("karte.orientierung", false));
+  $effect(() => schreib("karte.orientierung", orientierung));
 
   // Overlays, die schon Daten haben, zuerst; die uebrigen kommen Schritt fuer Schritt.
   const overlayNamen: [string, string][] = [
@@ -50,7 +57,7 @@
         sources: {
           basis: {
             type: "raster",
-            tiles: kacheln("hell"),
+            tiles: kacheln(basis),
             tileSize: 256,
             attribution: "© OpenStreetMap, © CARTO",
           },
@@ -62,7 +69,10 @@
       attributionControl: false,
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    // Pinnnadel am aktiven Ort (Heimat).
+    ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);
     map.on("load", () => {
+      baueOrientierung();
       baueBlitzEbene();
       baueWellenEbene();
       void ladeBlitze();
@@ -71,8 +81,32 @@
     blitzTimer = setInterval(() => void ladeBlitze(), 30000);
     return () => {
       clearInterval(blitzTimer);
+      ortMarker?.remove();
       map?.remove();
     };
+  });
+
+  // --- Orientierungs-Overlay (voyager: Beschriftung, Grenzen, Strassen) ---
+  function baueOrientierung(): void {
+    if (!map || map.getSource("orientierung")) return;
+    map.addSource("orientierung", { type: "raster", tiles: ["/kachel/voyager/{z}/{x}/{y}"], tileSize: 256 });
+    map.addLayer({
+      id: "orientierung",
+      type: "raster",
+      source: "orientierung",
+      layout: { visibility: orientierung ? "visible" : "none" },
+      paint: { "raster-opacity": basis === "satellit" ? 0.5 : 0.7 },
+    });
+  }
+  // Ein-/Ausblenden.
+  $effect(() => {
+    const an = orientierung;
+    if (map?.getLayer("orientierung")) map.setLayoutProperty("orientierung", "visibility", an ? "visible" : "none");
+  });
+  // Deckkraft je Basiskarte (Satellitenbild soll durchscheinen).
+  $effect(() => {
+    const b = basis;
+    if (map?.getLayer("orientierung")) map.setPaintProperty("orientierung", "raster-opacity", b === "satellit" ? 0.5 : 0.7);
   });
 
   // --- Blitze (Live-Ebene aus dem lightningmap-Dienst) ---
@@ -136,7 +170,8 @@
   let ws: WebSocket | undefined;
   let wellen: { lon: number; lat: number; start: number }[] = [];
   let animLaeuft = false;
-  const WELLE_MS = 1400;
+  const WELLE_MS = 1600; // Dauer der Schallwelle (wachsender Ring)
+  const FLASH_MS = 260; // Dauer des hellen Aufblitzens am Punkt
 
   function imBlick(lon: number, lat: number): boolean {
     const b = map?.getBounds();
@@ -146,8 +181,10 @@
   function baueWellenEbene(): void {
     if (!map || map.getSource("wellen")) return;
     map.addSource("wellen", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    // Schallausbreitung: wandernder Ring, der waechst und ausblendet; die Front
+    // ist anfangs dick und wird duenner - wie eine sich loesende Welle.
     map.addLayer({
-      id: "wellen",
+      id: "wellen-ring",
       type: "circle",
       source: "wellen",
       paint: {
@@ -155,8 +192,20 @@
         "circle-color": "#ffffff",
         "circle-opacity": 0,
         "circle-stroke-color": "#ffe680",
-        "circle-stroke-width": 2,
+        "circle-stroke-width": ["get", "sw"],
         "circle-stroke-opacity": ["get", "o"],
+      },
+    });
+    // Kurzes, helles Aufblitzen genau am Einschlagpunkt (schnell verglimmend).
+    map.addLayer({
+      id: "wellen-blitz",
+      type: "circle",
+      source: "wellen",
+      paint: {
+        "circle-radius": ["get", "fr"],
+        "circle-color": "#ffffff",
+        "circle-opacity": ["get", "fo"],
+        "circle-blur": 0.5,
       },
     });
   }
@@ -172,11 +221,21 @@
     quelle.setData({
       type: "FeatureCollection",
       features: wellen.map((w) => {
-        const p = (jetzt - w.start) / WELLE_MS;
+        const alter = jetzt - w.start;
+        const p = alter / WELLE_MS; // Ring: 0 (frisch) .. 1 (verklungen)
+        const pf = Math.min(1, alter / FLASH_MS); // Blitz: 0 .. 1
         return {
           type: "Feature" as const,
           geometry: { type: "Point" as const, coordinates: [w.lon, w.lat] },
-          properties: { r: 4 + p * 34, o: 0.9 * (1 - p) },
+          properties: {
+            // Schallwelle: waechst weit auf, Front wird duenner und blasser.
+            r: 4 + p * 40,
+            o: 0.85 * (1 - p),
+            sw: 0.5 + (1 - p) * 3,
+            // Aufblitzen: heller Kern, waechst minimal, verglimmt in FLASH_MS.
+            fr: 5 + pf * 5,
+            fo: alter < FLASH_MS ? 0.95 * (1 - pf) : 0,
+          },
         };
       }),
     });
@@ -231,10 +290,13 @@
     (quelle as unknown as { setTiles?: (t: string[]) => void })?.setTiles?.(kacheln(b));
   });
 
-  // Karte auf den aktiven Ort schwenken, wenn er wechselt.
+  // Karte auf den aktiven Ort schwenken und die Pinnnadel mitfuehren.
   $effect(() => {
     void wetter.slug;
-    map?.flyTo({ center: aktiverOrt(), zoom: 7, duration: 800 });
+    void orteState.liste.length; // auch auf spaeter geladene Ortsliste reagieren
+    const ziel = aktiverOrt();
+    ortMarker?.setLngLat(ziel);
+    map?.flyTo({ center: ziel, zoom: 7, duration: 800 });
   });
 </script>
 
@@ -250,6 +312,10 @@
         <button class:aktiv={basis === "hell"} onclick={() => (basis = "hell")}>Hell</button>
         <button class:aktiv={basis === "dunkel"} onclick={() => (basis = "dunkel")}>Dunkel</button>
         <button class:aktiv={basis === "satellit"} onclick={() => (basis = "satellit")}>Satellit</button>
+      </div>
+      <div class="formzeile-quer">
+        <span class="fz-lab">Beschriftung &amp; Grenzen</span>
+        <button class="schalter" class:an={orientierung} onclick={() => (orientierung = !orientierung)} aria-label="Beschriftung und Grenzen einblenden"></button>
       </div>
       <div class="kat-gruppe">Overlays</div>
       {#each overlayNamen as [schluessel, label]}

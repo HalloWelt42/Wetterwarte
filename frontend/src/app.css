@@ -646,6 +646,7 @@ textarea,
 /* Wetter-Kachel */
 .kachel-w {
   background: var(--flaeche);
+  color: var(--text);
   border: 1px solid var(--rand);
   border-radius: var(--r3);
   padding: var(--a3) var(--a4);
@@ -1749,6 +1750,7 @@ textarea,
 /* ============================================================ Karte (Panel) fuer Verwaltungs-Seiten */
 .panel {
   background: var(--flaeche);
+  color: var(--text);
   border: 1px solid var(--rand);
   border-radius: var(--r3);
   padding: var(--a4);
