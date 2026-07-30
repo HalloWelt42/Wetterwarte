@@ -9,6 +9,10 @@
   import { thema } from "./thema.svelte";
   import { gehe } from "./route.svelte";
 
+  // Ort dieser Karte (Standard: aktiver Ort).
+  let { ort }: { ort?: string } = $props();
+  const slug = $derived(ort || wetter.slug);
+
   let kartenEl: HTMLDivElement;
   let map: maplibregl.Map | undefined;
   let blitzTimer: ReturnType<typeof setInterval> | undefined;
@@ -18,7 +22,7 @@
   const kacheln = (t: string): string[] => [`/kachel/${provider[t] ?? "light"}/{z}/{x}/{y}`];
 
   function aktiverOrt(): [number, number] {
-    const o = orteState.liste.find((x) => x.slug === wetter.slug);
+    const o = orteState.liste.find((x) => x.slug === slug);
     return o ? [o.lon, o.lat] : [10.45, 51.16];
   }
 
@@ -96,7 +100,7 @@
 
   // Auf Ortswechsel schwenken.
   $effect(() => {
-    void wetter.slug;
+    void slug;
     map?.flyTo({ center: aktiverOrt(), zoom: 6, duration: 700 });
   });
 </script>
