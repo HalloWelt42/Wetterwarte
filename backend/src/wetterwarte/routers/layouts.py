@@ -43,6 +43,14 @@ async def speichern(layout_id: str, eingabe: LayoutEingabe, session: AsyncSessio
     if eingabe.daten is not None:
         layout.daten = eingabe.daten
     if eingabe.ist_standard is not None:
+        if eingabe.ist_standard:
+            # Es gibt genau ein Standard-Layout: die anderen Flags loeschen.
+            andere = (
+                await session.execute(select(Layout).where(Layout.id != layout_id, Layout.ist_standard.is_(True)))
+            ).scalars().all()
+            for a in andere:
+                a.ist_standard = False
+                session.add(a)
         layout.ist_standard = eingabe.ist_standard
     session.add(layout)
     await session.commit()
