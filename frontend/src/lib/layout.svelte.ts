@@ -5,7 +5,7 @@ export interface Layout {
   id: string;
   name: string;
   ist_standard: boolean;
-  daten: { id: string; x: number; y: number; w: number; h: number }[];
+  daten: { id: string; typ?: string; x: number; y: number; w: number; h: number }[];
 }
 
 export const layoutState = $state<{ liste: Layout[]; aktivId: string | null }>({
