@@ -10,6 +10,10 @@ load_env() { set -a; . ./.env 2>/dev/null || true; set +a; }
 
 # Produktion: ein Compose steuert alles (Backend, Frontend, DB, Redis).
 PROD="docker compose -f docker-compose.prod.yml --env-file .env.prod"
+
+# Ziel-Server fuer den Deploy vom Entwicklungsrechner (per SSH/rsync).
+PI_HOST="${PI_HOST:-pi@192.168.178.49}"
+PI_PFAD="${PI_PFAD:-/home/pi/wetterwarte}"
 ensure_prod_env() {
   [ -f .env.prod ] && return 0
   echo "Es fehlt .env.prod. Aus der Vorlage anlegen:  cp .env.prod.example .env.prod"
@@ -46,8 +50,18 @@ case "${1:-}" in
     ensure_prod_env; $PROD ps ;;
   prod-logs)
     ensure_prod_env; shift; $PROD logs -f "$@" ;;
+  deploy)
+    # Vom Entwicklungsrechner: Quellcode zum Server syncen und dort neu bauen/starten.
+    echo "Sync -> $PI_HOST:$PI_PFAD"
+    rsync -az --delete \
+      --exclude '.git' --exclude 'node_modules' --exclude '.venv' --exclude 'dist' \
+      --exclude 'data' --exclude '.env' --exclude '.env.prod' --exclude '__pycache__' \
+      --exclude '.DS_Store' --exclude '.run' --exclude 'mockups' \
+      -e ssh ./ "$PI_HOST:$PI_PFAD/" \
+      && ssh "$PI_HOST" "cd '$PI_PFAD' && ./wetter prod-restart" \
+      && echo "Deploy fertig." ;;
   mockup)
     ./start-mockups.sh "${2:-start}" ;;
   *)
-    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs]" ;;
+    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs|deploy]" ;;
 esac
