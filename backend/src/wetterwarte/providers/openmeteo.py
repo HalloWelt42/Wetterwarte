@@ -123,6 +123,7 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
         "tageshoch": round(d["daily"]["temperature_2m_max"][0]),
         "zustandText": text,
         "icon": icon,
+        "weatherCode": int(c["weather_code"]),
         "feuchte": round(c["relative_humidity_2m"]),
         "wind": round(c["wind_speed_10m"]),
         "windRichtung": _himmelsrichtung(c["wind_direction_10m"]),

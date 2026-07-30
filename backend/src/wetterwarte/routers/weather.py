@@ -15,7 +15,7 @@ from .. import cache, ortsdienst
 from ..providers import blitze, luftqualitaet, openmeteo, pollen_dwd, warnungen
 from ..schemas.envelope import wrap
 
-router = APIRouter(prefix="/weather", tags=["weather"])
+router = APIRouter(prefix="/wetter", tags=["wetter"])
 
 T = TypeVar("T")
 

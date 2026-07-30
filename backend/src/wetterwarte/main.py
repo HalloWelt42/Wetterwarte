@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from . import recorder
 from .config import settings
 from .db import dispose_engine, init_db
-from .routers import archiv, health, layouts, orte, weather
+from .routers import archiv, health, kompat, layouts, orte, weather
 
 
 @asynccontextmanager
@@ -34,3 +34,5 @@ app.include_router(weather.router, prefix="/api/v1")
 app.include_router(orte.router, prefix="/api/v1")
 app.include_router(layouts.router, prefix="/api/v1")
 app.include_router(archiv.router, prefix="/api/v1")
+# Kompatibilitaets-Schicht der alten weathercache-API (fuer bestehende Konsumenten).
+app.include_router(kompat.router, prefix="/api/v1")

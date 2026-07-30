@@ -4,14 +4,12 @@ Die Liste ist datengetrieben (Datenbank); es gibt keine fest verdrahteten Orte
 mehr im Quellcode - der Nutzer waehlt seine Orte selbst per Suche.
 """
 
-import re
-
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from .. import ortsdienst
 from ..db import get_session
 from ..models.ort import Ort
 from ..providers import geocoding
@@ -26,21 +24,6 @@ class OrtEingabe(BaseModel):
     land: str = ""
     lat: float
     lon: float
-
-
-def _slugify(name: str) -> str:
-    s = name.lower().replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
-    s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
-    return s or "ort"
-
-
-async def _eindeutiger_slug(session: AsyncSession, basis: str) -> str:
-    slug = basis
-    n = 2
-    while (await session.execute(select(Ort.id).where(Ort.slug == slug))).first() is not None:
-        slug = f"{basis}-{n}"
-        n += 1
-    return slug
 
 
 @router.get("")
@@ -61,20 +44,7 @@ async def orte_suchen(q: str = "") -> dict:
 
 @router.post("")
 async def anlegen(eingabe: OrtEingabe, session: AsyncSession = Depends(get_session)) -> dict:
-    slug = await _eindeutiger_slug(session, _slugify(eingabe.name))
-    maxr = (await session.execute(select(func.max(Ort.reihenfolge)))).scalar()
-    ort = Ort(
-        slug=slug,
-        name=eingabe.name,
-        region=eingabe.region,
-        land=eingabe.land,
-        lat=eingabe.lat,
-        lon=eingabe.lon,
-        reihenfolge=(maxr or 0) + 1,
-    )
-    session.add(ort)
-    await session.commit()
-    await session.refresh(ort)
+    ort = await ortsdienst.anlegen(session, eingabe.name, eingabe.region, eingabe.land, eingabe.lat, eingabe.lon)
     return wrap(ort.model_dump())
 
 

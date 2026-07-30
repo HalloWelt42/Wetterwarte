@@ -46,7 +46,7 @@ export const wetter = $state<{
 export async function ladeWetter(slug: string): Promise<void> {
   wetter.slug = slug;
   try {
-    const d = await hole<Komplett>(`/weather/complete/${slug}`);
+    const d = await hole<Komplett>(`/wetter/complete/${slug}`);
     wetter.ort = d.ort.name;
     wetter.aktuell = d.aktuell;
     wetter.stunden = d.stunden;
