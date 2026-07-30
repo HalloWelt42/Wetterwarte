@@ -28,6 +28,9 @@ async def init_db() -> None:
     from sqlmodel import SQLModel, select
 
     from .models.layout import Layout
+    from .models.messwert import Messwert  # noqa: F401 - Tabelle registrieren
+    from .models.ort import Ort
+    from .orte import ORTE
 
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
@@ -37,4 +40,23 @@ async def init_db() -> None:
         if vorhanden is None:
             for name, standard in [("Zuhause", True), ("Garten", False), ("Reise", False), ("Unwetter", False)]:
                 session.add(Layout(name=name, ist_standard=standard, daten=[]))
+            await session.commit()
+
+        # Beim ersten Start ein paar generische Beispiel-Orte anlegen; danach
+        # pflegt der Nutzer die Liste selbst per Suche (Quelle der Wahrheit: DB).
+        ort_vorhanden = (await session.execute(select(Ort))).scalars().first()
+        if ort_vorhanden is None:
+            for i, (slug, o) in enumerate(ORTE.items()):
+                session.add(
+                    Ort(
+                        slug=slug,
+                        name=o["name"],
+                        region=o["region"],
+                        land="Deutschland",
+                        lat=o["lat"],
+                        lon=o["lon"],
+                        reihenfolge=i,
+                        ist_start=(i == 0),
+                    )
+                )
             await session.commit()

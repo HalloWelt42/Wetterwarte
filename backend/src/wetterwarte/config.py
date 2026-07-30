@@ -14,12 +14,14 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://wetterwarte:wetterwarte@localhost:6152/wetterwarte"
     redis_url: str = "redis://localhost:6153/0"
     app_secret: str = "entwicklung"
-    version: str = "0.9.8"
+    version: str = "0.9.9"
 
     # Basis-URL fuer Open-Meteo. Vorerst der oeffentliche Dienst (nutzt fuer
     # Deutschland die DWD-ICON-Modelle); spaeter der lokal gespiegelte Dienst.
     open_meteo_base: str = "https://api.open-meteo.com/v1"
     air_quality_base: str = "https://air-quality-api.open-meteo.com/v1"
+    # Ortssuche (Geocoding) - liefert Name, Region, Land und Koordinaten.
+    geocoding_base: str = "https://geocoding-api.open-meteo.com/v1"
     # DWD-Warnungen vorerst ueber Bright Sky (DWD-Aufbereitung); spaeter eigener Ingester.
     bright_sky_base: str = "https://api.brightsky.dev"
     # Live-Blitze vom lokal gehosteten lightningmap-Dienst (Blitzortung.org).

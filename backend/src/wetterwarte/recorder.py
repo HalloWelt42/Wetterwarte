@@ -10,9 +10,9 @@ from datetime import datetime
 
 from sqlmodel import select
 
+from . import ortsdienst
 from .db import SessionLocal
 from .models.messwert import Messwert
-from .orte import ORTE
 from .providers import openmeteo
 
 INTERVALL_SEKUNDEN = 600
@@ -25,22 +25,22 @@ async def _archiv_leer() -> bool:
 
 
 async def _backfill() -> None:
-    for slug, o in ORTE.items():
+    for o in await ortsdienst.alle():
         try:
-            reihe = await openmeteo.historie(o["lat"], o["lon"], tage=30)
+            reihe = await openmeteo.historie(o.lat, o.lon, tage=30)
         except Exception:
             continue
         async with SessionLocal() as session:
             for zeit, wert in reihe:
-                session.add(Messwert(ort=slug, zeit=datetime.fromisoformat(zeit), variable="temperatur", wert=float(wert)))
+                session.add(Messwert(ort=o.slug, zeit=datetime.fromisoformat(zeit), variable="temperatur", wert=float(wert)))
             await session.commit()
 
 
 async def _schreibe_aktuell() -> None:
     jetzt = datetime.now()
-    for slug, o in ORTE.items():
+    for o in await ortsdienst.alle():
         try:
-            daten = await openmeteo.komplett(o["lat"], o["lon"], o["name"], o["region"])
+            daten = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
         except Exception:
             continue
         a = daten["aktuell"]
@@ -48,7 +48,7 @@ async def _schreibe_aktuell() -> None:
             for variable in ("temperatur", "feuchte", "wind", "druck"):
                 wert = a.get(variable)
                 if wert is not None:
-                    session.add(Messwert(ort=slug, zeit=jetzt, variable=variable, wert=float(wert)))
+                    session.add(Messwert(ort=o.slug, zeit=jetzt, variable=variable, wert=float(wert)))
             await session.commit()
 
 

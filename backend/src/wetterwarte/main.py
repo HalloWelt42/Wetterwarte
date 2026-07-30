@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from . import recorder
 from .config import settings
 from .db import dispose_engine, init_db
-from .routers import archiv, health, layouts, weather
+from .routers import archiv, health, layouts, orte, weather
 
 
 @asynccontextmanager
@@ -31,5 +31,6 @@ app = FastAPI(
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
+app.include_router(orte.router, prefix="/api/v1")
 app.include_router(layouts.router, prefix="/api/v1")
 app.include_router(archiv.router, prefix="/api/v1")

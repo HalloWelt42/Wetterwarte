@@ -105,14 +105,12 @@ def _entfernung(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def _naechste_region(lat: float, lon: float) -> tuple[int, int, str]:
-    beste = REGIONEN[0][:3]
-    kleinste = float("inf")
+def _naechste_region(lat: float, lon: float) -> tuple[int, int, str, float]:
+    beste: tuple[int, int, str, float] = (*REGIONEN[0][:3], float("inf"))
     for region_id, partregion_id, name, rlat, rlon in REGIONEN:
         d = _entfernung(lat, lon, rlat, rlon)
-        if d < kleinste:
-            kleinste = d
-            beste = (region_id, partregion_id, name)
+        if d < beste[3]:
+            beste = (region_id, partregion_id, name, d)
     return beste
 
 
@@ -142,14 +140,20 @@ def _leer(region_name: str) -> dict:
     }
 
 
-async def hole(lat: float, lon: float) -> dict:
-    """Pollenflug-Daten fuer Koordinaten (naechste DWD-Region)."""
+async def hole(lat: float, lon: float) -> dict | None:
+    """Pollenflug-Daten fuer Koordinaten (naechste DWD-Region).
+
+    Der DWD-Gefahrenindex deckt nur Deutschland ab; fuer weit entfernte Orte
+    gibt es keine Pollendaten (None statt einer unpassenden Ersatzregion).
+    """
+    region_id, partregion_id, region_name, distanz = _naechste_region(lat, lon)
+    if distanz > 250:
+        return None
+
     async with httpx.AsyncClient(timeout=30, trust_env=False, headers={"User-Agent": "Wetterwarte/1.0"}) as client:
         antwort = await client.get(DWD_POLLEN_URL)
         antwort.raise_for_status()
         daten = antwort.json()
-
-    region_id, partregion_id, region_name = _naechste_region(lat, lon)
 
     region_daten = None
     for eintrag in daten.get("content", []):

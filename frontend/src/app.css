@@ -1397,6 +1397,46 @@ textarea,
   transform: translateY(0);
 }
 
+/* Ortssuche + Nav-Orte */
+.such-hinweis {
+  padding: var(--a5) var(--a2);
+  text-align: center;
+  color: var(--text-3);
+  font-size: 0.85rem;
+}
+.nav-ort-wrap {
+  position: relative;
+}
+.nav-ort-wrap .nav-eintrag {
+  width: 100%;
+}
+.ort-punkt {
+  color: var(--text-3);
+  width: 18px;
+  text-align: center;
+}
+.ort-weg {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 5px 7px;
+  border-radius: var(--r1);
+  opacity: 0;
+  transition: opacity var(--schnell), color var(--schnell), background var(--schnell);
+}
+.nav-ort-wrap:hover .ort-weg {
+  opacity: 1;
+}
+.ort-weg:hover {
+  color: var(--gefahr);
+  background: var(--gefahr-weich);
+}
+
 /* Heatmap (Jahresrueckblick) */
 .heatmap {
   display: grid;

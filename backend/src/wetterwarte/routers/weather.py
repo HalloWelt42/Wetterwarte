@@ -11,8 +11,7 @@ from typing import TypeVar
 import httpx
 from fastapi import APIRouter, HTTPException
 
-from .. import cache
-from ..orte import ORTE
+from .. import cache, ortsdienst
 from ..providers import blitze, luftqualitaet, openmeteo, pollen_dwd, warnungen
 from ..schemas.envelope import wrap
 
@@ -32,7 +31,7 @@ async def _sicher(coro: Awaitable[T]) -> T | None:
 @router.get("/complete/{ort}")
 async def complete(ort: str) -> dict:
     """Alles zu einem Ort: aktuell, stuendlich, taeglich, Sonne, Warnungen, Luftqualitaet."""
-    o = ORTE.get(ort.lower())
+    o = await ortsdienst.per_slug(ort.lower())
     if o is None:
         raise HTTPException(status_code=404, detail="Ort nicht bekannt")
 
@@ -42,15 +41,15 @@ async def complete(ort: str) -> dict:
         return wrap(gecacht)
 
     try:
-        basis = await openmeteo.komplett(o["lat"], o["lon"], o["name"], o["region"])
+        basis = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
     except httpx.HTTPError as fehler:
         raise HTTPException(status_code=502, detail=f"Wetterquelle nicht erreichbar: {fehler}") from fehler
 
     luft, warn, blitz, pollen = await asyncio.gather(
-        _sicher(luftqualitaet.hole(o["lat"], o["lon"])),
-        _sicher(warnungen.hole(o["lat"], o["lon"])),
-        _sicher(blitze.hole(o["lat"], o["lon"])),
-        _sicher(pollen_dwd.hole(o["lat"], o["lon"])),
+        _sicher(luftqualitaet.hole(o.lat, o.lon)),
+        _sicher(warnungen.hole(o.lat, o.lon)),
+        _sicher(blitze.hole(o.lat, o.lon)),
+        _sicher(pollen_dwd.hole(o.lat, o.lon)),
     )
     basis["luft"] = luft
     basis["warnungen"] = warn or []
@@ -58,9 +57,3 @@ async def complete(ort: str) -> dict:
     basis["pollen"] = pollen
     await cache.setze(schluessel, basis, ttl=600)
     return wrap(basis)
-
-
-@router.get("/orte")
-async def orte() -> dict:
-    """Bekannte Orte (Slug -> Name/Region)."""
-    return wrap([{"slug": slug, **werte} for slug, werte in ORTE.items()])

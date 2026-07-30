@@ -10,15 +10,19 @@
   import Hilfe from "./lib/Hilfe.svelte";
   import Layouts from "./lib/Layouts.svelte";
   import KachelEinstellungen from "./lib/KachelEinstellungen.svelte";
+  import Ortssuche from "./lib/Ortssuche.svelte";
   import { route } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts } from "./lib/layout.svelte";
   import { ladeWetter, wetter } from "./lib/wetter.svelte";
+  import { ladeOrte, startOrt } from "./lib/orte.svelte";
   import { stil } from "./lib/stil.svelte";
 
-  onMount(() => {
+  onMount(async () => {
     void ladeLayouts();
-    void ladeWetter("koeln");
+    await ladeOrte();
+    const s = startOrt();
+    void ladeWetter(s ? s.slug : "koeln");
   });
 
   function stimmungFuer(icon?: string): string {
@@ -48,4 +52,5 @@
 {#if ui.katalog}<Katalog />{/if}
 {#if ui.hilfe}<Hilfe />{/if}
 {#if ui.layouts}<Layouts />{/if}
+{#if ui.ortssuche}<Ortssuche />{/if}
 {#if ui.einstellungen}<KachelEinstellungen />{/if}
