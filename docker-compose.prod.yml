@@ -1,0 +1,48 @@
+# Produktions-Setup: alles als Container, ein Compose steuert die ganze App.
+# Nur das Frontend ist nach aussen offen; Backend/DB/Redis bleiben im internen
+# Netz. Daten liegen als Bind-Mount unter ${DATA_DIR} (auf dem Pi: /mnt/data).
+name: wetterwarte-prod
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wetterwarte}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wetterwarte}
+      POSTGRES_DB: ${POSTGRES_DB:-wetterwarte}
+    volumes:
+      - ${DATA_DIR:-./data}/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wetterwarte} -d ${POSTGRES_DB:-wetterwarte}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - ${DATA_DIR:-./data}/redis:/data
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-wetterwarte}:${POSTGRES_PASSWORD:-wetterwarte}@postgres:5432/${POSTGRES_DB:-wetterwarte}
+      REDIS_URL: redis://redis:6379/0
+      LIGHTNING_BASE: ${LIGHTNING_BASE:-http://192.168.178.49:8100}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${WEB_PORT:-8060}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

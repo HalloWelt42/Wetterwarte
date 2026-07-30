@@ -8,6 +8,14 @@ cd "$HIER"
 ensure_env() { [ -f .env ] || bash tools/setup-env.sh; }
 load_env() { set -a; . ./.env 2>/dev/null || true; set +a; }
 
+# Produktion: ein Compose steuert alles (Backend, Frontend, DB, Redis).
+PROD="docker compose -f docker-compose.prod.yml --env-file .env.prod"
+ensure_prod_env() {
+  [ -f .env.prod ] && return 0
+  echo "Es fehlt .env.prod. Aus der Vorlage anlegen:  cp .env.prod.example .env.prod"
+  exit 1
+}
+
 case "${1:-}" in
   setup)
     bash tools/setup-env.sh ;;
@@ -27,8 +35,19 @@ case "${1:-}" in
     shift; docker compose logs -f "$@" ;;
   psql)
     load_env; docker compose exec postgres psql -U "${POSTGRES_USER:-wetterwarte}" -d "${POSTGRES_DB:-wetterwarte}" ;;
+  prod-up|prod-start)
+    ensure_prod_env; $PROD up -d --build
+    echo "Wetterwarte (Produktion) laeuft. Frontend-Port siehe WEB_PORT in .env.prod." ;;
+  prod-down|prod-stop)
+    ensure_prod_env; $PROD down ;;
+  prod-restart)
+    ensure_prod_env; $PROD up -d --build ;;
+  prod-status)
+    ensure_prod_env; $PROD ps ;;
+  prod-logs)
+    ensure_prod_env; shift; $PROD logs -f "$@" ;;
   mockup)
     ./start-mockups.sh "${2:-start}" ;;
   *)
-    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup]" ;;
+    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs]" ;;
 esac

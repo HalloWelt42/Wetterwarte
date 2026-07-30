@@ -1,5 +1,7 @@
 # Umgebung (enthaelt Passwoerter) - nie einchecken
 .env
+.env.*
+!.env.prod.example
 
 # Abhaengigkeiten
 node_modules/

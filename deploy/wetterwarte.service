@@ -1,0 +1,22 @@
+# systemd-Unit fuer den Autostart der Wetterwarte auf dem Server.
+# Installation (auf dem Pi):
+#   sudo cp deploy/wetterwarte.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now wetterwarte
+# Danach startet die App beim Booten und laesst sich per systemctl steuern.
+[Unit]
+Description=Wetterwarte - selbst gehostete Wetter-App
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/pi/wetterwarte
+ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
