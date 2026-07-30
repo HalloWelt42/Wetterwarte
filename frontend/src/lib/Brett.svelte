@@ -62,6 +62,8 @@
         float: false,
         handle: ".kw-kopf",
         resizable: { handles: "se" },
+        // Auf schmalen Schirmen (Handy) auf eine Spalte umbrechen.
+        columnOpts: { breakpointForWindow: true, breakpoints: [{ w: 768, c: 1 }] },
       },
       brettEl,
     );
