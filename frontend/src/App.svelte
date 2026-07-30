@@ -13,15 +13,25 @@
   import { route } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts } from "./lib/layout.svelte";
-  import { ladeWetter } from "./lib/wetter.svelte";
+  import { ladeWetter, wetter } from "./lib/wetter.svelte";
+  import { stil } from "./lib/stil.svelte";
 
   onMount(() => {
     void ladeLayouts();
     void ladeWetter("koeln");
   });
+
+  function stimmungFuer(icon?: string): string {
+    if (!icon) return "tag-klar";
+    if (icon.includes("night")) return "nacht-klar";
+    if (icon.startsWith("rain") || icon.startsWith("drizzle") || icon.startsWith("thunder")) return "regen";
+    if (icon.startsWith("overcast") || icon === "cloudy" || icon.startsWith("fog")) return "tag-wolkig";
+    return "tag-klar";
+  }
+  const appKlasse = $derived(stil.atmo ? `app atmo ${stimmungFuer(wetter.aktuell?.icon)}` : "app");
 </script>
 
-<div class="app">
+<div class={appKlasse}>
   <Kopf />
   <Nav />
   {#if route.ansicht === "karte"}
