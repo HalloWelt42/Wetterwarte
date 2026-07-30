@@ -3,18 +3,26 @@
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
+  import { lies, schreib } from "./speicher";
 
-  let kartenEl: HTMLDivElement;
-  let map: maplibregl.Map | undefined;
-  let basis = $state<"hell" | "dunkel" | "satellit">("hell");
-  let overlays = $state<Record<string, boolean>>({
+  const OVERLAYS_STANDARD: Record<string, boolean> = {
     blitze: true,
     warnungen: false,
     radar: false,
     wind: false,
     nowcast: false,
     temperatur: false,
-  });
+  };
+
+  let kartenEl: HTMLDivElement;
+  let map: maplibregl.Map | undefined;
+  // Gemerkte Einstellungen (localStorage) laden.
+  let basis = $state<"hell" | "dunkel" | "satellit">(lies("karte.basis", "hell"));
+  let overlays = $state<Record<string, boolean>>({ ...OVERLAYS_STANDARD, ...lies("karte.overlays", {}) });
+
+  // ... und bei Aenderung merken.
+  $effect(() => schreib("karte.basis", basis));
+  $effect(() => schreib("karte.overlays", overlays));
 
   // Overlays, die schon Daten haben, zuerst; die uebrigen kommen Schritt fuer Schritt.
   const overlayNamen: [string, string][] = [
@@ -56,6 +64,7 @@
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("load", () => {
       baueBlitzEbene();
+      baueWellenEbene();
       void ladeBlitze();
     });
     map.on("moveend", () => void ladeBlitze());
@@ -119,6 +128,101 @@
     if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
   });
 
+  // --- Optionale Blitz-Wellen-Simulation (live via WebSocket) ---
+  // Jeder eingehende Blitz wirft einen Ring, der waechst und ausblendet
+  // (wie eine Schallwelle). Zeitkritisch -> Live-Feed statt Polling.
+  let simulation = $state<boolean>(lies("karte.simulation", false));
+  $effect(() => schreib("karte.simulation", simulation));
+  let ws: WebSocket | undefined;
+  let wellen: { lon: number; lat: number; start: number }[] = [];
+  let animLaeuft = false;
+  const WELLE_MS = 1400;
+
+  function imBlick(lon: number, lat: number): boolean {
+    const b = map?.getBounds();
+    return !!b && lon >= b.getWest() && lon <= b.getEast() && lat >= b.getSouth() && lat <= b.getNorth();
+  }
+
+  function baueWellenEbene(): void {
+    if (!map || map.getSource("wellen")) return;
+    map.addSource("wellen", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "wellen",
+      type: "circle",
+      source: "wellen",
+      paint: {
+        "circle-radius": ["get", "r"],
+        "circle-color": "#ffffff",
+        "circle-opacity": 0,
+        "circle-stroke-color": "#ffe680",
+        "circle-stroke-width": 2,
+        "circle-stroke-opacity": ["get", "o"],
+      },
+    });
+  }
+
+  function animiere(): void {
+    const quelle = map?.getSource("wellen") as maplibregl.GeoJSONSource | undefined;
+    if (!quelle) {
+      animLaeuft = false;
+      return;
+    }
+    const jetzt = performance.now();
+    wellen = wellen.filter((w) => jetzt - w.start < WELLE_MS);
+    quelle.setData({
+      type: "FeatureCollection",
+      features: wellen.map((w) => {
+        const p = (jetzt - w.start) / WELLE_MS;
+        return {
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [w.lon, w.lat] },
+          properties: { r: 4 + p * 34, o: 0.9 * (1 - p) },
+        };
+      }),
+    });
+    if (wellen.length > 0) requestAnimationFrame(animiere);
+    else animLaeuft = false;
+  }
+
+  function neueWelle(lon: number, lat: number): void {
+    wellen.push({ lon, lat, start: performance.now() });
+    if (wellen.length > 400) wellen.shift();
+    if (!animLaeuft) {
+      animLaeuft = true;
+      requestAnimationFrame(animiere);
+    }
+  }
+
+  function verbindeWs(): void {
+    const proto = location.protocol === "https:" ? "wss" : "ws";
+    ws = new WebSocket(`${proto}://${location.host}/ws-blitze`);
+    ws.onmessage = (e) => {
+      try {
+        const m = JSON.parse(e.data);
+        if (m.type === "strike" && m.data && imBlick(m.data.lon, m.data.lat)) neueWelle(m.data.lon, m.data.lat);
+      } catch {
+        // ungueltige Nachricht ignorieren
+      }
+    };
+    ws.onclose = () => {
+      ws = undefined;
+    };
+    ws.onerror = () => ws?.close();
+  }
+
+  function trenneWs(): void {
+    ws?.close();
+    ws = undefined;
+    wellen = [];
+    (map?.getSource("wellen") as maplibregl.GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: [] });
+  }
+
+  $effect(() => {
+    if (!simulation) return;
+    verbindeWs();
+    return () => trenneWs();
+  });
+
   // Basiskarte umschalten (Kacheln der vorhandenen Quelle austauschen).
   $effect(() => {
     const b = basis;
@@ -159,6 +263,11 @@
           ></button>
         </div>
       {/each}
+      <div class="kat-gruppe">Simulation</div>
+      <div class="formzeile-quer">
+        <span class="fz-lab">Blitz-Wellen (live){#if simulation}&nbsp;<i class="fa-solid fa-tower-broadcast" style="color: var(--gut); font-size: 0.68rem"></i>{/if}</span>
+        <button class="schalter" class:an={simulation} onclick={() => (simulation = !simulation)} aria-label="Blitz-Wellen (live)"></button>
+      </div>
     </div>
 
     <div class="attribution" style="z-index: 2;">© OpenStreetMap, © CARTO &middot; Blitze: Blitzortung.org</div>

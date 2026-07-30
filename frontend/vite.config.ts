@@ -32,6 +32,13 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/blitze/, "/api/strikes"),
         },
+        // Live-Blitz-WebSocket (fuer die optionale Wellen-Simulation).
+        "/ws-blitze": {
+          target: env.KACHEL_HOST || "http://192.168.178.49:8100",
+          changeOrigin: true,
+          ws: true,
+          rewrite: (p) => p.replace(/^\/ws-blitze/, "/ws"),
+        },
       },
     },
   };
