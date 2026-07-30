@@ -3,10 +3,16 @@
   import { registry, familien } from "./kacheln/registry";
   import { kachelAktion } from "./kachelAktion.svelte";
 
-  const gruppen = familien.map((f) => ({
-    name: f,
-    eintraege: Object.values(registry).filter((r) => r.familie === f),
-  }));
+  let suche = $state("");
+  const gruppen = $derived.by(() => {
+    const q = suche.trim().toLowerCase();
+    return familien
+      .map((f) => ({
+        name: f,
+        eintraege: Object.values(registry).filter((r) => r.familie === f && (!q || r.titel.toLowerCase().includes(q))),
+      }))
+      .filter((g) => g.eintraege.length > 0);
+  });
 
   function zu(): void {
     ui.katalog = false;
@@ -26,7 +32,8 @@
   <div class="detail-block">
     <div class="feld-such">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" placeholder="Kacheltyp suchen ..." />
+      <!-- svelte-ignore a11y_autofocus -->
+      <input type="text" placeholder="Kacheltyp suchen ..." bind:value={suche} autofocus />
     </div>
   </div>
   <div style="flex: 1; overflow-y: auto; padding: 0 var(--a4) var(--a4)">
