@@ -1370,6 +1370,33 @@ textarea,
   font-variant-numeric: tabular-nums;
 }
 
+/* Hover-Erklaerungen fuer Fachbegriffe */
+.hat-tipp {
+  cursor: help;
+  text-decoration: underline dotted var(--rand-stark);
+  text-underline-offset: 2px;
+}
+.tipp-blase {
+  position: fixed;
+  z-index: 2000;
+  max-width: 240px;
+  padding: 8px 10px;
+  background: var(--text);
+  color: var(--flaeche);
+  border-radius: var(--r1);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  box-shadow: var(--schatten-2);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity var(--schnell), transform var(--schnell);
+}
+.tipp-blase.sichtbar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Heatmap (Jahresrueckblick) */
 .heatmap {
   display: grid;

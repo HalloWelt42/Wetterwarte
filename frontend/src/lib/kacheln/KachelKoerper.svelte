@@ -4,6 +4,8 @@
   import { gehe } from "../route.svelte";
   import { wetter } from "../wetter.svelte";
   import { uhr } from "../uhr.svelte";
+  import { tipp } from "../tipp";
+  import { begriffe } from "../begriffe";
 
   let { typ }: { typ: string } = $props();
 
@@ -148,7 +150,7 @@
     <div class="kv"><i class="fa-solid fa-wind"></i><span class="kv-txt"><span class="kv-wert">{jetzt.wind} km/h</span><span class="kv-lab">Wind {jetzt.windRichtung}</span></span></div>
     <div class="kv"><i class="fa-solid fa-gauge"></i><span class="kv-txt"><span class="kv-wert">{jetzt.druck} hPa</span><span class="kv-lab">Druck</span></span></div>
     <div class="kv"><i class="fa-solid fa-eye"></i><span class="kv-txt"><span class="kv-wert">{jetzt.sicht} km</span><span class="kv-lab">Sicht</span></span></div>
-    <div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">{jetzt.taupunkt}&deg;</span><span class="kv-lab">Taupunkt</span></span></div>
+    <div class="kv"><i class="fa-solid fa-temperature-half"></i><span class="kv-txt"><span class="kv-wert">{jetzt.taupunkt}&deg;</span><span class="kv-lab" use:tipp={begriffe.taupunkt}>Taupunkt</span></span></div>
     <div class="kv"><i class="fa-solid fa-cloud"></i><span class="kv-txt"><span class="kv-wert">{jetzt.bewoelkung} %</span><span class="kv-lab">Bewölkung</span></span></div>
   </div>
 {:else if typ === "stunden"}
@@ -219,7 +221,7 @@
     </svg>
     <div class="spalte">
       <div><span class="temp temp-mittel">{jetzt.wind}</span> <span class="dimm">km/h</span></div>
-      <div class="klein-txt">Böen <b class="tnum">{jetzt.boeen} km/h</b></div>
+      <div class="klein-txt"><span use:tipp={begriffe.boeen}>Böen</span> <b class="tnum">{jetzt.boeen} km/h</b></div>
       <div class="klein-txt dimm">aus {jetzt.windRichtung}</div>
     </div>
   </div>
@@ -266,12 +268,12 @@
       <span class="gwert" style="color: {aqiVar}">{luft?.aqi ?? 34}</span>
     </div>
     <div class="spalte">
-      <div class="lq-kopf"><b class="lq-stufe">{luft?.label ?? "Gut"}</b> <span class="dimm klein-txt">EU-AQI</span></div>
+      <div class="lq-kopf"><b class="lq-stufe">{luft?.label ?? "Gut"}</b> <span class="dimm klein-txt" use:tipp={begriffe.aqi}>EU-AQI</span></div>
       <div class="lq-gitter">
-        <div class="lq-paar"><span class="lq-lab">PM2,5</span><span class="lq-wert">{luft?.pm2_5 ?? 8}</span></div>
-        <div class="lq-paar"><span class="lq-lab">PM10</span><span class="lq-wert">{luft?.pm10 ?? 15}</span></div>
-        <div class="lq-paar"><span class="lq-lab">O&#8323;</span><span class="lq-wert">{luft?.o3 ?? 62}</span></div>
-        <div class="lq-paar"><span class="lq-lab">NO&#8322;</span><span class="lq-wert">{luft?.no2 ?? 11}</span></div>
+        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.pm25}>PM2,5</span><span class="lq-wert">{luft?.pm2_5 ?? 8}</span></div>
+        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.pm10}>PM10</span><span class="lq-wert">{luft?.pm10 ?? 15}</span></div>
+        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.ozon}>O&#8323;</span><span class="lq-wert">{luft?.o3 ?? 62}</span></div>
+        <div class="lq-paar"><span class="lq-lab" use:tipp={begriffe.no2}>NO&#8322;</span><span class="lq-wert">{luft?.no2 ?? 11}</span></div>
       </div>
     </div>
   </div>
@@ -315,7 +317,7 @@
     <div class="kw-leer"><i class="fa-solid fa-seedling"></i><div>Keine Pollendaten</div></div>
   {/if}
 {:else if typ === "barometer"}
-  <div class="baro-wert"><span class="zahl">{jetzt.druck}</span><span class="dimm">hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
+  <div class="baro-wert"><span class="zahl">{jetzt.druck}</span><span class="dimm" use:tipp={begriffe.hpa}>hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
   <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 34px; margin-top: 8px">
     <polyline points="0,8 16,7 32,9 48,13 64,17 80,20 100,24" style="fill: none; stroke: var(--gefahr); stroke-width: 2" />
   </svg>
