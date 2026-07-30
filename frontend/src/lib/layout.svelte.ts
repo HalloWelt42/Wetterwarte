@@ -1,5 +1,6 @@
 // Gemeinsamer Zustand der benannten Layouts.
 import { hole, sende } from "./api";
+import { profilDaten } from "./profile";
 
 export interface Layout {
   id: string;
@@ -8,9 +9,10 @@ export interface Layout {
   daten: { id: string; typ?: string; x: number; y: number; w: number; h: number }[];
 }
 
-export const layoutState = $state<{ liste: Layout[]; aktivId: string | null }>({
+export const layoutState = $state<{ liste: Layout[]; aktivId: string | null; stand: number }>({
   liste: [],
   aktivId: null,
+  stand: 0, // Nonce: erzwingt ein Neuladen des Bretts (z.B. nach Profil-Zuruecksetzen)
 });
 
 export async function ladeLayouts(): Promise<void> {
@@ -67,6 +69,19 @@ export async function loescheLayout(id: string): Promise<void> {
     await sende(`/layouts/${id}`, "DELETE");
     if (layoutState.aktivId === id) layoutState.aktivId = null;
     await ladeLayouts();
+  } catch {
+    // still ignorieren
+  }
+}
+
+export async function setzeAufProfil(id: string): Promise<void> {
+  const l = layoutState.liste.find((x) => x.id === id);
+  if (!l) return;
+  const daten = profilDaten(l.name);
+  try {
+    await sende(`/layouts/${id}`, "PUT", { daten });
+    l.daten = daten as never;
+    if (layoutState.aktivId === id) layoutState.stand++; // aktives Brett neu laden
   } catch {
     // still ignorieren
   }

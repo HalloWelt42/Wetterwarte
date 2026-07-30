@@ -2,7 +2,8 @@
   import { onMount, tick } from "svelte";
   import { GridStack } from "gridstack";
   import Kachel from "./Kachel.svelte";
-  import { registry, standardKacheln } from "./kacheln/registry";
+  import { registry } from "./kacheln/registry";
+  import { profilTypen } from "./profile";
   import { sende } from "./api";
   import { layoutState } from "./layout.svelte";
   import { kachelAktion } from "./kachelAktion.svelte";
@@ -22,11 +23,13 @@
   let grid: GridStack | undefined;
   let kacheln = $state<Instanz[]>([]);
   let aktivGeladen: string | null = null;
+  let standGeladen = -1;
   let ladend = false;
   let entprellen: ReturnType<typeof setTimeout> | undefined;
 
-  function standardInstanzen(): Instanz[] {
-    return standardKacheln.map((typ, i) => ({ id: `${typ}-${i}`, typ, w: registry[typ].w, h: registry[typ].h, conf: {} }));
+  // Leeres Layout uebernimmt die zu seinem Namen passende Profil-Anordnung.
+  function profilInstanzen(name: string): Instanz[] {
+    return profilTypen(name).map((typ, i) => ({ id: `${typ}-${i}`, typ, w: registry[typ].w, h: registry[typ].h, conf: {} }));
   }
 
   function initGrid(): void {
@@ -97,7 +100,7 @@
           h: d.h,
           conf: (d as { conf?: Record<string, unknown> }).conf ?? {},
         }))
-      : standardInstanzen();
+      : profilInstanzen(l?.name ?? "");
     ladend = true;
     kacheln = neu;
     await tick();
@@ -134,11 +137,14 @@
     return () => grid?.destroy(false);
   });
 
-  // Aktives Layout laden/wechseln.
+  // Aktives Layout laden/wechseln (auch bei erzwungenem Neuladen via stand-Nonce).
   $effect(() => {
     const id = layoutState.aktivId;
-    if (!id || id === aktivGeladen) return;
+    const stand = layoutState.stand;
+    if (!id) return;
+    if (id === aktivGeladen && stand === standGeladen) return;
     aktivGeladen = id;
+    standGeladen = stand;
     void ladeLayout(id);
   });
 

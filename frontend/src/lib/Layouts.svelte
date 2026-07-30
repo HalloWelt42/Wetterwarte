@@ -8,6 +8,7 @@
     dupliziereLayout,
     loescheLayout,
     setzeStandard,
+    setzeAufProfil,
     type Layout,
   } from "./layout.svelte";
 
@@ -43,11 +44,6 @@
   function anzahl(l: Layout): number {
     return Array.isArray(l.daten) ? l.daten.length : 0;
   }
-  function bloecke(l: Layout): string[] {
-    const b = l.ist_standard ? "var(--akzent-weich)" : "var(--flaeche-3)";
-    const f = "var(--flaeche-3)";
-    return [b, f, f, b, f, b, f, f];
-  }
 
   function zu() {
     ui.layouts = false;
@@ -67,8 +63,8 @@
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--a3)">
         {#each layoutState.liste as l (l.id)}
           <div class="layout-karte" class:aktiv-rahmen={layoutState.aktivId === l.id}>
-            <button class="layout-vorschau" onclick={() => setzeAktiv(l.id)} title="Dieses Layout anzeigen">
-              {#each bloecke(l) as farbe}<span style="background: {farbe}"></span>{/each}
+            <button class="layout-vorschau" onclick={() => setzeAktiv(l.id)} title="Dieses Layout anzeigen" aria-label="Layout {l.name} anzeigen">
+              {#each l.daten as d}<span style="grid-column: {(d.x ?? 0) + 1} / span {d.w}; grid-row: {(d.y ?? 0) + 1} / span {d.h}"></span>{/each}
             </button>
             <div class="reihe" style="justify-content: space-between; gap: var(--a2)">
               {#if bearbeiteId === l.id}
@@ -94,6 +90,7 @@
             <div class="reihe" style="gap: 2px; margin-top: var(--a2)">
               <button class="icon-knopf" title="Umbenennen" style="width: 30px; height: 30px" onclick={() => starteBearbeiten(l)} aria-label="Umbenennen"><i class="fa-solid fa-pen"></i></button>
               <button class="icon-knopf" title="Duplizieren" style="width: 30px; height: 30px" onclick={() => dupliziereLayout(l.id)} aria-label="Duplizieren"><i class="fa-solid fa-copy"></i></button>
+              <button class="icon-knopf" title="Auf Profil-Standard zurücksetzen" style="width: 30px; height: 30px" onclick={() => setzeAufProfil(l.id)} aria-label="Auf Profil-Standard zurücksetzen"><i class="fa-solid fa-rotate-left"></i></button>
               <button
                 class="icon-knopf gefahr"
                 title={loeschId === l.id ? "Wirklich löschen?" : "Löschen"}

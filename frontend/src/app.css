@@ -1494,20 +1494,29 @@ textarea,
   box-shadow: 0 0 0 2px var(--akzent);
   border-color: transparent;
 }
+/* Echte Miniatur des Layouts: 12-Spalten-Raster wie das Brett, Kacheln an ihrer
+   tatsaechlichen Position/Groesse. */
 .layout-vorschau {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 20px;
-  gap: 3px;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: 5px;
+  gap: 1px;
   width: 100%;
+  max-height: 104px;
+  overflow: hidden;
   margin-bottom: var(--a2);
-  border: none;
-  background: transparent;
-  padding: 0;
+  border: 1px solid var(--rand);
+  border-radius: var(--r1);
+  background: var(--flaeche-2);
+  padding: 3px;
   cursor: pointer;
 }
 .layout-vorschau span {
-  border-radius: 3px;
+  background: var(--akzent-weich);
+  border: 1px solid color-mix(in srgb, var(--akzent) 40%, transparent);
+  border-radius: 2px;
+  min-width: 0;
+  min-height: 0;
 }
 .layout-neu {
   border: 2px dashed var(--rand-stark);
