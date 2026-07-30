@@ -137,12 +137,14 @@
   });
 </script>
 
-<div class="grid-stack brett-stack" bind:this={brettEl}>
-  {#each kacheln as k (k.id)}
-    <div class="grid-stack-item" gs-id={k.id} gs-w={k.w} gs-h={k.h} gs-x={k.x} gs-y={k.y}>
-      <div class="grid-stack-item-content">
-        <Kachel typ={k.typ} onEntfernen={() => entferne(k.id)} />
+<div class="brett-wrap">
+  <div class="grid-stack" bind:this={brettEl}>
+    {#each kacheln as k (k.id)}
+      <div class="grid-stack-item" gs-id={k.id} gs-w={k.w} gs-h={k.h} gs-x={k.x} gs-y={k.y}>
+        <div class="grid-stack-item-content">
+          <Kachel typ={k.typ} onEntfernen={() => entferne(k.id)} />
+        </div>
       </div>
-    </div>
-  {/each}
+    {/each}
+  </div>
 </div>

@@ -1816,10 +1816,17 @@ button.nav-eintrag {
   text-align: left;
 }
 /* Das gridstack-Brett scrollt innerhalb des Inhaltsbereichs */
-.brett-stack {
+/* Scroll und Aussenabstand auf den Wrapper, NICHT auf das grid-stack-Element -
+   sonst verrechnet gridstack beim Ziehen den Scroll-Versatz (Drag stark versetzt). */
+.brett-wrap {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--a4);
+}
+.brett-wrap > .grid-stack {
+  min-height: 100%;
+  background: transparent;
 }
 /* Ueberlagerung + rechtes Seiten-Panel (Kachel hinzufuegen) */
 .ueberlagerung {
