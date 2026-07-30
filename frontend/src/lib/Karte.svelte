@@ -54,7 +54,69 @@
       attributionControl: false,
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    return () => map?.remove();
+    map.on("load", () => {
+      baueBlitzEbene();
+      void ladeBlitze();
+    });
+    map.on("moveend", () => void ladeBlitze());
+    blitzTimer = setInterval(() => void ladeBlitze(), 30000);
+    return () => {
+      clearInterval(blitzTimer);
+      map?.remove();
+    };
+  });
+
+  // --- Blitze (Live-Ebene aus dem lightningmap-Dienst) ---
+  let blitzAnzahl = $state(0);
+  let blitzTimer: ReturnType<typeof setInterval> | undefined;
+
+  function baueBlitzEbene(): void {
+    if (!map || map.getSource("blitze")) return;
+    map.addSource("blitze", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "blitze",
+      type: "circle",
+      source: "blitze",
+      layout: { visibility: overlays.blitze ? "visible" : "none" },
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 2.5, 9, 5],
+        // Farbe nach Alter in Minuten: frisch weiss -> gelb -> orange -> dunkel.
+        "circle-color": ["interpolate", ["linear"], ["get", "min"], 0, "#ffffff", 5, "#ffd400", 20, "#ff7b00", 60, "#b23a00"],
+        "circle-opacity": 0.9,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 0.4,
+      },
+    });
+  }
+
+  async function ladeBlitze(): Promise<void> {
+    if (!map) return;
+    const b = map.getBounds();
+    const url = `/blitze?north=${b.getNorth().toFixed(2)}&south=${b.getSouth().toFixed(2)}&east=${b.getEast().toFixed(2)}&west=${b.getWest().toFixed(2)}&since=1&limit=2000`;
+    try {
+      const antwort = await fetch(url);
+      const daten = await antwort.json();
+      const strikes: { t: number; lat: number; lon: number }[] = daten.strikes ?? [];
+      const jetzt = Date.now();
+      const fc = {
+        type: "FeatureCollection" as const,
+        features: strikes.map((s) => ({
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [s.lon, s.lat] },
+          properties: { min: Math.max(0, (jetzt - s.t) / 60000) },
+        })),
+      };
+      (map.getSource("blitze") as maplibregl.GeoJSONSource | undefined)?.setData(fc);
+      blitzAnzahl = strikes.length;
+    } catch {
+      // still ignorieren
+    }
+  }
+
+  // Blitz-Ebene an den Schalter koppeln.
+  $effect(() => {
+    const an = overlays.blitze;
+    if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
   });
 
   // Basiskarte umschalten (Kacheln der vorhandenen Quelle austauschen).
@@ -88,7 +150,7 @@
       <div class="kat-gruppe">Overlays</div>
       {#each overlayNamen as [schluessel, label]}
         <div class="formzeile-quer">
-          <span class="fz-lab">{label}</span>
+          <span class="fz-lab">{label}{#if schluessel === "blitze" && blitzAnzahl > 0}&nbsp;<b class="tnum" style="color: var(--warn)">{blitzAnzahl}</b>{/if}</span>
           <button
             class="schalter"
             class:an={overlays[schluessel]}

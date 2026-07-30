@@ -26,6 +26,12 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/kachel/, "/api/tile"),
         },
+        // Live-Blitze (bbox-Abfrage) vom lightningmap-Dienst.
+        "/blitze": {
+          target: env.KACHEL_HOST || "http://192.168.178.49:8100",
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/blitze/, "/api/strikes"),
+        },
       },
     },
   };
