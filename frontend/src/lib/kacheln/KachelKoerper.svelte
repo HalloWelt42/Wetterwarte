@@ -7,6 +7,7 @@
   import { tipp } from "../tipp";
   import { begriffe } from "../begriffe";
   import LinienChart from "../LinienChart.svelte";
+  import MiniKarte from "../MiniKarte.svelte";
 
   let { typ, conf = {} }: { typ: string; conf?: Record<string, any> } = $props();
 
@@ -165,18 +166,7 @@
     <div class="kw-leer"><i class="fa-solid fa-shield-halved"></i><div>Keine Warnungen aktiv</div></div>
   {/if}
 {:else if typ === "karte"}
-  <div class="karten-flaeche">
-    <div class="radar-blob" style="width: 90px; height: 70px; left: 28%; top: 34%"></div>
-    <div class="radar-blob" style="width: 54px; height: 46px; left: 55%; top: 55%; opacity: 0.55"></div>
-    <div class="karten-steuer">
-      <button class="icon-knopf" title="Groß" onclick={() => gehe("karte")}><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
-      <button class="icon-knopf" title="Vergrößern"><i class="fa-solid fa-plus"></i></button>
-      <button class="icon-knopf" title="Verkleinern"><i class="fa-solid fa-minus"></i></button>
-    </div>
-    <div class="overlay-leiste"><span class="chip aktiv">Radar</span><span class="chip">Wind</span><span class="chip">Warnungen</span></div>
-    <div class="karten-legende">Niederschlag mm/h<div class="legende-skala"></div></div>
-    <div class="attribution">&copy; OpenStreetMap &middot; DWD RADOLAN</div>
-  </div>
+  <MiniKarte />
 {:else if typ === "tage"}
   <div class="tage">
     {#each tageListe.slice(0, tageAnzahl) as t}

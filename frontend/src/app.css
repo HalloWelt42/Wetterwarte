@@ -1003,6 +1003,58 @@ textarea,
   z-index: 3;
 }
 
+/* Echte MapLibre-Mini-Karte in der Dashboard-Kachel */
+.mini-karte {
+  flex: 1;
+  position: relative;
+  min-height: 120px;
+  border-radius: var(--r2);
+  overflow: hidden;
+}
+.mini-karte-flaeche {
+  position: absolute;
+  inset: 0;
+}
+.mini-auf {
+  position: absolute;
+  left: var(--a2);
+  top: var(--a2);
+  width: 32px;
+  height: 32px;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  box-shadow: var(--schatten-1);
+  z-index: 3;
+}
+.mini-blitz-zaehler {
+  position: absolute;
+  left: var(--a2);
+  bottom: var(--a2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--warn);
+  background: color-mix(in srgb, var(--flaeche) 85%, transparent);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--rand);
+  border-radius: var(--r1);
+  padding: 2px var(--a2);
+  z-index: 3;
+}
+.mini-attribution {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  font-size: 0.6rem;
+  color: var(--text-3);
+  background: color-mix(in srgb, var(--flaeche) 70%, transparent);
+  padding: 0 4px;
+  border-radius: 3px;
+  z-index: 3;
+}
+
 /* ============================================================ Warnungen */
 .warnbanner {
   display: flex;

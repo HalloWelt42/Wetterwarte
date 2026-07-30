@@ -73,7 +73,7 @@ export const registry: Record<string, KachelDef> = {
     ],
   },
   warnungen: { typ: "warnungen", titel: "Wetterwarnungen", icon: "fa-triangle-exclamation", w: 4, h: 2, familie: "Umwelt", unter: "amtlich" },
-  karte: { typ: "karte", titel: "Karte", icon: "fa-map-location-dot", w: 4, h: 4, familie: "Karte", unter: "Radar" },
+  karte: { typ: "karte", titel: "Karte", icon: "fa-map-location-dot", w: 4, h: 4, familie: "Karte", unter: "Live-Blitze" },
   nowcast: { typ: "nowcast", titel: "Regen-Nowcast", icon: "fa-cloud-showers-heavy", w: 4, h: 2, familie: "Karte", unter: "ORT" },
   blitze: { typ: "blitze", titel: "Blitze", icon: "fa-bolt", w: 4, h: 2, familie: "Karte", unter: "Umkreis 130 km" },
   wind: { typ: "wind", titel: "Wind", icon: "fa-wind", w: 4, h: 2, familie: "Detail" },
