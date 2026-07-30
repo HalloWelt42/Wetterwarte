@@ -22,7 +22,7 @@
     void ladeLayouts();
     await ladeOrte();
     const s = startOrt();
-    void ladeWetter(s ? s.slug : "koeln");
+    if (s) void ladeWetter(s.slug);
   });
 
   function stimmungFuer(icon?: string): string {

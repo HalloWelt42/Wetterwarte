@@ -29,8 +29,8 @@ export const wetter = $state<{
   pollen: Pollen | null;
   geladen: boolean;
 }>({
-  slug: "koeln",
-  ort: "Köln",
+  slug: "",
+  ort: "",
   aktuell: null,
   stunden: [],
   tage: [],
