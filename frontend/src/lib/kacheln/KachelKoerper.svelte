@@ -92,6 +92,41 @@
       naechsterVoll: fmt(((0.5 - phase + 1) % 1) * SYNODISCH),
     };
   });
+
+  // Temperaturverlauf 24h mit Achsen (an die Kachelgroesse gebunden, pixelgenau).
+  let chartB = $state(0);
+  let chartH = $state(0);
+  const chartPad = { oben: 10, rechts: 14, unten: 20, links: 34 };
+  const chartPunkte = $derived(stundenListe.slice(0, 24));
+  const chartTemps = $derived(chartPunkte.map((s) => s.temp));
+  const chartMin = $derived(chartTemps.length ? Math.floor(Math.min(...chartTemps)) : 0);
+  const chartMax = $derived(chartTemps.length ? Math.ceil(Math.max(...chartTemps)) : 0);
+  const chartPuffer = $derived(Math.max(1, Math.ceil((chartMax - chartMin) * 0.1)));
+  const yMin = $derived(chartMin - chartPuffer);
+  const yMax = $derived(chartMax + chartPuffer);
+  function cxPos(i: number): number {
+    const n = chartPunkte.length;
+    const innen = chartB - chartPad.links - chartPad.rechts;
+    return chartPad.links + (n <= 1 ? 0 : (i / (n - 1)) * innen);
+  }
+  function cyPos(t: number): number {
+    const innen = chartH - chartPad.oben - chartPad.unten;
+    const spanne = yMax - yMin || 1;
+    return chartPad.oben + (1 - (t - yMin) / spanne) * innen;
+  }
+  const chartLinie = $derived(chartPunkte.map((s, i) => `${cxPos(i)},${cyPos(s.temp)}`).join(" "));
+  const chartFlaeche = $derived.by(() => {
+    if (!chartPunkte.length || !chartB) return "";
+    const boden = chartH - chartPad.unten;
+    const pkte = chartPunkte.map((s, i) => `${cxPos(i)},${cyPos(s.temp)}`).join(" L ");
+    return `M ${cxPos(0)},${boden} L ${pkte} L ${cxPos(chartPunkte.length - 1)},${boden} Z`;
+  });
+  const yTicks = $derived([yMax, Math.round((yMin + yMax) / 2), yMin]);
+  const xTicks = $derived.by(() => {
+    const t: { label: string; x: number }[] = [];
+    for (let i = 0; i < chartPunkte.length; i += 6) t.push({ label: chartPunkte[i].zeit, x: cxPos(i) });
+    return t;
+  });
 </script>
 
 {#if typ === "aktuell"}
@@ -278,13 +313,26 @@
     <div class="klein-txt dimm" style="margin-top: var(--a2)">Keine Blitze in der Nähe</div>
   {/if}
 {:else if typ === "verlauf"}
-  <svg class="chart-flaeche" viewBox="0 0 320 96" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="tflaeche-kachel" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#2f7ce0" stop-opacity="0.30" /><stop offset="1" stop-color="#2f7ce0" stop-opacity="0" />
-      </linearGradient>
-    </defs>
-    <path d="M0,72 L26,74 L52,78 L78,70 L104,54 L130,40 L156,30 L182,26 L208,30 L234,38 L260,50 L286,60 L320,64 L320,96 L0,96 Z" fill="url(#tflaeche-kachel)" />
-    <polyline points="0,72 26,74 52,78 78,70 104,54 130,40 156,30 182,26 208,30 234,38 260,50 286,60 320,64" style="fill: none; stroke: var(--akzent); stroke-width: 2" />
-  </svg>
+  <div class="tchart" bind:clientWidth={chartB} bind:clientHeight={chartH}>
+    {#if chartB > 0 && chartPunkte.length}
+      <svg width={chartB} height={chartH} viewBox="0 0 {chartB} {chartH}">
+        <defs>
+          <linearGradient id="tverlauf-flaeche" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f59e0b" stop-opacity="0.35" /><stop offset="1" stop-color="#f59e0b" stop-opacity="0.03" />
+          </linearGradient>
+        </defs>
+        {#each yTicks as t}
+          <line x1={chartPad.links} y1={cyPos(t)} x2={chartB - chartPad.rechts} y2={cyPos(t)} stroke="var(--rand)" stroke-width="1" />
+          <text x={chartPad.links - 6} y={cyPos(t) + 3} fill="var(--text-3)" font-size="10" text-anchor="end">{t}&deg;</text>
+        {/each}
+        <path d={chartFlaeche} fill="url(#tverlauf-flaeche)" />
+        <polyline points={chartLinie} fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        <line x1={cxPos(0)} y1={chartPad.oben} x2={cxPos(0)} y2={chartH - chartPad.unten} stroke="var(--gut)" stroke-width="2" stroke-dasharray="4 3" />
+        <circle cx={cxPos(0)} cy={cyPos(chartPunkte[0].temp)} r="4" fill="var(--gut)" stroke="var(--flaeche)" stroke-width="1.5" />
+        {#each xTicks as t}
+          <text x={t.x} y={chartH - 6} fill="var(--text-3)" font-size="10" text-anchor="middle">{t.label}</text>
+        {/each}
+      </svg>
+    {/if}
+  </div>
 {/if}

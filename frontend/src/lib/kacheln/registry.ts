@@ -25,7 +25,7 @@ export const registry: Record<string, KachelDef> = {
   uv: { typ: "uv", titel: "UV-Index", icon: "fa-sun", w: 4, h: 2, familie: "Umwelt" },
   pollen: { typ: "pollen", titel: "Pollenflug", icon: "fa-seedling", w: 4, h: 5, familie: "Umwelt", unter: "ORT" },
   barometer: { typ: "barometer", titel: "Luftdruck", icon: "fa-gauge", w: 4, h: 2, familie: "Detail" },
-  verlauf: { typ: "verlauf", titel: "Temperaturverlauf", icon: "fa-chart-line", w: 8, h: 2, familie: "Archiv", unter: "Archiv" },
+  verlauf: { typ: "verlauf", titel: "Temperaturverlauf", icon: "fa-chart-line", w: 8, h: 3, familie: "Archiv", unter: "24 Stunden" },
 };
 
 export const standardKacheln = [
