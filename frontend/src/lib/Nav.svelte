@@ -1,8 +1,20 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { meteocon } from "./icons";
   import { orte } from "./platzhalter";
   import { route, gehe } from "./route.svelte";
   import { wetter, ladeWetter } from "./wetter.svelte";
+  import { hole } from "./api";
+
+  let version = $state("");
+  onMount(async () => {
+    try {
+      const h = await hole<{ status: string; version: string }>("/health");
+      version = h.version;
+    } catch {
+      // Ohne Backend bleibt die Version leer.
+    }
+  });
 </script>
 
 <nav class="nav">
@@ -32,6 +44,6 @@
 
   <div class="nav-fuss">
     <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
-    <div class="nav-version">Wetterwarte v0.9.0 - lokal</div>
+    <div class="nav-version">Wetterwarte{#if version} v{version}{/if} - lokal</div>
   </div>
 </nav>

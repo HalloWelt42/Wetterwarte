@@ -1129,33 +1129,116 @@ textarea,
   font-variant-numeric: tabular-nums;
 }
 
-/* Pollen */
+/* Pollen (DWD-Gefahrenindex) */
+.pollen-kopf {
+  text-align: center;
+  margin-bottom: var(--a2);
+}
+.pollen-region {
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+.pollen-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--a2);
+  background: var(--flaeche-3);
+  border-radius: var(--r1);
+  padding: 3px;
+}
+.pollen-tab {
+  flex: 1;
+  padding: 5px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: calc(var(--r1) - 2px);
+  transition: background var(--schnell), color var(--schnell);
+}
+.pollen-tab:hover {
+  background: var(--flaeche-2);
+  color: var(--text);
+}
+.pollen-tab.aktiv {
+  background: var(--flaeche);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--schatten-1);
+}
 .pollen-liste {
   display: flex;
   flex-direction: column;
-  gap: var(--a1);
+  gap: 3px;
   flex: 1;
+  overflow-y: auto;
 }
 .pollen-zeile {
-  display: grid;
-  grid-template-columns: 1fr 88px;
-  align-items: center;
-  gap: var(--a2);
-  font-size: 0.86rem;
-}
-.pollen-stufen {
   display: flex;
-  gap: 3px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a2);
+  padding: 5px 8px;
+  background: var(--flaeche-2);
+  border-radius: var(--r1);
+  min-height: 30px;
 }
-.pollen-stufen .ps {
-  height: 8px;
+.pollen-zeile.hat-last {
+  background: var(--warn-weich);
+}
+.pollen-zeile.viel-last {
+  background: var(--gefahr-weich);
+}
+.pollen-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 84px;
+}
+.pollen-emoji {
+  font-size: 0.95rem;
+  width: 20px;
+  text-align: center;
+}
+.pollen-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.pollen-pegel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex: 1;
-  border-radius: 2px;
-  background: var(--flaeche-3);
+  max-width: 168px;
 }
-.pollen-stufen .ps.an1 { background: var(--t-mild); }
-.pollen-stufen .ps.an2 { background: var(--t-warm); }
-.pollen-stufen .ps.an3 { background: var(--t-heiss); }
+.pegel-bahn {
+  flex: 1;
+  height: 6px;
+  background: var(--flaeche-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.pegel-fuell {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--schnell);
+}
+.pegel-label {
+  font-size: 0.72rem;
+  min-width: 46px;
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pollen-stand {
+  margin-top: var(--a2);
+  font-size: 0.66rem;
+  color: var(--text-3);
+  text-align: center;
+}
 
 /* Sonne & Mond */
 .sonnenbogen {

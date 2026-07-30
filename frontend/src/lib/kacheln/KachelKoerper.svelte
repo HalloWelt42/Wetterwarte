@@ -15,7 +15,24 @@
     !luft ? "var(--gut)" : luft.aqi <= 40 ? "var(--gut)" : luft.aqi <= 60 ? "var(--warn)" : "var(--gefahr)",
   );
   const blitze = $derived(wetter.blitze);
-  const pollen = $derived(wetter.luft?.pollen ?? []);
+
+  // Pollen (DWD-Gefahrenindex): Tag-Auswahl + nach Belastung sortiert.
+  const pollenDaten = $derived(wetter.pollen);
+  let pollenTag = $state<"today" | "tomorrow" | "dayafter">("today");
+  const pollenTage = [
+    { key: "today", label: "Heute" },
+    { key: "tomorrow", label: "Morgen" },
+    { key: "dayafter", label: "Übermorgen" },
+  ] as const;
+  const pollenSortiert = $derived.by(() => {
+    if (!pollenDaten) return [];
+    return Object.values(pollenDaten.arten)
+      .map((a) => ({ icon: a.icon, name: a.name, stufe: a[pollenTag] }))
+      .sort((x, y) => y.stufe.value - x.stufe.value);
+  });
+  function pollenBreite(v: number): number {
+    return v < 0 ? 0 : Math.min((v / 3) * 100, 100);
+  }
 </script>
 
 {#if typ === "aktuell"}
@@ -148,18 +165,30 @@
     </div>
   </div>
 {:else if typ === "pollen"}
-  <div class="pollen-liste">
-    {#each pollen as p}
-      <div class="pollen-zeile">
-        <span>{p.name}</span>
-        <span class="pollen-stufen">
-          <span class="ps" class:an1={p.stufe >= 1}></span>
-          <span class="ps" class:an2={p.stufe >= 2}></span>
-          <span class="ps" class:an3={p.stufe >= 3}></span>
-        </span>
-      </div>
-    {/each}
-  </div>
+  {#if pollenDaten}
+    <div class="pollen-kopf">
+      <span class="pollen-region">{pollenDaten.region.name}{#if pollenDaten.region.partregion_name}&nbsp;<span class="dimm">&middot; {pollenDaten.region.partregion_name}</span>{/if}</span>
+    </div>
+    <div class="pollen-tabs">
+      {#each pollenTage as t}
+        <button class="pollen-tab" class:aktiv={pollenTag === t.key} onclick={() => (pollenTag = t.key)}>{t.label}</button>
+      {/each}
+    </div>
+    <div class="pollen-liste">
+      {#each pollenSortiert as p}
+        <div class="pollen-zeile" class:hat-last={p.stufe.value > 0} class:viel-last={p.stufe.value >= 2}>
+          <span class="pollen-info"><span class="pollen-emoji">{p.icon}</span><span class="pollen-name">{p.name}</span></span>
+          <span class="pollen-pegel">
+            <span class="pegel-bahn"><span class="pegel-fuell" style="width: {pollenBreite(p.stufe.value)}%; background: {p.stufe.color}"></span></span>
+            <span class="pegel-label" style="color: {p.stufe.color}">{p.stufe.label}</span>
+          </span>
+        </div>
+      {/each}
+    </div>
+    <div class="pollen-stand">Stand: {pollenDaten.last_update}</div>
+  {:else}
+    <div class="kw-leer"><i class="fa-solid fa-seedling"></i><div>Keine Pollendaten</div></div>
+  {/if}
 {:else if typ === "barometer"}
   <div class="baro-wert"><span class="zahl">{jetzt.druck}</span><span class="dimm">hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
   <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 34px; margin-top: 8px">

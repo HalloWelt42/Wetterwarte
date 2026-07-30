@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException
 
 from .. import cache
 from ..orte import ORTE
-from ..providers import blitze, luftqualitaet, openmeteo, warnungen
+from ..providers import blitze, luftqualitaet, openmeteo, pollen_dwd, warnungen
 from ..schemas.envelope import wrap
 
 router = APIRouter(prefix="/weather", tags=["weather"])
@@ -46,14 +46,16 @@ async def complete(ort: str) -> dict:
     except httpx.HTTPError as fehler:
         raise HTTPException(status_code=502, detail=f"Wetterquelle nicht erreichbar: {fehler}") from fehler
 
-    luft, warn, blitz = await asyncio.gather(
+    luft, warn, blitz, pollen = await asyncio.gather(
         _sicher(luftqualitaet.hole(o["lat"], o["lon"])),
         _sicher(warnungen.hole(o["lat"], o["lon"])),
         _sicher(blitze.hole(o["lat"], o["lon"])),
+        _sicher(pollen_dwd.hole(o["lat"], o["lon"])),
     )
     basis["luft"] = luft
     basis["warnungen"] = warn or []
     basis["blitze"] = blitz
+    basis["pollen"] = pollen
     await cache.setze(schluessel, basis, ttl=600)
     return wrap(basis)
 

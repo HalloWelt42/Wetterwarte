@@ -80,3 +80,26 @@ export interface Blitze {
   anzahl: number;
   liste: { zeit: string; distanz: string }[];
 }
+
+export interface PollenStufe {
+  raw: string;
+  value: number;
+  label: string;
+  color: string;
+}
+
+export interface PollenArt {
+  name: string;
+  icon: string;
+  today: PollenStufe;
+  tomorrow: PollenStufe;
+  dayafter: PollenStufe;
+}
+
+export interface Pollen {
+  region: { id: number; partregion_id: number; name: string; partregion_name: string };
+  last_update: string;
+  next_update: string;
+  max_level_today: number;
+  arten: Record<string, PollenArt>;
+}
