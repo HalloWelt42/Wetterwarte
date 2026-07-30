@@ -2,14 +2,17 @@
   import { meteocon } from "../icons";
   import { aktuell, stunden, tage, warnungen } from "../platzhalter";
   import { gehe } from "../route.svelte";
-  import { wetter } from "../wetter.svelte";
+  import { nutzeOrtDaten } from "../ortdaten.svelte";
   import { uhr } from "../uhr.svelte";
   import { tipp } from "../tipp";
   import { begriffe } from "../begriffe";
   import LinienChart from "../LinienChart.svelte";
   import MiniKarte from "../MiniKarte.svelte";
 
-  let { typ, conf = {} }: { typ: string; conf?: Record<string, any> } = $props();
+  let { typ, conf = {}, ort }: { typ: string; conf?: Record<string, any>; ort: string } = $props();
+
+  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
+  const daten = nutzeOrtDaten(() => ort);
 
   // Pro-Kachel-Einstellungen (mit sinnvollen Standardwerten, wenn nicht gesetzt).
   const kennzahlen = $derived((conf.kennzahlen as string[]) ?? ["feuchte", "wind", "druck", "sicht", "taupunkt", "bewoelkung"]);
@@ -18,18 +21,18 @@
   const allergien = $derived((conf.allergien as string[]) ?? []);
   const schadstoffe = $derived((conf.schadstoffe as string[]) ?? ["pm2_5", "pm10", "o3", "no2"]);
 
-  const jetzt = $derived(wetter.aktuell ?? aktuell);
-  const stundenListe = $derived(wetter.stunden.length ? wetter.stunden : stunden);
-  const tageListe = $derived(wetter.tage.length ? wetter.tage : tage);
-  const warnungenListe = $derived(wetter.geladen ? wetter.warnungen : warnungen);
-  const luft = $derived(wetter.luft);
+  const jetzt = $derived(daten.basis?.aktuell ?? aktuell);
+  const stundenListe = $derived(daten.basis?.stunden?.length ? daten.basis.stunden : stunden);
+  const tageListe = $derived(daten.basis?.tage?.length ? daten.basis.tage : tage);
+  const warnungenListe = $derived(daten.geladen ? (daten.warnungen ?? []) : warnungen);
+  const luft = $derived(daten.luft);
   const aqiVar = $derived(
     !luft ? "var(--gut)" : luft.aqi <= 40 ? "var(--gut)" : luft.aqi <= 60 ? "var(--warn)" : "var(--gefahr)",
   );
-  const blitze = $derived(wetter.blitze);
+  const blitze = $derived(daten.blitze);
 
   // Pollen (DWD-Gefahrenindex): Tag-Auswahl + nach Belastung sortiert.
-  const pollenDaten = $derived(wetter.pollen);
+  const pollenDaten = $derived(daten.pollen);
   let pollenTag = $state<"today" | "tomorrow" | "dayafter">("today");
   const pollenTage = [
     { key: "today", label: "Heute" },
@@ -54,8 +57,8 @@
     const m = t ? /^(\d{1,2}):(\d{2})/.exec(t) : null;
     return m ? +m[1] * 60 + +m[2] : 0;
   }
-  const sonneAuf = $derived(zuMinuten(wetter.sonne?.aufgang));
-  const sonneUnter = $derived(zuMinuten(wetter.sonne?.untergang));
+  const sonneAuf = $derived(zuMinuten(daten.basis?.sonne?.aufgang));
+  const sonneUnter = $derived(zuMinuten(daten.basis?.sonne?.untergang));
   const jetztMin = $derived(uhr.jetzt.getHours() * 60 + uhr.jetzt.getMinutes());
   const jetztZeit = $derived(uhr.jetzt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }));
   const istTag = $derived(jetztMin >= sonneAuf && jetztMin <= sonneUnter);
@@ -179,9 +182,9 @@
     {/each}
   </div>
 {:else if typ === "nowcast"}
-  <div class="nowcast-text">{wetter.nowcast?.text ?? "Kein Regen in den nächsten 3 Stunden"}</div>
+  <div class="nowcast-text">{daten.basis?.nowcast?.text ?? "Kein Regen in den nächsten 3 Stunden"}</div>
   <div class="nowcast-balken">
-    {#each wetter.nowcast?.balken ?? [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] as h}<span class="nb" style="height: {h}%"></span>{/each}
+    {#each daten.basis?.nowcast?.balken ?? [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3] as h}<span class="nb" style="height: {h}%"></span>{/each}
   </div>
   <div class="nowcast-achse"><span>jetzt</span><span>+30</span><span>+60</span><span>+90 Min</span></div>
 {:else if typ === "wind"}
@@ -220,8 +223,8 @@
     <div class="sm-mitte"><div class="sm-jetzt">Jetzt</div><div class="sm-zeit">{jetztZeit}</div></div>
   </div>
   <div class="sm-auf-unter">
-    <span><span class="sm-lab">Aufgang</span><b><i class="fa-solid fa-arrow-up dimm"></i> {wetter.sonne?.aufgang ?? "-"}</b></span>
-    <span class="rechts"><span class="sm-lab">Untergang</span><b>{wetter.sonne?.untergang ?? "-"} <i class="fa-solid fa-arrow-down dimm"></i></b></span>
+    <span><span class="sm-lab">Aufgang</span><b><i class="fa-solid fa-arrow-up dimm"></i> {daten.basis?.sonne?.aufgang ?? "-"}</b></span>
+    <span class="rechts"><span class="sm-lab">Untergang</span><b>{daten.basis?.sonne?.untergang ?? "-"} <i class="fa-solid fa-arrow-down dimm"></i></b></span>
   </div>
 {:else if typ === "mond"}
   <div class="mond-datum">{heuteKurz}</div>

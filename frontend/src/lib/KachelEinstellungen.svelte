@@ -2,12 +2,19 @@
   import { ui } from "./ui.svelte";
   import { konf } from "./kachelConf.svelte";
   import { registry, type Feld } from "./kacheln/registry";
+  import { orteState } from "./orte.svelte";
 
   const def = $derived(registry[konf.typ]);
   const felder = $derived(def?.einstellungen ?? []);
 
   function geaendert(): void {
     konf.version++;
+  }
+
+  // Ort dieser Kachel; leer = folgt dem aktiven Ort oben.
+  function ortEingabe(e: Event): void {
+    konf.werte.ort = (e.target as HTMLSelectElement).value;
+    geaendert();
   }
 
   // Mehrfachauswahl (Checkbox-artige Schalter je Option)
@@ -63,6 +70,16 @@
           value={(konf.werte.titel as string) ?? ""}
           oninput={titelEingabe}
         />
+      </div>
+
+      <div class="formzeile">
+        <label for="kachel-ort">Ort dieser Kachel</label>
+        <select id="kachel-ort" class="feld" value={(konf.werte.ort as string) ?? ""} onchange={ortEingabe}>
+          <option value="">Aktiver Ort (folgt oben)</option>
+          {#each orteState.liste as o}
+            <option value={o.slug}>{o.name}{#if o.region}&nbsp;({o.region}){/if}</option>
+          {/each}
+        </select>
       </div>
 
       {#each felder as feld}

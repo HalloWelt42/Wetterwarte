@@ -3,6 +3,7 @@
   import KachelKoerper from "./kacheln/KachelKoerper.svelte";
   import { ui } from "./ui.svelte";
   import { wetter } from "./wetter.svelte";
+  import { orteState } from "./orte.svelte";
   import { konf } from "./kachelConf.svelte";
 
   let {
@@ -15,7 +16,10 @@
   const def = $derived(registry[typ]);
   const eigenerTitel = $derived((conf.titel as string) || "");
   const titel = $derived(eigenerTitel || def?.titel);
-  const unter = $derived(def?.unter === "ORT" ? wetter.ort : def?.unter);
+  // Ort je Kachel: eigener Ort aus den Einstellungen, sonst der aktive Ort.
+  const ort = $derived((conf.ort as string) || wetter.slug);
+  const ortName = $derived(orteState.liste.find((o) => o.slug === ort)?.name ?? wetter.ort);
+  const unter = $derived(def?.unter === "ORT" ? ortName : def?.unter);
 
   function oeffneEinstellungen(): void {
     konf.id = id;
@@ -34,6 +38,6 @@
       <button class="icon-knopf gefahr" title="Kachel entfernen" aria-label="Kachel entfernen" onclick={onEntfernen}><i class="fa-solid fa-xmark"></i></button>
     </span>
   </div>
-  <div class="kw-koerper"><KachelKoerper {typ} {conf} /></div>
+  <div class="kw-koerper"><KachelKoerper {typ} {conf} {ort} /></div>
   <span class="kw-griff"></span>
 </div>
