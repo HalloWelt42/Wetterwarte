@@ -20,6 +20,12 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/karte/, "/api/v1"),
         },
+        // Welt-Kacheln (hell/dunkel/Satellit) vom lightningmap-Dienst.
+        "/kachel": {
+          target: env.KACHEL_HOST || "http://192.168.178.49:8100",
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/kachel/, "/api/tile"),
+        },
       },
     },
   };

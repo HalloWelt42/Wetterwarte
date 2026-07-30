@@ -1,49 +1,74 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import maplibregl from "maplibre-gl";
+  import { wetter } from "./wetter.svelte";
+  import { orteState } from "./orte.svelte";
 
   let kartenEl: HTMLDivElement;
+  let map: maplibregl.Map | undefined;
   let basis = $state<"hell" | "dunkel" | "satellit">("hell");
   let overlays = $state<Record<string, boolean>>({
-    radar: true,
-    nowcast: false,
-    wind: false,
-    temperatur: false,
-    warnungen: true,
     blitze: true,
+    warnungen: false,
+    radar: false,
+    wind: false,
+    nowcast: false,
+    temperatur: false,
   });
 
+  // Overlays, die schon Daten haben, zuerst; die uebrigen kommen Schritt fuer Schritt.
   const overlayNamen: [string, string][] = [
-    ["radar", "Radar (DWD RADOLAN)"],
-    ["nowcast", "Niederschlag-Nowcast"],
-    ["wind", "Wind"],
-    ["temperatur", "Temperatur"],
-    ["warnungen", "Warnungen"],
     ["blitze", "Blitze"],
+    ["warnungen", "Warnungen"],
+    ["radar", "Radar"],
+    ["wind", "Wind"],
+    ["nowcast", "Niederschlag-Nowcast"],
+    ["temperatur", "Temperatur"],
   ];
 
+  const provider: Record<string, string> = { hell: "light", dunkel: "dark", satellit: "satellite" };
+  const kacheln = (b: string): string[] => [`/kachel/${provider[b] ?? "light"}/{z}/{x}/{y}`];
+
+  function aktiverOrt(): [number, number] {
+    const o = orteState.liste.find((x) => x.slug === wetter.slug);
+    return o ? [o.lon, o.lat] : [10.45, 51.16]; // Fallback: ungefaehre Mitte Deutschlands
+  }
+
   onMount(() => {
-    // Raster-Kacheln same-origin ueber den Vite-Proxy /karte -> osmlocal (Deutschland).
-    const map = new maplibregl.Map({
+    map = new maplibregl.Map({
       container: kartenEl,
       style: {
         version: 8,
         sources: {
-          osm: {
+          basis: {
             type: "raster",
-            tiles: ["/karte/raster/colorful/{z}/{x}/{y}.png"],
+            tiles: kacheln("hell"),
             tileSize: 256,
-            attribution: "© OpenStreetMap-Mitwirkende",
+            attribution: "© OpenStreetMap, © CARTO",
           },
         },
-        layers: [{ id: "osm", type: "raster", source: "osm" }],
+        layers: [{ id: "basis", type: "raster", source: "basis" }],
       },
-      center: [12.14, 51.05],
-      zoom: 8,
+      center: aktiverOrt(),
+      zoom: 7,
       attributionControl: false,
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    return () => map.remove();
+    return () => map?.remove();
+  });
+
+  // Basiskarte umschalten (Kacheln der vorhandenen Quelle austauschen).
+  $effect(() => {
+    const b = basis;
+    const quelle = map?.getSource("basis") as maplibregl.RasterTileSource | undefined;
+    // setTiles ersetzt die Kachel-URLs ohne Neuaufbau der Karte.
+    (quelle as unknown as { setTiles?: (t: string[]) => void })?.setTiles?.(kacheln(b));
+  });
+
+  // Karte auf den aktiven Ort schwenken, wenn er wechselt.
+  $effect(() => {
+    void wetter.slug;
+    map?.flyTo({ center: aktiverOrt(), zoom: 7, duration: 800 });
   });
 </script>
 
@@ -74,24 +99,6 @@
       {/each}
     </div>
 
-    <!-- Radar-Zeitleiste -->
-    <div
-      class="panel"
-      style="position: absolute; left: 50%; bottom: var(--a4); transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: var(--a3); padding: var(--a2) var(--a3); margin: 0; box-shadow: var(--schatten-2);"
-    >
-      <button class="icon-knopf"><i class="fa-solid fa-play"></i></button>
-      <div style="width: 280px;">
-        <div style="height: 6px; border-radius: 3px; background: var(--flaeche-3); position: relative;">
-          <span style="position: absolute; left: 66%; top: -4px; width: 14px; height: 14px; border-radius: 50%; background: var(--akzent);"></span>
-        </div>
-        <div class="reihe" style="justify-content: space-between; font-size: 0.7rem; color: var(--text-3); margin-top: 4px;">
-          <span>-2 h</span><span>jetzt</span><span>+1 h</span>
-        </div>
-      </div>
-      <div class="segment tabgruppe"><button class="aktiv">1x</button><button>2x</button></div>
-    </div>
-
-    <div class="karten-legende" style="z-index: 2;">Niederschlag mm/h<div class="legende-skala"></div></div>
-    <div class="attribution" style="z-index: 2;">© OpenStreetMap-Mitwirkende &middot; DWD RADOLAN &middot; Blitzortung</div>
+    <div class="attribution" style="z-index: 2;">© OpenStreetMap, © CARTO &middot; Blitze: Blitzortung.org</div>
   </div>
 </section>
