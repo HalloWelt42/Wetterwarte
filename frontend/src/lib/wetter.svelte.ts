@@ -1,5 +1,6 @@
 // Echte Wetterdaten des aktiven Ortes (aus dem Backend).
 import { hole } from "./api";
+import { schreib } from "./speicher";
 import type { Aktuell, Blitze, Luft, Nowcast, Pollen, Stunde, Tag, Warnung } from "./typen";
 
 interface Komplett {
@@ -45,6 +46,7 @@ export const wetter = $state<{
 
 export async function ladeWetter(slug: string): Promise<void> {
   wetter.slug = slug;
+  schreib("ort.aktiv", slug); // zuletzt betrachteten Ort merken
   try {
     const d = await hole<Komplett>(`/wetter/complete/${slug}`);
     wetter.ort = d.ort.name;

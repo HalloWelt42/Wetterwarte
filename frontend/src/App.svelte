@@ -15,13 +15,16 @@
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts } from "./lib/layout.svelte";
   import { ladeWetter, wetter } from "./lib/wetter.svelte";
-  import { ladeOrte, startOrt } from "./lib/orte.svelte";
+  import { ladeOrte, startOrt, orteState } from "./lib/orte.svelte";
   import { stil } from "./lib/stil.svelte";
+  import { lies } from "./lib/speicher";
 
   onMount(async () => {
     void ladeLayouts();
     await ladeOrte();
-    const s = startOrt();
+    // Zuletzt betrachteten Ort bevorzugen, sofern noch vorhanden; sonst Start-Ort.
+    const gemerkt = lies<string>("ort.aktiv", "");
+    const s = (gemerkt && orteState.liste.find((o) => o.slug === gemerkt)) || startOrt();
     if (s) void ladeWetter(s.slug);
   });
 
