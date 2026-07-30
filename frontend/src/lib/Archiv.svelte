@@ -1,13 +1,8 @@
 <script lang="ts">
   import { hole } from "./api";
+  import LinienChart from "./LinienChart.svelte";
+  import { orteState } from "./orte.svelte";
 
-  const stationen = [
-    { slug: "koeln", label: "Köln (04501)" },
-    { slug: "frankfurt", label: "Frankfurt-Holzhausen (02928)" },
-    { slug: "berlin", label: "Berlin-Tempelhof (00433)" },
-    { slug: "hamburg", label: "Hamburg-Fuhlsbüttel (01975)" },
-    { slug: "muenchen", label: "München-Stadt (03379)" },
-  ];
   const variablen = [
     { slug: "temperatur", label: "Temperatur", einheit: "°" },
     { slug: "wind", label: "Wind", einheit: " km/h" },
@@ -20,12 +15,17 @@
     { tage: 365, label: "Jahr" },
   ];
 
-  let station = $state("koeln");
+  let station = $state("");
   let variable = $state("temperatur");
   let tage = $state(30);
   let verlauf = $state<{ tag: string; wert: number }[]>([]);
 
   const einheit = $derived(variablen.find((v) => v.slug === variable)?.einheit ?? "");
+
+  // Erste vorhandene Station vorwaehlen, sobald die Orte geladen sind.
+  $effect(() => {
+    if (!station && orteState.liste.length) station = orteState.liste[0].slug;
+  });
 
   async function laden(o: string, v: string, t: number): Promise<void> {
     try {
@@ -59,6 +59,10 @@
     return iso ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}.` : "";
   }
   const rund = (x: number) => Math.round(x * 10) / 10;
+
+  // Punkte fuer den wiederverwendbaren LinienChart (gleiche Optik wie im Dashboard).
+  const archivPunkte = $derived(verlauf.map((p) => ({ label: datum(p.tag), wert: p.wert })));
+  const xSchritt = $derived(Math.max(1, Math.ceil(verlauf.length / 6)));
 </script>
 
 <section class="inhalt">
@@ -70,7 +74,7 @@
 
     <div class="reihe" style="gap: var(--a3); flex-wrap: wrap; margin-bottom: var(--a4)">
       <select class="feld" style="width: auto; min-width: 230px" bind:value={station}>
-        {#each stationen as s}<option value={s.slug}>Station: {s.label}</option>{/each}
+        {#each orteState.liste as s}<option value={s.slug}>{s.name}</option>{/each}
       </select>
       <span class="segment">
         {#each variablen as v}
@@ -88,23 +92,8 @@
       <h2><i class="fa-solid fa-chart-line"></i> Verlauf</h2>
       <p class="unter">Tagesmittel &middot; {verlauf.length} Tage aus dem Archiv</p>
       {#if verlauf.length >= 2}
-        <svg class="chart-flaeche" viewBox="0 0 600 180" preserveAspectRatio="none" style="height: 180px; width: 100%">
-          <defs>
-            <linearGradient id="tflaeche" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#2f7ce0" stop-opacity="0.30" />
-              <stop offset="1" stop-color="#2f7ce0" stop-opacity="0" />
-            </linearGradient>
-          </defs>
-          <g style="stroke: var(--rand); stroke-width: 1">
-            <line x1="0" y1="46" x2="600" y2="46" /><line x1="0" y1="98" x2="600" y2="98" /><line x1="0" y1="150" x2="600" y2="150" />
-          </g>
-          <path d={chart.flaeche} fill="url(#tflaeche)" />
-          <polyline points={chart.linie} style="fill: none; stroke: var(--akzent); stroke-width: 2" />
-        </svg>
-        <div class="reihe" style="justify-content: space-between; margin-top: var(--a2)">
-          <span class="klein-txt dimm">{datum(verlauf[0].tag)}</span>
-          <span class="klein-txt dimm">{datum(verlauf[Math.floor(verlauf.length / 2)].tag)}</span>
-          <span class="klein-txt dimm">{datum(verlauf[verlauf.length - 1].tag)}</span>
+        <div style="height: 200px; display: flex">
+          <LinienChart punkte={archivPunkte} farbe="#2f7ce0" jetztIndex={-1} xJeder={xSchritt} nachkomma={1} />
         </div>
       {:else}
         <div class="kw-leer" style="min-height: 160px"><i class="fa-solid fa-hourglass-half"></i><div>Archiv wird noch befuellt ...</div></div>

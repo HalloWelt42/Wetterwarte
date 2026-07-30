@@ -6,6 +6,7 @@
   import { uhr } from "../uhr.svelte";
   import { tipp } from "../tipp";
   import { begriffe } from "../begriffe";
+  import LinienChart from "../LinienChart.svelte";
 
   let { typ }: { typ: string } = $props();
 
@@ -100,39 +101,17 @@
     return `${wd} ${dm}`;
   });
 
-  // Temperaturverlauf 24h mit Achsen (an die Kachelgroesse gebunden, pixelgenau).
-  let chartB = $state(0);
-  let chartH = $state(0);
-  const chartPad = { oben: 10, rechts: 14, unten: 20, links: 34 };
-  const chartPunkte = $derived(stundenListe.slice(0, 24));
-  const chartTemps = $derived(chartPunkte.map((s) => s.temp));
-  const chartMin = $derived(chartTemps.length ? Math.floor(Math.min(...chartTemps)) : 0);
-  const chartMax = $derived(chartTemps.length ? Math.ceil(Math.max(...chartTemps)) : 0);
-  const chartPuffer = $derived(Math.max(1, Math.ceil((chartMax - chartMin) * 0.1)));
-  const yMin = $derived(chartMin - chartPuffer);
-  const yMax = $derived(chartMax + chartPuffer);
-  function cxPos(i: number): number {
-    const n = chartPunkte.length;
-    const innen = chartB - chartPad.links - chartPad.rechts;
-    return chartPad.links + (n <= 1 ? 0 : (i / (n - 1)) * innen);
-  }
-  function cyPos(t: number): number {
-    const innen = chartH - chartPad.oben - chartPad.unten;
-    const spanne = yMax - yMin || 1;
-    return chartPad.oben + (1 - (t - yMin) / spanne) * innen;
-  }
-  const chartLinie = $derived(chartPunkte.map((s, i) => `${cxPos(i)},${cyPos(s.temp)}`).join(" "));
-  const chartFlaeche = $derived.by(() => {
-    if (!chartPunkte.length || !chartB) return "";
-    const boden = chartH - chartPad.unten;
-    const pkte = chartPunkte.map((s, i) => `${cxPos(i)},${cyPos(s.temp)}`).join(" L ");
-    return `M ${cxPos(0)},${boden} L ${pkte} L ${cxPos(chartPunkte.length - 1)},${boden} Z`;
-  });
-  const yTicks = $derived([yMax, Math.round((yMin + yMax) / 2), yMin]);
-  const xTicks = $derived.by(() => {
-    const t: { label: string; x: number }[] = [];
-    for (let i = 0; i < chartPunkte.length; i += 6) t.push({ label: chartPunkte[i].zeit, x: cxPos(i) });
-    return t;
+  // Temperaturverlauf 24h als wiederverwendbarer LinienChart.
+  const verlaufPunkte = $derived(stundenListe.slice(0, 24).map((s) => ({ label: s.zeit, wert: s.temp })));
+  // Barometer: Luftdruck-Verlauf (falls die Stundendaten Druck liefern).
+  const druckPunkte = $derived(
+    stundenListe.slice(0, 24).filter((s) => s.druck != null).map((s) => ({ label: s.zeit, wert: s.druck as number })),
+  );
+  const druckTrend = $derived.by(() => {
+    const p = druckPunkte;
+    if (p.length < 4) return null;
+    const d = Math.round((p[3].wert - p[0].wert) * 10) / 10;
+    return { delta: d, richtung: d > 0.3 ? "steigend" : d < -0.3 ? "fallend" : "gleichbleibend" };
   });
 </script>
 
@@ -317,11 +296,19 @@
     <div class="kw-leer"><i class="fa-solid fa-seedling"></i><div>Keine Pollendaten</div></div>
   {/if}
 {:else if typ === "barometer"}
-  <div class="baro-wert"><span class="zahl">{jetzt.druck}</span><span class="dimm" use:tipp={begriffe.hpa}>hPa</span><span class="tendenz faellt"><i class="fa-solid fa-arrow-trend-down"></i> -2,4 / 3 h</span></div>
-  <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" style="height: 34px; margin-top: 8px">
-    <polyline points="0,8 16,7 32,9 48,13 64,17 80,20 100,24" style="fill: none; stroke: var(--gefahr); stroke-width: 2" />
-  </svg>
-  <div class="klein-txt dimm">Tendenz fallend</div>
+  <div class="baro-wert">
+    <span class="zahl">{jetzt.druck}</span><span class="dimm" use:tipp={begriffe.hpa}>hPa</span>
+    {#if druckTrend}
+      <span class="tendenz" style="color: {druckTrend.delta > 0.3 ? 'var(--gut)' : druckTrend.delta < -0.3 ? 'var(--gefahr)' : 'var(--text-3)'}">
+        <i class="fa-solid {druckTrend.delta > 0.3 ? 'fa-arrow-trend-up' : druckTrend.delta < -0.3 ? 'fa-arrow-trend-down' : 'fa-arrow-right-long'}"></i>
+        {druckTrend.delta > 0 ? "+" : ""}{druckTrend.delta} / 3 h
+      </span>
+    {/if}
+  </div>
+  {#if druckPunkte.length}
+    <LinienChart punkte={druckPunkte} farbe="#8b5cf6" jetztIndex={0} />
+  {/if}
+  <div class="klein-txt dimm">Tendenz {druckTrend?.richtung ?? "gleichbleibend"}</div>
 {:else if typ === "blitze"}
   <div class="reihe" style="gap: var(--a3)">
     <img class="mc mittel" src={meteocon("lightning-bolt")} alt="" />
@@ -333,26 +320,5 @@
     <div class="klein-txt dimm" style="margin-top: var(--a2)">Keine Blitze in der Nähe</div>
   {/if}
 {:else if typ === "verlauf"}
-  <div class="tchart" bind:clientWidth={chartB} bind:clientHeight={chartH}>
-    {#if chartB > 0 && chartPunkte.length}
-      <svg width={chartB} height={chartH} viewBox="0 0 {chartB} {chartH}">
-        <defs>
-          <linearGradient id="tverlauf-flaeche" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#f59e0b" stop-opacity="0.35" /><stop offset="1" stop-color="#f59e0b" stop-opacity="0.03" />
-          </linearGradient>
-        </defs>
-        {#each yTicks as t}
-          <line x1={chartPad.links} y1={cyPos(t)} x2={chartB - chartPad.rechts} y2={cyPos(t)} stroke="var(--rand)" stroke-width="1" />
-          <text x={chartPad.links - 6} y={cyPos(t) + 3} fill="var(--text-3)" font-size="10" text-anchor="end">{t}&deg;</text>
-        {/each}
-        <path d={chartFlaeche} fill="url(#tverlauf-flaeche)" />
-        <polyline points={chartLinie} fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-        <line x1={cxPos(0)} y1={chartPad.oben} x2={cxPos(0)} y2={chartH - chartPad.unten} stroke="var(--gut)" stroke-width="2" stroke-dasharray="4 3" />
-        <circle cx={cxPos(0)} cy={cyPos(chartPunkte[0].temp)} r="4" fill="var(--gut)" stroke="var(--flaeche)" stroke-width="1.5" />
-        {#each xTicks as t}
-          <text x={t.x} y={chartH - 6} fill="var(--text-3)" font-size="10" text-anchor="middle">{t.label}</text>
-        {/each}
-      </svg>
-    {/if}
-  </div>
+  <LinienChart punkte={verlaufPunkte} farbe="#f59e0b" einheit="&deg;" jetztIndex={0} />
 {/if}

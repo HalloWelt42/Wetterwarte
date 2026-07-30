@@ -96,7 +96,7 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
             "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,"
             "wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,cloud_cover,dew_point_2m,uv_index,is_day"
         ),
-        "hourly": "temperature_2m,weather_code,precipitation_probability,visibility,is_day",
+        "hourly": "temperature_2m,weather_code,precipitation_probability,visibility,pressure_msl,is_day",
         "minutely_15": "precipitation",
         "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
         "timezone": "Europe/Berlin",
@@ -138,12 +138,14 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
     stunden = []
     for i in range(idx, min(idx + 18, len(h["time"]))):
         icon_h, _ = _zustand(int(h["weather_code"][i]), bool(h["is_day"][i]))
+        druck_h = h.get("pressure_msl")
         stunden.append({
             "zeit": "jetzt" if i == idx else h["time"][i][11:13],
             "icon": icon_h,
             "temp": round(h["temperature_2m"][i]),
             "tempKlasse": _temp_klasse(h["temperature_2m"][i]),
             "regen": h["precipitation_probability"][i] or 0,
+            "druck": round(druck_h[i]) if druck_h and druck_h[i] is not None else None,
         })
 
     mm = d.get("minutely_15") or {}

@@ -42,6 +42,7 @@ export interface Stunde {
   temp: number;
   tempKlasse: TempKlasse;
   regen?: number;
+  druck?: number;
 }
 
 export interface Tag {
