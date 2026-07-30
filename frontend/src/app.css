@@ -1300,33 +1300,37 @@ textarea,
   font-size: 0.68rem;
   color: var(--text-3);
 }
-.sm-mond {
+/* Mond (eigene Kachel, grosses Emoji) */
+.mond-haupt {
   display: flex;
   align-items: center;
-  gap: var(--a3);
-  margin-top: var(--a2);
-  padding-top: var(--a2);
-  border-top: 1px solid var(--rand);
+  justify-content: center;
+  gap: var(--a5);
+  flex: 1;
 }
-.sm-mond-emoji {
-  font-size: 1.8rem;
+.mond-gross {
+  font-size: 3.4rem;
   line-height: 1;
+  filter: drop-shadow(0 0 10px rgba(255, 250, 200, 0.35));
 }
-.sm-mond-mitte {
+.mond-werte {
   display: flex;
   flex-direction: column;
   line-height: 1.15;
 }
-.sm-mond-mitte b {
-  font-size: 1.05rem;
+.mond-prozent {
+  font-size: 1.7rem;
+  font-weight: 600;
 }
-.sm-mond-dat {
-  margin-left: auto;
+.mond-daten {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 0.72rem;
-  text-align: right;
+  justify-content: space-between;
+  gap: var(--a2);
+  margin-top: var(--a2);
+  padding-top: var(--a2);
+  border-top: 1px solid var(--rand);
+  font-size: 0.74rem;
+  color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
 

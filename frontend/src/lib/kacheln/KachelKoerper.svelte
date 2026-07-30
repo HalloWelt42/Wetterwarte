@@ -218,7 +218,7 @@
       <div class="klein-txt dimm">aus {jetzt.windRichtung}</div>
     </div>
   </div>
-{:else if typ === "sonnemond"}
+{:else if typ === "sonne"}
   <div class="sm-bogen-wrap">
     <svg class="sm-bogen" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
       <defs>
@@ -237,10 +237,18 @@
     <span><span class="sm-lab">Aufgang</span><b><i class="fa-solid fa-arrow-up dimm"></i> {wetter.sonne?.aufgang ?? "-"}</b></span>
     <span class="rechts"><span class="sm-lab">Untergang</span><b>{wetter.sonne?.untergang ?? "-"} <i class="fa-solid fa-arrow-down dimm"></i></b></span>
   </div>
-  <div class="sm-mond">
-    <span class="sm-mond-emoji">{mond.emoji}</span>
-    <span class="sm-mond-mitte"><b class="tnum">{mond.beleuchtung}%</b><span class="dimm klein-txt">{mond.zunehmend ? "zunehmend" : "abnehmend"}</span></span>
-    <span class="sm-mond-dat"><span class="dimm">🌑 {mond.naechsterNeu}</span><span class="dimm">🌕 {mond.naechsterVoll}</span></span>
+{:else if typ === "mond"}
+  <div class="mond-haupt">
+    <span class="mond-gross">{mond.emoji}</span>
+    <span class="mond-werte">
+      <span class="dimm klein-txt">{mond.zunehmend ? "Zunehmend" : "Abnehmend"}</span>
+      <span class="mond-prozent tnum">{mond.beleuchtung}%</span>
+      <span class="dimm klein-txt">beleuchtet</span>
+    </span>
+  </div>
+  <div class="mond-daten">
+    <span>🌑 Neumond {mond.naechsterNeu}</span>
+    <span>🌕 Vollmond {mond.naechsterVoll}</span>
   </div>
 {:else if typ === "luftqualitaet"}
   <div class="gauge-zeile">

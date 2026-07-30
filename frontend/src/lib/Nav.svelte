@@ -44,6 +44,6 @@
 
   <div class="nav-fuss">
     <div class="nav-quelle"><span class="pulspunkt"></span> DWD + Open-Meteo - aktuell</div>
-    <div class="nav-version">Wetterwarte{#if version} v{version}{/if} - lokal</div>
+    <div class="nav-version">{`Wetterwarte${version ? " v" + version : ""} - lokal`}</div>
   </div>
 </nav>

@@ -82,7 +82,15 @@
     const l = layoutState.liste.find((x) => x.id === id);
     const hatDaten = l && Array.isArray(l.daten) && l.daten.length > 0 && (l.daten[0] as { typ?: string }).typ;
     const neu = hatDaten
-      ? (l!.daten as unknown as Instanz[]).map((d) => ({ id: d.id, typ: d.typ, x: d.x, y: d.y, w: d.w, h: d.h }))
+      ? (l!.daten as unknown as Instanz[]).map((d) => ({
+          id: d.id,
+          // Migration: aus der fruehen kombinierten Kachel wird die reine Sonnen-Kachel.
+          typ: d.typ === "sonnemond" ? "sonne" : d.typ,
+          x: d.x,
+          y: d.y,
+          w: d.w,
+          h: d.h,
+        }))
       : standardInstanzen();
     ladend = true;
     kacheln = neu;
