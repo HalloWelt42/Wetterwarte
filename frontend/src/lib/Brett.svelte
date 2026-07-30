@@ -18,6 +18,8 @@
   const aqiVar = $derived(
     !luft ? "var(--gut)" : luft.aqi <= 40 ? "var(--gut)" : luft.aqi <= 60 ? "var(--warn)" : "var(--gefahr)",
   );
+  const blitze = $derived(wetter.blitze);
+  const pollen = $derived(wetter.luft?.pollen ?? []);
 
   let brettEl: HTMLElement;
   let grid: GridStack | undefined;
@@ -28,6 +30,7 @@
   const kachelIds = [
     "aktuell", "stunden", "warnungen", "karte", "tage", "nowcast",
     "wind", "sonnemond", "luftqualitaet", "uv", "barometer", "verlauf",
+    "blitze", "pollen",
   ];
 
   interface Position {
@@ -433,6 +436,59 @@
             <path d="M0,72 L26,74 L52,78 L78,70 L104,54 L130,40 L156,30 L182,26 L208,30 L234,38 L260,50 L286,60 L320,64 L320,96 L0,96 Z" fill="url(#tflaeche)" />
             <polyline points="0,72 26,74 52,78 78,70 104,54 130,40 156,30 182,26 208,30 234,38 260,50 286,60 320,64" style="fill: none; stroke: var(--akzent); stroke-width: 2" />
           </svg>
+        </div>
+        <span class="kw-griff"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 13) Blitze -->
+  <div class="grid-stack-item" gs-w="4" gs-h="2">
+    <div class="grid-stack-item-content">
+      <div class="kachel-w">
+        <div class="kw-kopf">
+          <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+          <span class="kw-titel">Blitze <span class="ort">Umkreis 130 km</span></span>
+        </div>
+        <div class="kw-koerper">
+          <div class="reihe" style="gap: var(--a3)">
+            <img class="mc mittel" src={meteocon("lightning-bolt")} alt="" />
+            <div><span class="blitz-zahl">{blitze?.anzahl ?? 0}</span> <span class="dimm klein-txt">letzte Stunde</span></div>
+          </div>
+          {#if blitze?.liste?.length}
+            <div class="blitz-liste">
+              {#each blitze.liste as b}<div class="bz"><span>{b.zeit}</span><span>{b.distanz}</span></div>{/each}
+            </div>
+          {:else}
+            <div class="klein-txt dimm" style="margin-top: var(--a2)">Keine Blitze in der Nähe</div>
+          {/if}
+        </div>
+        <span class="kw-griff"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 14) Pollenflug -->
+  <div class="grid-stack-item" gs-w="4" gs-h="2">
+    <div class="grid-stack-item-content">
+      <div class="kachel-w">
+        <div class="kw-kopf">
+          <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
+          <span class="kw-titel">Pollenflug <span class="ort">{wetter.ort}</span></span>
+        </div>
+        <div class="kw-koerper">
+          <div class="pollen-liste">
+            {#each pollen as p}
+              <div class="pollen-zeile">
+                <span>{p.name}</span>
+                <span class="pollen-stufen">
+                  <span class="ps" class:an1={p.stufe >= 1}></span>
+                  <span class="ps" class:an2={p.stufe >= 2}></span>
+                  <span class="ps" class:an3={p.stufe >= 3}></span>
+                </span>
+              </div>
+            {/each}
+          </div>
         </div>
         <span class="kw-griff"></span>
       </div>

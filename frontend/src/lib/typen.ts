@@ -73,4 +73,10 @@ export interface Luft {
   pm10: number;
   o3: number;
   no2: number;
+  pollen?: { name: string; stufe: number }[];
+}
+
+export interface Blitze {
+  anzahl: number;
+  liste: { zeit: string; distanz: string }[];
 }

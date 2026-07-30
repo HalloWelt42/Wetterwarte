@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     air_quality_base: str = "https://air-quality-api.open-meteo.com/v1"
     # DWD-Warnungen vorerst ueber Bright Sky (DWD-Aufbereitung); spaeter eigener Ingester.
     bright_sky_base: str = "https://api.brightsky.dev"
+    # Live-Blitze vom lokal gehosteten lightningmap-Dienst (Blitzortung.org).
+    lightning_base: str = "http://192.168.178.49:8100"
 
 
 settings = Settings()
