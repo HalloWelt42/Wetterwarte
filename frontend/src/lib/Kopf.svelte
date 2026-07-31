@@ -35,6 +35,8 @@
       <i class="fa-solid fa-circle-half-stroke" style="font-size: 1.05rem; transform: rotate({thema.wert === 'hell' ? 0 : 180}deg); transition: transform var(--schnell)"></i>
     </button>
     <button class="icon-knopf" title="System & Dienste" onclick={() => (ui.dienste = true)} aria-label="System und Dienste"><i class="fa-solid fa-gear"></i></button>
+    <button class="icon-knopf" title="Erste Schritte" onclick={() => (ui.willkommen = true)} aria-label="Erste Schritte"><i class="fa-solid fa-life-ring"></i></button>
     <button class="icon-knopf" title="Hilfe" onclick={() => hilfe.toggle("uebersicht")}><i class="fa-solid fa-circle-question"></i></button>
+    <button class="icon-knopf spendenherz" title="Danke sagen" onclick={() => (ui.spende = true)} aria-label="Danke sagen"><i class="fa-solid fa-heart"></i></button>
   </div>
 </header>

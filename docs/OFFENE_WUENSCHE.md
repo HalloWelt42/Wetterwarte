@@ -33,17 +33,15 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Archiv/Analyse: Variablen-Auswahl dynamisch (alle aufgezeichneten Werte inkl. Luftqualitaet) (v0.39.2)
 - [x] Demo-Orte zum Ausprobieren: Extremwetter + bekannte Orte, per Globus-Knopf hinzufuegbar (v0.40.0)
 
+- [x] Rettungsring/Onboarding fuer Erstnutzer + "Danke sagen"-Overlay (Ko-fi zuoberst mit QR, Krypto BTC/DOGE/ETH mit QR + Kopieren, pulsierendes Spendenherz im Kopf) (v0.41.0)
+- [x] README mit Screenshot (ohne den Ort "Zeitz") + Lizenzabschnitt; LICENSE (NC v1.0) angelegt (v0.41.0)
+- [x] Regenradar: Umschalter Animation/Live (Live zeigt nur den aktuellen Stand) (v0.41.0)
+- [x] Redundanten Karten-Overlay "Niederschlag-Nowcast" entfernt (steckt bereits im Radar-Overlay) (v0.41.0)
+- [x] Deep-Links ohne Hash: Ansicht + Ort in der URL (History-API), neuladefest und teilbar (v0.41.0)
+- [x] Dark-Mode-Schriftkontrast angehoben; Overlay-Stapelordnung (z-index) vereinheitlicht, Hilfe-Fenster tritt beim Oeffnen eines Modals zurueck (v0.41.0)
+
 ## Offen
 - [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch
-- [ ] Rettungsring/Onboarding fuer Erstnutzer + Spendenlogik (Spendenherz, Overlay, Pulsieren)
-- [ ] README mit Screenshot (OHNE den Ort "Zeitz") + Lizenzpruefung (Referenz RadioHub)
-- [ ] Mobile-Ansicht optimieren - ganz zum Schluss
-- [ ] Offline-Cache themengetrennt; Speicher-Statistik sichtbar; Prozessbalken bei Daten-Aggregation in den Einstellungen mit vollstaendiger Fehler-/Fertig-Logik; Fuell-Bot (naeher am Wohnort mehr, Satellit progressiv)
-- [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
-- [ ] Rettungsring / Onboarding fuer Erstnutzer (Muster wie im Projekt RadioHub)
-- [ ] Spendenlogik (Muster wie RadioHub / Smart-Translator-Spende-Block)
-- [ ] README mit Screenshot (Screenshot OHNE den Ort "Zeitz")
-- [ ] Lizenzen aller Abhaengigkeiten pruefen, LICENSE entsprechend anpassen (Referenz RadioHub)
 - [ ] Mobile-Ansicht optimieren - ganz zum Schluss, wenn alles andere fertig ist
 
 Referenzen: RadioHub (github.com/HalloWelt42/RadioHub) fuer Spenden + Lizenzen;

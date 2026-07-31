@@ -40,6 +40,13 @@
   --zeile-h: 46px;
   --schnell: 0.12s ease;
 
+  /* Stapelordnung (z-index) - eine einzige, kohaerente Skala fuer alle Overlays.
+     Reihenfolge: Inhalt < Kopf < Seitenpanel < Modal < Hilfe-Schwebefenster. */
+  --z-kopf: 20;
+  --z-panel: 150;   /* Seiten-Panel "Kachel hinzufuegen" (Ueberlagerung) */
+  --z-modal: 200;   /* alle zentrierten Modals (modal-hg) */
+  --z-hilfe: 400;   /* schwebendes Hilfe-Fenster, immer erreichbar/oben */
+
   /* Temperatur-Farbskala (in beiden Themes gleich, damit Werte vergleichbar bleiben) */
   --t-frost: #4aa8ff;
   --t-kalt: #57c1e0;
@@ -72,7 +79,7 @@
   --rand-stark: #3a4757;
   --text: #e7edf3;
   --text-2: #93a1b1;
-  --text-3: #6b7a8a;
+  --text-3: #7f8d9c; /* angehoben fuer lesbaren Kontrast auf dunklem Grund (WCAG AA), bleibt dimmer als text-2 */
   --akzent: #4aa8ff;
   --akzent-stark: #6cb8ff;
   --akzent-text: #06121f;
@@ -160,7 +167,7 @@ textarea,
   padding: 0 var(--a4);
   background: var(--flaeche);
   border-bottom: 1px solid var(--rand);
-  z-index: 10;
+  z-index: var(--z-kopf);
 }
 .marke {
   display: flex;
@@ -2072,13 +2079,45 @@ textarea,
   display: flex;
   align-items: center;
   gap: var(--a2);
-  width: min(460px, calc(100% - 2 * var(--a4)));
+  width: min(560px, calc(100% - 2 * var(--a4)));
   padding: 7px 12px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--flaeche) 88%, transparent);
   border: 1px solid var(--rand);
   box-shadow: var(--schatten-2);
   backdrop-filter: blur(6px);
+}
+/* Umschalter Live/Animation - kleines Segment-Steuerelement */
+.radar-modus {
+  flex-shrink: 0;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--flaeche-2);
+  border: 1px solid var(--rand);
+}
+.radar-modus button {
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.radar-modus button:hover:not(.aktiv) {
+  color: var(--text);
+}
+.radar-modus button.aktiv {
+  background: var(--akzent);
+  color: var(--akzent-text);
 }
 .radar-play {
   flex-shrink: 0;
@@ -2278,7 +2317,7 @@ textarea,
   background: rgba(8, 14, 22, 0.55);
   display: grid;
   place-items: center;
-  z-index: 40;
+  z-index: var(--z-modal);
 }
 .modal {
   background: var(--flaeche);
@@ -2483,7 +2522,7 @@ textarea,
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 55;
+  z-index: var(--z-hilfe);
 }
 .hilfe-kopf {
   display: flex;
@@ -2808,7 +2847,7 @@ button.nav-eintrag {
   position: fixed;
   inset: 0;
   background: rgba(8, 14, 22, 0.45);
-  z-index: 40;
+  z-index: var(--z-panel);
 }
 .seiten-panel {
   position: fixed;
@@ -2822,7 +2861,7 @@ button.nav-eintrag {
   box-shadow: var(--schatten-2);
   display: flex;
   flex-direction: column;
-  z-index: 41;
+  z-index: calc(var(--z-panel) + 1);
 }
 
 /* Offline-Kartencache (Dienste-Modal) */
@@ -2978,4 +3017,253 @@ button.nav-eintrag {
 }
 .demo-notiz {
   line-height: 1.25;
+}
+
+/* ============================================================ Spendenherz (Kopf) */
+.icon-knopf.spendenherz i {
+  color: var(--gefahr);
+}
+.icon-knopf.spendenherz:hover i {
+  color: var(--gefahr);
+}
+/* Leichtes, ruhiges Pulsieren - macht auf die freiwillige Unterstuetzung aufmerksam */
+.icon-knopf.spendenherz i {
+  animation: herz-puls 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes herz-puls {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-knopf.spendenherz i { animation: none; }
+}
+
+/* ============================================================ Spende-Overlay */
+.spende-intro {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.kofi-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--a3);
+}
+.kofi-knopf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--a2);
+  width: 100%;
+  padding: var(--a3) var(--a4);
+  border-radius: var(--r2);
+  background: var(--akzent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: filter var(--schnell);
+}
+.kofi-knopf:hover {
+  filter: brightness(1.08);
+}
+/* QR-Feld: immer heller Grund + dunkle Module, damit es in beiden Themes scannbar bleibt */
+.qr-feld {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--a1);
+  background: #ffffff;
+  padding: var(--a2);
+  border-radius: var(--r2);
+  border: 1px solid var(--rand);
+}
+.qr-feld svg {
+  display: block;
+  width: 96px;
+  height: 96px;
+  shape-rendering: crispEdges;
+}
+.qr-feld.gross svg {
+  width: 128px;
+  height: 128px;
+}
+.qr-feld small {
+  font-size: 0.72rem;
+  color: #5d6b7b;
+}
+.spende-trenner {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  color: var(--text-3);
+}
+.spende-trenner span {
+  flex: 1;
+  height: 1px;
+  background: var(--rand);
+}
+.spende-trenner small {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.krypto-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a2);
+}
+.krypto-karte {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a3);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  background: var(--flaeche-2, var(--flaeche));
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--schnell), background var(--schnell);
+}
+.krypto-karte:hover {
+  border-color: var(--akzent);
+}
+.krypto-karte.offen {
+  border-color: var(--akzent);
+}
+.krypto-karte > i:first-child {
+  font-size: 1.3rem;
+  width: 1.6rem;
+  text-align: center;
+}
+.krypto-karte .kk-name {
+  display: flex;
+  align-items: baseline;
+  gap: var(--a2);
+}
+.krypto-karte .kk-pfeil {
+  margin-left: auto;
+  color: var(--text-3);
+  font-size: 0.8rem;
+  transition: transform var(--schnell);
+}
+.krypto-karte.offen .kk-pfeil {
+  transform: rotate(180deg);
+}
+.krypto-auf {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a3);
+  margin: calc(-1 * var(--a1)) 0 var(--a1);
+  border: 1px dashed var(--rand);
+  border-radius: var(--r2);
+  background: var(--flaeche-2, var(--flaeche));
+}
+.krypto-auf .qr-feld {
+  flex-shrink: 0;
+}
+.krypto-adresse {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--a2);
+  min-width: 0;
+  flex: 1;
+}
+.krypto-adresse code {
+  font-size: 0.78rem;
+  word-break: break-all;
+  color: var(--text-2);
+}
+@media (max-width: 720px) {
+  .krypto-auf { flex-direction: column; align-items: stretch; }
+  .krypto-auf .qr-feld { align-self: center; }
+}
+
+/* ============================================================ Willkommen / Rettungsring */
+.modal.willkommen {
+  width: min(540px, 94vw);
+}
+.wk-kopf {
+  text-align: center;
+  padding: var(--a5, 24px) var(--a4) var(--a3);
+}
+.wk-kopf h2 {
+  margin: var(--a3) 0 var(--a1);
+  font-size: 1.25rem;
+}
+.wk-kopf p {
+  margin: 0 auto;
+  max-width: 40ch;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.wk-ring {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--akzent) 16%, transparent);
+  color: var(--akzent);
+  font-size: 1.6rem;
+}
+.wk-schritte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a2);
+  padding: var(--a2) var(--a4);
+}
+.wk-schritt {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a3);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+}
+.wk-nr {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--akzent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.wk-icon {
+  flex-shrink: 0;
+  width: 2rem;
+  text-align: center;
+  color: var(--akzent);
+  font-size: 1.15rem;
+}
+.wk-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.wk-text b {
+  font-size: 0.92rem;
+}
+.wk-aktionen {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--a2);
+  padding: var(--a3) var(--a4) var(--a4);
+}
+@media (max-width: 720px) {
+  .wk-aktionen { justify-content: stretch; }
+  .wk-aktionen .knopf { flex: 1; justify-content: center; }
 }

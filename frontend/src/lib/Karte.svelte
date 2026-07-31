@@ -10,13 +10,14 @@
   let map: maplibregl.Map | undefined;
   let ortMarker: maplibregl.Marker | undefined;
 
-  // Overlay-Namen fuer das Ebenen-Panel.
+  // Overlay-Namen fuer das Ebenen-Panel. Der DWD-Nowcast (Niederschlagsvorhersage
+  // bis +2h) steckt bereits im Radar-Overlay (RV-Frames) - daher kein eigener,
+  // redundanter Nowcast-Schalter mehr.
   const overlayNamen: [string, string][] = [
     ["blitze", "Blitze"],
     ["warnungen", "Warnungen"],
     ["radar", "Radar"],
     ["wind", "Wind"],
-    ["nowcast", "Niederschlag-Nowcast"],
     ["temperatur", "Temperatur"],
   ];
 
@@ -463,6 +464,8 @@
       for (const f of d.frames) new Image().src = radarUrl(f.id);
       const neu = d.frames.findIndex((f) => f.id === altId);
       radarIdx = neu >= 0 ? neu : Math.min(radarIdx, d.frames.length - 1);
+      // Live-Modus folgt immer dem neuesten gemessenen Frame.
+      if (karteEinst.radarModus === "live") springeLive();
     } catch {
       // still ignorieren
     }
@@ -499,11 +502,32 @@
         }
       }
       radarIdx = startI;
-      starteRadar();
+      // Im Live-Modus stehen bleiben (startI ist bereits der aktuelle Stand),
+      // im Animations-Modus die Zeitleiste abspielen.
+      if (karteEinst.radarModus === "animation") starteRadar();
     } catch {
       // still ignorieren - alter Stand bleibt
     } finally {
       radarLaedt = false;
+    }
+  }
+
+  // Auf den aktuellen ("gemessenen") Stand springen - fuer den Live-Modus.
+  function springeLive(): void {
+    if (!radarFrames.length) return;
+    const i = radarFrames.map((f) => f.art).lastIndexOf("gemessen");
+    const j = i >= 0 ? i : radarFrames.length - 1;
+    radarIdx = j;
+    zeigeRadar(j);
+  }
+
+  function setzeRadarModus(m: "animation" | "live"): void {
+    karteEinst.radarModus = m;
+    if (m === "live") {
+      stoppeRadar();
+      springeLive();
+    } else {
+      starteRadar();
     }
   }
 
@@ -551,7 +575,8 @@
         // untrack: sonst wuerde Pause (radarSpielt=false) diesen Effect neu ausloesen
         // und die Wiedergabe sofort wieder starten - die Steuerung waere kaputt.
         untrack(() => {
-          if (!radarSpielt) starteRadar();
+          if (karteEinst.radarModus === "live") springeLive();
+          else if (!radarSpielt) starteRadar();
         });
       }
       if (!radarRahmenTimer) radarRahmenTimer = setInterval(() => void frischeRahmen(), 180000);
@@ -766,20 +791,30 @@
     </div>
 
     {#if karteEinst.overlays.radar}
-      <!-- Radar-Abspieler: Zeitleiste ueber gemessene + Vorhersage-Frames -->
+      <!-- Radar-Steuerung: Umschalter Live/Animation, im Animationsmodus mit Zeitleiste -->
       <div class="radar-leiste" style="z-index: 3;">
-        <button class="radar-play" onclick={radarAbspielen} aria-label={radarSpielt ? "Pause" : "Abspielen"}>
-          <i class="fa-solid {radarSpielt ? 'fa-pause' : 'fa-play'}"></i>
-        </button>
-        <input
-          class="radar-schieber"
-          type="range"
-          min="0"
-          max={Math.max(0, radarFrames.length - 1)}
-          value={radarIdx}
-          oninput={(e) => radarSchieben(+e.currentTarget.value)}
-          aria-label="Radar-Zeitpunkt"
-        />
+        <div class="radar-modus" role="group" aria-label="Radar-Modus">
+          <button class:aktiv={karteEinst.radarModus === "live"} onclick={() => setzeRadarModus("live")} title="Nur aktueller Stand">
+            <i class="fa-solid fa-circle-dot"></i> Live
+          </button>
+          <button class:aktiv={karteEinst.radarModus === "animation"} onclick={() => setzeRadarModus("animation")} title="Zeitleiste abspielen">
+            <i class="fa-solid fa-film"></i> Animation
+          </button>
+        </div>
+        {#if karteEinst.radarModus === "animation"}
+          <button class="radar-play" onclick={radarAbspielen} aria-label={radarSpielt ? "Pause" : "Abspielen"}>
+            <i class="fa-solid {radarSpielt ? 'fa-pause' : 'fa-play'}"></i>
+          </button>
+          <input
+            class="radar-schieber"
+            type="range"
+            min="0"
+            max={Math.max(0, radarFrames.length - 1)}
+            value={radarIdx}
+            oninput={(e) => radarSchieben(+e.currentTarget.value)}
+            aria-label="Radar-Zeitpunkt"
+          />
+        {/if}
         <span class="radar-zeit tnum" class:vorhersage={radarAktiv?.art === "vorhersage"}>
           {radarLaedt && !radarFrames.length ? "Radar wird geladen ..." : radarZeitLabel}
         </span>

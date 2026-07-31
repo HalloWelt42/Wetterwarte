@@ -13,21 +13,54 @@
   import Ortssuche from "./lib/Ortssuche.svelte";
   import Dienste from "./lib/Dienste.svelte";
   import DemoOrte from "./lib/DemoOrte.svelte";
-  import { route } from "./lib/route.svelte";
+  import Spende from "./lib/Spende.svelte";
+  import Willkommen from "./lib/Willkommen.svelte";
+  import { route, ortAusUrl, setzeOrtInUrl, initUrl } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts } from "./lib/layout.svelte";
   import { ladeWetter, wetter } from "./lib/wetter.svelte";
   import { ladeOrte, startOrt, orteState } from "./lib/orte.svelte";
   import { stil } from "./lib/stil.svelte";
-  import { lies } from "./lib/speicher";
+  import { hilfe } from "./lib/hilfeStore.svelte";
+  import { lies, schreib } from "./lib/speicher";
 
   onMount(async () => {
     void ladeLayouts();
     await ladeOrte();
-    // Zuletzt betrachteten Ort bevorzugen, sofern noch vorhanden; sonst Start-Ort.
+    // Ort-Wahl: Deep-Link aus der URL (?ort=) hat Vorrang, dann der zuletzt
+    // betrachtete Ort, sonst der Start-Ort.
+    const ausUrl = ortAusUrl();
     const gemerkt = lies<string>("ort.aktiv", "");
-    const s = (gemerkt && orteState.liste.find((o) => o.slug === gemerkt)) || startOrt();
-    if (s) void ladeWetter(s.slug);
+    const s =
+      (ausUrl && orteState.liste.find((o) => o.slug === ausUrl)) ||
+      (gemerkt && orteState.liste.find((o) => o.slug === gemerkt)) ||
+      startOrt();
+    if (s) {
+      void ladeWetter(s.slug);
+      initUrl(s.slug); // URL auf den tatsaechlichen Startzustand normalisieren
+    }
+    // Beim allerersten Start den Rettungsring einmalig zeigen.
+    if (!lies<boolean>("willkommen.gesehen", false)) {
+      ui.willkommen = true;
+      schreib("willkommen.gesehen", true);
+    }
+  });
+
+  // Aktiven Ort in der URL spiegeln, sobald er sich aendert (teilbarer Deep-Link).
+  $effect(() => {
+    if (wetter.slug) setzeOrtInUrl(wetter.slug);
+  });
+
+  // Fensterlogik: Oeffnet sich ein zentriertes Modal, tritt das schwebende
+  // Hilfe-Fenster zurueck, damit es das Modal nicht verdeckt. Nur auf der
+  // steigenden Flanke (Modal geht auf) - aus einem Modal heraus laesst sich die
+  // Hilfe per Info-Knopf jederzeit wieder darueber holen.
+  let modalWarOffen = false;
+  $effect(() => {
+    const modalOffen =
+      ui.katalog || ui.dienste || ui.spende || ui.willkommen || ui.layouts || ui.demoOrte || ui.einstellungen;
+    if (modalOffen && !modalWarOffen && hilfe.open) hilfe.close();
+    modalWarOffen = modalOffen;
   });
 
   function stimmungFuer(icon?: string): string {
@@ -61,3 +94,5 @@
 {#if ui.demoOrte}<DemoOrte />{/if}
 {#if ui.einstellungen}<KachelEinstellungen />{/if}
 {#if ui.dienste}<Dienste />{/if}
+{#if ui.spende}<Spende />{/if}
+{#if ui.willkommen}<Willkommen />{/if}

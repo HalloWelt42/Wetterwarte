@@ -7,6 +7,8 @@ export const ui = $state<{
   einstellungen: boolean; // Einstellungs-Modal offen (welche Kachel steht in kachelConf)
   dienste: boolean; // System- & Dienste-Uebersicht
   demoOrte: boolean; // Demo-Orte-Auswahl (Extremwetter + bekannte Orte)
+  spende: boolean; // Spende-/Unterstuetzen-Overlay
+  willkommen: boolean; // Onboarding-/Rettungsring-Overlay fuer Erstnutzer
 }>({
   katalog: false,
   hilfe: false,
@@ -15,4 +17,6 @@ export const ui = $state<{
   einstellungen: false,
   dienste: false,
   demoOrte: false,
+  spende: false,
+  willkommen: false,
 });

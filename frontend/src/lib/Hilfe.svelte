@@ -208,7 +208,7 @@
 <style>
   .hilfe-panel {
     position: fixed;
-    z-index: 2000;
+    z-index: var(--z-hilfe);
     display: flex;
     flex-direction: column;
     background: var(--flaeche);

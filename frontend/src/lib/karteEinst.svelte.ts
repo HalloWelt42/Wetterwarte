@@ -9,7 +9,6 @@ const OVERLAYS_STANDARD: Record<string, boolean> = {
   warnungen: false,
   radar: false,
   wind: false,
-  nowcast: false,
   temperatur: false,
 };
 
@@ -23,12 +22,15 @@ export const karteEinst = $state<{
   overlays: Record<string, boolean>;
   simulation: boolean;
   blitzeLimit: number;
+  radarModus: "animation" | "live";
 }>({
   basis: lies("karte.basis", "hell"),
   orientierung: lies("karte.orientierung", false),
   overlays: { ...OVERLAYS_STANDARD, ...lies("karte.overlays", {}) },
   simulation: lies("karte.simulation", false),
   blitzeLimit: lies("karte.blitzeLimit", 20000),
+  // Radar: "animation" spielt die Zeitleiste ab, "live" zeigt nur den aktuellen Stand.
+  radarModus: lies("karte.radarModus", "animation"),
 });
 
 // Aenderungen dauerhaft merken (App-weiter Wurzel-Effekt).
@@ -38,6 +40,7 @@ $effect.root(() => {
   $effect(() => schreib("karte.overlays", karteEinst.overlays));
   $effect(() => schreib("karte.simulation", karteEinst.simulation));
   $effect(() => schreib("karte.blitzeLimit", karteEinst.blitzeLimit));
+  $effect(() => schreib("karte.radarModus", karteEinst.radarModus));
 });
 
 // Provider-Zuordnung der Basiskarten (fuer beide Karten gleich).

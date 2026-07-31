@@ -16,7 +16,8 @@
     "@meteocons/svg": "^0.1.0",
     "gridstack": "^11.3.0",
     "maplibre-gl": "^4.7.1",
-    "marked": "^18.0.7"
+    "marked": "^18.0.7",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
