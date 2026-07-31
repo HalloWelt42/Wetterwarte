@@ -1519,6 +1519,10 @@ textarea,
   height: 100%;
   overflow: visible;
 }
+/* Weicher, ruhiger Strahlenkranz um die Tagsonne (kein Pulsieren). */
+.sm-strahlen {
+  opacity: 0.6;
+}
 .sm-mitte {
   position: absolute;
   top: 54%;

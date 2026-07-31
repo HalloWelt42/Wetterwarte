@@ -28,6 +28,7 @@ async def suche(begriff: str, anzahl: int = 8) -> list[dict]:
                 "land": r.get("country", ""),
                 "lat": r["latitude"],
                 "lon": r["longitude"],
+                "zeitzone": r.get("timezone", ""),
             }
         )
     return treffer

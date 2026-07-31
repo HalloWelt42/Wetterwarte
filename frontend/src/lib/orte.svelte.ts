@@ -9,6 +9,7 @@ export interface Ort {
   land: string;
   lat: number;
   lon: number;
+  zeitzone: string;
   reihenfolge: number;
   ist_start: boolean;
 }
@@ -19,6 +20,12 @@ export interface Treffer {
   land: string;
   lat: number;
   lon: number;
+  zeitzone?: string;
+}
+
+/** IANA-Zeitzone eines Ortes (leer = unbekannt, dann lokale Geraetezeit). */
+export function zeitzoneFuer(slug: string): string {
+  return orteState.liste.find((o) => o.slug === slug)?.zeitzone || "";
 }
 
 export const orteState = $state<{ liste: Ort[] }>({ liste: [] });

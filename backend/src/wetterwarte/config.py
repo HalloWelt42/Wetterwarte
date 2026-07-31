@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://wetterwarte:wetterwarte@localhost:6152/wetterwarte"
     redis_url: str = "redis://localhost:6153/0"
     app_secret: str = "entwicklung"
-    version: str = "0.28.0"
+    version: str = "0.29.0"
 
     # Basis-URL fuer Open-Meteo. Vorerst der oeffentliche Dienst (nutzt fuer
     # Deutschland die DWD-ICON-Modelle); spaeter der lokal gespiegelte Dienst.

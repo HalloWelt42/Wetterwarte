@@ -2,12 +2,14 @@
   // Uhr-Kachel in mehreren Varianten (digital, analog, gross). Nutzt die globale
   // Uhr (sekuendlich). Kein Ortsbezug.
   import { uhr } from "../../uhr.svelte";
+  import { zeitzoneFuer } from "../../orte.svelte";
 
-  let { conf = {} }: { conf?: Record<string, any>; ort?: string } = $props();
+  let { conf = {}, ort }: { conf?: Record<string, any>; ort?: string } = $props();
   const variante = $derived((conf.variante as string) ?? "digital");
 
-  // Zeitzone: leer = automatisch (lokale Zone des Geraets), sonst eine echte IANA-Zone.
-  const zone = $derived((conf.zeitzone as string) || "");
+  // Zeitzone: eigene Wahl (conf.zeitzone) hat Vorrang; sonst automatisch die Zone des
+  // Ortes dieser Kachel; ist auch die unbekannt, die lokale Geraetezeit.
+  const zone = $derived((conf.zeitzone as string) || zeitzoneFuer(ort ?? ""));
   const zeitOpt = $derived(zone ? { timeZone: zone } : {});
   const zoneLabel = $derived(zone ? (zone.split("/").pop() ?? zone).replace(/_/g, " ") : "");
 

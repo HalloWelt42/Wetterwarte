@@ -119,7 +119,7 @@
               value={(konf.werte[feld.schluessel] as string) ?? ""}
               onchange={(e) => setzeFeld(feld.schluessel, e.currentTarget.value)}
             >
-              <option value="">Automatisch (Gerät)</option>
+              <option value="">Automatisch (nach Ort)</option>
               {#each zeitzonen as z}<option value={z}>{z.replace(/_/g, " ")}</option>{/each}
             </select>
           </div>

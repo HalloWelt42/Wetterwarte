@@ -1,7 +1,13 @@
 <script lang="ts">
   import { uhr } from "../../uhr.svelte";
+  import { zeitzoneFuer } from "../../orte.svelte";
 
   let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
+
+  // Datumsangaben in der Zeitzone des Ortes zeigen (die Mondphase selbst ist von der
+  // Zeitzone unabhaengig, weil sie auf absoluter Zeit beruht).
+  const zone = $derived(zeitzoneFuer(ort));
+  const datumOpt = $derived(zone ? { timeZone: zone } : {});
 
   // Mondphase: rein rechnerisch (synodischer Monat).
   const SYNODISCH = 29.530588853;
@@ -21,7 +27,7 @@
     else if (phase < 0.765) emoji = "🌗";
     else emoji = "🌘";
     const fmt = (d: number) =>
-      new Date(uhr.jetzt.getTime() + d * 86400000).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+      new Date(uhr.jetzt.getTime() + d * 86400000).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", ...datumOpt });
     return {
       emoji,
       beleuchtung,
@@ -31,8 +37,8 @@
     };
   });
   const heuteKurz = $derived.by(() => {
-    const wd = uhr.jetzt.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", "");
-    const dm = `${String(uhr.jetzt.getDate()).padStart(2, "0")}.${String(uhr.jetzt.getMonth() + 1).padStart(2, "0")}`;
+    const wd = uhr.jetzt.toLocaleDateString("de-DE", { weekday: "short", ...datumOpt }).replace(".", "");
+    const dm = uhr.jetzt.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", ...datumOpt });
     return `${wd} ${dm}`;
   });
 </script>

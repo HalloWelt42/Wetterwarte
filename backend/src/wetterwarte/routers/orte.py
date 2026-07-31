@@ -23,6 +23,7 @@ class OrtEingabe(BaseModel):
     land: str = ""
     lat: float
     lon: float
+    zeitzone: str = ""
 
 
 @router.get("")
@@ -42,7 +43,7 @@ async def orte_suchen(q: str = "") -> dict:
 
 @router.post("")
 async def anlegen(eingabe: OrtEingabe, session: AsyncSession = Depends(get_session)) -> dict:
-    ort = await ortsdienst.anlegen(session, eingabe.name, eingabe.region, eingabe.land, eingabe.lat, eingabe.lon)
+    ort = await ortsdienst.anlegen(session, eingabe.name, eingabe.region, eingabe.land, eingabe.lat, eingabe.lon, eingabe.zeitzone)
     return wrap(ort.model_dump())
 
 

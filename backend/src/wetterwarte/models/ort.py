@@ -17,5 +17,6 @@ class Ort(SQLModel, table=True):
     land: str = ""
     lat: float
     lon: float
+    zeitzone: str = ""  # IANA-Zeitzone (fuer Uhr/Sonne/Mond je Ort)
     reihenfolge: int = 0
     ist_start: bool = False

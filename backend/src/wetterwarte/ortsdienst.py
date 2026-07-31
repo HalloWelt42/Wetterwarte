@@ -32,7 +32,7 @@ def slugify(name: str) -> str:
     return s or "ort"
 
 
-async def anlegen(session: AsyncSession, name: str, region: str, land: str, lat: float, lon: float) -> Ort:
+async def anlegen(session: AsyncSession, name: str, region: str, land: str, lat: float, lon: float, zeitzone: str = "") -> Ort:
     """Neuen Ort mit eindeutigem Slug anlegen (gemeinsam genutzt von Orte- und Kompat-Router)."""
     basis = slugify(name)
     slug = basis
@@ -41,7 +41,7 @@ async def anlegen(session: AsyncSession, name: str, region: str, land: str, lat:
         slug = f"{basis}-{n}"
         n += 1
     maxr = (await session.execute(select(func.max(Ort.reihenfolge)))).scalar()
-    ort = Ort(slug=slug, name=name, region=region, land=land, lat=lat, lon=lon, reihenfolge=(maxr or 0) + 1)
+    ort = Ort(slug=slug, name=name, region=region, land=land, lat=lat, lon=lon, zeitzone=zeitzone, reihenfolge=(maxr or 0) + 1)
     session.add(ort)
     await session.commit()
     await session.refresh(ort)
