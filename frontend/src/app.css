@@ -635,6 +635,16 @@ textarea,
   font-size: 0.86rem;
   cursor: pointer;
 }
+/* Umschaltbarer Chip (z.B. Variablen im Aufzeichnungs-Manager) */
+.chip-knopf {
+  font: inherit;
+  color: var(--text-3);
+}
+.chip-knopf.chip-an {
+  background: var(--akzent-weich);
+  color: var(--akzent-stark);
+  border-color: color-mix(in srgb, var(--akzent) 45%, transparent);
+}
 .chip.aktiv {
   background: var(--akzent-weich);
   border-color: var(--akzent);
@@ -2090,6 +2100,27 @@ textarea,
 .atmo.regen .kw-titel,
 .atmo.sonnenuntergang .kw-titel {
   color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+/* Dunkelmodus + Atmosphaere: die hellen Tag-Verlaeufe passen nur zum Hell-Theme.
+   Im Dunkelmodus halten wir die atmosphaerischen Gruende dunkel und die Schrift hell,
+   damit Kacheln (dunkles Glas) und Text stimmig und lesbar bleiben. */
+:root[data-theme="dunkel"] .atmo {
+  color: var(--text);
+}
+:root[data-theme="dunkel"] .atmo.tag-klar {
+  background: linear-gradient(170deg, #0d1f37 0%, #143050 50%, #1b3a5e 100%);
+}
+:root[data-theme="dunkel"] .atmo.tag-wolkig {
+  background: linear-gradient(170deg, #131a24 0%, #1b2733 55%, #253240 100%);
+}
+:root[data-theme="dunkel"] .atmo.regen {
+  background: linear-gradient(170deg, #0f1e29 0%, #182c39 55%, #223d4b 100%);
+  color: var(--text);
+}
+:root[data-theme="dunkel"] .atmo.sonnenuntergang {
+  background: linear-gradient(160deg, #3a2140 0%, #45263a 40%, #2c2450 80%, #1c2340 100%);
+  color: var(--text);
 }
 
 /* ============================================================ Galerie (index) */
