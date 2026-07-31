@@ -3,6 +3,7 @@
   import { thema, themaUmschalten } from "./thema.svelte";
   import { ui } from "./ui.svelte";
   import { layoutState, setzeAktiv } from "./layout.svelte";
+  import { hilfe } from "./hilfeStore.svelte";
 
   const iconMap: Record<string, string> = {
     Zuhause: "fa-house",
@@ -42,6 +43,6 @@
       <i class="fa-solid {thema.wert === 'hell' ? 'fa-moon' : 'fa-sun'}"></i>
     </button>
     <button class="icon-knopf" title="System & Dienste" onclick={() => (ui.dienste = true)} aria-label="System und Dienste"><i class="fa-solid fa-gear"></i></button>
-    <button class="icon-knopf" title="Hilfe" onclick={() => (ui.hilfe = true)}><i class="fa-solid fa-circle-question"></i></button>
+    <button class="icon-knopf" title="Hilfe" onclick={() => hilfe.toggle("uebersicht")}><i class="fa-solid fa-circle-question"></i></button>
   </div>
 </header>

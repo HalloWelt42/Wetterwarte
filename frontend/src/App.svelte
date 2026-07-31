@@ -54,7 +54,7 @@
 </div>
 
 {#if ui.katalog}<Katalog />{/if}
-{#if ui.hilfe}<Hilfe />{/if}
+<Hilfe />
 {#if ui.layouts}<Layouts />{/if}
 {#if ui.ortssuche}<Ortssuche />{/if}
 {#if ui.einstellungen}<KachelEinstellungen />{/if}

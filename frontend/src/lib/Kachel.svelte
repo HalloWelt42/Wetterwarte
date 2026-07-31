@@ -5,6 +5,7 @@
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
   import { konf } from "./kachelConf.svelte";
+  import HilfeLink from "./HilfeLink.svelte";
 
   let {
     typ,
@@ -20,6 +21,8 @@
   const ort = $derived((conf.ort as string) || wetter.slug);
   const ortName = $derived(orteState.liste.find((o) => o.slug === ort)?.name ?? wetter.ort);
   const unter = $derived(def?.unter === "ORT" ? ortName : def?.unter);
+  // Passendes Hilfethema je Kacheltyp (Deeplink).
+  const hilfeThema = $derived(typ === "karte" ? "karte" : typ === "pollen" || typ === "luftqualitaet" ? "kacheln" : "kacheln");
 
   function oeffneEinstellungen(): void {
     konf.id = id;
@@ -34,6 +37,7 @@
     <i class="fa-solid fa-grip-vertical kw-griffpunkte"></i>
     <span class="kw-titel">{titel}{#if unter && !eigenerTitel}&nbsp;<span class="ort">{unter}</span>{/if}</span>
     <span class="kw-werkz">
+      <HilfeLink topic={hilfeThema} />
       <button class="icon-knopf" title="Einstellungen" aria-label="Einstellungen" onclick={oeffneEinstellungen}><i class="fa-solid fa-sliders"></i></button>
       <button class="icon-knopf gefahr" title="Kachel entfernen" aria-label="Kachel entfernen" onclick={onEntfernen}><i class="fa-solid fa-xmark"></i></button>
     </span>

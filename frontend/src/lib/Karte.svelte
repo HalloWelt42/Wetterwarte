@@ -4,6 +4,7 @@
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
   import { lies, schreib } from "./speicher";
+  import HilfeLink from "./HilfeLink.svelte";
 
   const OVERLAYS_STANDARD: Record<string, boolean> = {
     blitze: true,
@@ -306,7 +307,7 @@
 
     <!-- Ebenen-Panel -->
     <div class="panel" style="position: absolute; left: var(--a4); top: var(--a4); width: 236px; z-index: 2; box-shadow: var(--schatten-2);">
-      <h2><i class="fa-solid fa-layer-group"></i> Ebenen</h2>
+      <h2><i class="fa-solid fa-layer-group"></i> Ebenen <span style="margin-left: auto"><HilfeLink topic="karte" /></span></h2>
       <div class="kat-gruppe">Basiskarte</div>
       <div class="segment tabgruppe" style="margin-bottom: var(--a2);">
         <button class:aktiv={basis === "hell"} onclick={() => (basis = "hell")}>Hell</button>
