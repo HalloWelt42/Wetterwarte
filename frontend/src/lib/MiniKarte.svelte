@@ -27,7 +27,7 @@
   async function ladeBlitze(): Promise<void> {
     if (!map) return;
     const b = map.getBounds();
-    const url = `/blitze?north=${b.getNorth().toFixed(2)}&south=${b.getSouth().toFixed(2)}&east=${b.getEast().toFixed(2)}&west=${b.getWest().toFixed(2)}&since=1&limit=1000`;
+    const url = `/blitze?north=${b.getNorth().toFixed(2)}&south=${b.getSouth().toFixed(2)}&east=${b.getEast().toFixed(2)}&west=${b.getWest().toFixed(2)}&since=1&limit=${karteEinst.blitzeLimit}`;
     try {
       const daten = await (await fetch(url)).json();
       const strikes: { t: number; lat: number; lon: number }[] = daten.strikes ?? [];

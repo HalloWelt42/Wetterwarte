@@ -13,16 +13,22 @@ const OVERLAYS_STANDARD: Record<string, boolean> = {
   temperatur: false,
 };
 
+// Obergrenze der auf der Karte geladenen Blitze (einstellbar). Grosszuegig gewaehlt,
+// da der Blitz-Dienst bis 100.000 liefert; Default 20.000.
+export const BLITZE_LIMIT_MAX = 100000;
+
 export const karteEinst = $state<{
   basis: "hell" | "dunkel" | "satellit";
   orientierung: boolean;
   overlays: Record<string, boolean>;
   simulation: boolean;
+  blitzeLimit: number;
 }>({
   basis: lies("karte.basis", "hell"),
   orientierung: lies("karte.orientierung", false),
   overlays: { ...OVERLAYS_STANDARD, ...lies("karte.overlays", {}) },
   simulation: lies("karte.simulation", false),
+  blitzeLimit: lies("karte.blitzeLimit", 20000),
 });
 
 // Aenderungen dauerhaft merken (App-weiter Wurzel-Effekt).
@@ -31,6 +37,7 @@ $effect.root(() => {
   $effect(() => schreib("karte.orientierung", karteEinst.orientierung));
   $effect(() => schreib("karte.overlays", karteEinst.overlays));
   $effect(() => schreib("karte.simulation", karteEinst.simulation));
+  $effect(() => schreib("karte.blitzeLimit", karteEinst.blitzeLimit));
 });
 
 // Provider-Zuordnung der Basiskarten (fuer beide Karten gleich).

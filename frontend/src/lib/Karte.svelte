@@ -4,7 +4,7 @@
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
   import HilfeLink from "./HilfeLink.svelte";
-  import { karteEinst, kachelUrl } from "./karteEinst.svelte";
+  import { karteEinst, kachelUrl, BLITZE_LIMIT_MAX } from "./karteEinst.svelte";
 
   let kartenEl: HTMLDivElement;
   let map: maplibregl.Map | undefined;
@@ -135,20 +135,33 @@
       drueber,
     );
     map.on("click", "warn-fill", (e) => {
-      const p = e.features?.[0]?.properties as Record<string, string> | undefined;
-      if (!p || !map) return;
-      const bis = p.EXPIRES
-        ? new Date(p.EXPIRES).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
-        : "";
-      new maplibregl.Popup({ closeButton: true, maxWidth: "260px" })
+      if (!map) return;
+      // Alle Warnungen am Klickpunkt sammeln (ueberlappende Flaechen), nicht nur die oberste.
+      const treffer = map.queryRenderedFeatures(e.point, { layers: ["warn-fill"] });
+      if (!treffer.length) return;
+      const gesehen = new Set<string>();
+      const bloecke: string[] = [];
+      for (const f of treffer) {
+        const p = (f.properties ?? {}) as Record<string, string>;
+        const key = `${p.EVENT}|${p.HEADLINE}|${p.EXPIRES}`;
+        if (gesehen.has(key)) continue;
+        gesehen.add(key);
+        const bis = p.EXPIRES
+          ? new Date(p.EXPIRES).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+          : "";
+        bloecke.push(
+          `<div class="warn-pop"><strong>${p.EVENT ?? "Warnung"}</strong>${p.HEADLINE ? `<br>${p.HEADLINE}` : ""}${bis ? `<br><small>gültig bis ${bis} Uhr</small>` : ""}</div>`,
+        );
+      }
+      new maplibregl.Popup({ closeButton: true, maxWidth: "280px" })
         .setLngLat(e.lngLat)
-        .setHTML(
-          `<strong>${p.EVENT ?? "Warnung"}</strong>${p.HEADLINE ? `<br>${p.HEADLINE}` : ""}${bis ? `<br><small>gültig bis ${bis} Uhr</small>` : ""}`,
-        )
+        .setHTML(bloecke.join('<hr class="warn-pop-tr" />'))
         .addTo(map);
     });
     map.on("mouseenter", "warn-fill", () => map && (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", "warn-fill", () => map && (map.getCanvas().style.cursor = ""));
+    // Ist das Overlay schon beim Start aktiv, gleich befuellen (die Quelle existiert jetzt).
+    if (karteEinst.overlays.warnungen) void ladeWarnungen();
   }
 
   async function ladeWarnungen(): Promise<void> {
@@ -203,7 +216,7 @@
   async function ladeBlitze(): Promise<void> {
     if (!map) return;
     const b = map.getBounds();
-    const url = `/blitze?north=${b.getNorth().toFixed(2)}&south=${b.getSouth().toFixed(2)}&east=${b.getEast().toFixed(2)}&west=${b.getWest().toFixed(2)}&since=1&limit=2000`;
+    const url = `/blitze?north=${b.getNorth().toFixed(2)}&south=${b.getSouth().toFixed(2)}&east=${b.getEast().toFixed(2)}&west=${b.getWest().toFixed(2)}&since=1&limit=${karteEinst.blitzeLimit}`;
     try {
       const antwort = await fetch(url);
       const daten = await antwort.json();
@@ -228,6 +241,12 @@
   $effect(() => {
     const an = karteEinst.overlays.blitze;
     if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
+  });
+
+  // Blitze bei geaenderter Mengen-Grenze sofort neu laden (nicht erst beim naechsten Takt).
+  $effect(() => {
+    void karteEinst.blitzeLimit;
+    if (karteEinst.overlays.blitze) void ladeBlitze();
   });
 
   // --- Regen-Radar (eigenes DWD-RADOLAN: gemessen + Nowcast, als Bild-Overlay) ---
@@ -537,6 +556,25 @@
           ></button>
         </div>
       {/each}
+      {#if karteEinst.overlays.blitze}
+        <div class="formzeile" style="margin-top: var(--a1)">
+          <label for="blitz-limit" class="fz-lab">Max. Blitze</label>
+          <input
+            id="blitz-limit"
+            class="feld"
+            type="number"
+            min="100"
+            max={BLITZE_LIMIT_MAX}
+            step="1000"
+            value={karteEinst.blitzeLimit}
+            onchange={(e) =>
+              (karteEinst.blitzeLimit = Math.min(BLITZE_LIMIT_MAX, Math.max(100, Number(e.currentTarget.value) || 20000)))}
+          />
+        </div>
+        <p class="klein-txt dimm" style="margin: 2px var(--a1) 0; line-height: 1.35">
+          So viele Blitze der letzten Stunde werden höchstens geladen (Dienst liefert bis {BLITZE_LIMIT_MAX.toLocaleString("de-DE")}).
+        </p>
+      {/if}
       <div class="kat-gruppe">Simulation</div>
       <div class="formzeile-quer">
         <span class="fz-lab">Blitz-Wellen (live){#if karteEinst.simulation}&nbsp;<i class="fa-solid fa-tower-broadcast" style="color: var(--gut); font-size: 0.68rem"></i>{/if}</span>
