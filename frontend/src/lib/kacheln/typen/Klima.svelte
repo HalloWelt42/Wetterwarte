@@ -3,8 +3,17 @@
   // Monatsniederschlag (Balken) ueber den Referenzzeitraum. Daten kommen gespeichert
   // aus dem Backend (Open-Meteo-Archiv); pro Ort eigenstaendig.
   import { hole } from "../../api";
+  import { uhr } from "../../uhr.svelte";
+  import { zeitzoneFuer } from "../../orte.svelte";
 
   let { ort }: { conf?: Record<string, any>; ort: string } = $props();
+
+  // Aktueller Monat am Ort (fuer die Hervorhebung im Normal-Diagramm).
+  const zone = $derived(zeitzoneFuer(ort));
+  const aktMonat = $derived(
+    Number(uhr.jetzt.toLocaleDateString("en-US", { month: "numeric", ...(zone ? { timeZone: zone } : {}) })),
+  );
+  let hover = $state<number | null>(null);
 
   interface Monat {
     monat: number;
@@ -70,6 +79,8 @@
       .join(" "),
   );
   const balkenBreite = $derived((BREITE / 12) * 0.62);
+  // Bubble-Position im Sichtfenster halten.
+  const bubbleX = $derived(hover === null || !monate[hover] ? 0 : Math.min(320 - 44, Math.max(44, tx(monate[hover].monat - 1))));
 </script>
 
 {#if laedt}
@@ -81,7 +92,7 @@
     Klima {daten?.von}-{daten?.bis} &middot; <b class="tnum">{daten?.jahresmittel_temp}&deg;C</b> Jahresmittel &middot;
     <b class="tnum">{daten?.jahresniederschlag} mm</b>/Jahr
   </div>
-  <svg class="klima-svg" viewBox="0 0 320 168" preserveAspectRatio="none">
+  <svg class="klima-svg" viewBox="0 0 320 168" preserveAspectRatio="xMidYMid meet" role="img" onpointerleave={() => (hover = null)}>
     <!-- Achsen -->
     <line x1={BX} y1={UY} x2={RX} y2={UY} stroke="var(--rand-stark)" stroke-width="1" />
     <line x1={BX} y1={OY} x2={BX} y2={UY} stroke="var(--rand)" stroke-width="1" />
@@ -89,6 +100,10 @@
     <!-- Nulllinie Temperatur, falls im Bild -->
     {#if tMin < 0}
       <line x1={BX} y1={ty(0)} x2={RX} y2={ty(0)} stroke="var(--rand)" stroke-width="0.7" stroke-dasharray="2 3" />
+    {/if}
+    <!-- Markierung des aktuellen Monats -->
+    {#if aktMonat >= 1 && aktMonat <= 12}
+      <line x1={tx(aktMonat - 1)} y1={OY} x2={tx(aktMonat - 1)} y2={UY} stroke="#f59e0b" stroke-width="1" stroke-dasharray="2 2" opacity="0.5" />
     {/if}
     <!-- Niederschlags-Balken -->
     {#each monate as m}
@@ -117,7 +132,30 @@
     <text x={RX + 3} y={OY + 4} text-anchor="start" font-size="7" fill="var(--text-3)">{nMax}</text>
     <text x={RX + 3} y={UY} text-anchor="start" dominant-baseline="middle" font-size="7" fill="var(--text-3)">mm</text>
     {#each monate as m}
-      <text x={tx(m.monat - 1)} y={UY + 12} text-anchor="middle" font-size="7.5" fill="var(--text-3)">{m.kurz}</text>
+      <text x={tx(m.monat - 1)} y={UY + 12} text-anchor="middle" font-size="7.5"
+        fill={m.monat === aktMonat ? "#f59e0b" : "var(--text-3)"} font-weight={m.monat === aktMonat ? 600 : 400}>{m.kurz}</text>
+    {/each}
+
+    <!-- Hover: Marker + Bubble (Temperatur + Niederschlag) -->
+    {#if hover !== null && monate[hover]}
+      {@const m = monate[hover]}
+      <line x1={tx(m.monat - 1)} y1={OY} x2={tx(m.monat - 1)} y2={UY} stroke="var(--text-3)" stroke-width="0.8" stroke-dasharray="1 2" />
+      {#if m.temp !== null}
+        <circle cx={tx(m.monat - 1)} cy={ty(m.temp)} r="3.4" fill="none" stroke="#f59e0b" stroke-width="1.6" />
+      {/if}
+      <g transform="translate({bubbleX}, {OY + 2})" pointer-events="none">
+        <rect x="-42" y="0" width="84" height="30" rx="4" fill="var(--flaeche-2)" stroke="var(--rand)" stroke-width="0.8" />
+        <text x="0" y="11" text-anchor="middle" font-size="8" fill="var(--text)" font-weight="600">{m.kurz}{m.monat === aktMonat ? " · jetzt" : ""}</text>
+        <text x="0" y="21" text-anchor="middle" font-size="7.5" fill="var(--text-3)">
+          {m.temp !== null ? `${m.temp}°C` : "-"} · {m.niederschlag !== null ? `${m.niederschlag} mm` : "-"}
+        </text>
+      </g>
+    {/if}
+
+    <!-- Unsichtbare Hover-Zonen je Monat -->
+    {#each monate as m, i}
+      <rect x={BX + (i / 12) * BREITE} y={OY} width={BREITE / 12} height={UY - OY} fill="transparent"
+        onpointerenter={() => (hover = i)} role="presentation" />
     {/each}
   </svg>
 {/if}

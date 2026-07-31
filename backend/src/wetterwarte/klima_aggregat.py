@@ -15,11 +15,18 @@ from .models.klima_aggregat import KlimaAggregat
 from .models.messwert import Messwert
 
 
-async def aktualisiere(orte: list[str] | None = None) -> int:
+# Zeilen je Upsert-Batch. Pro Zeile bindet asyncpg 11 Parameter; das Limit liegt bei
+# 32767 pro Statement, 1000 Zeilen (11000 Parameter) bleiben klar darunter.
+_BATCH = 1000
+
+
+async def aktualisiere(orte: list[str] | None = None, seit: datetime | None = None) -> int:
     """Monatsaggregate aus der Messwert-Tabelle neu berechnen und upserten.
 
-    Optional auf bestimmte Orte begrenzen (guenstiger Scan beim Abruf eines Ortes).
-    Liefert die Anzahl der geschriebenen (Ort, Variable, Jahr, Monat)-Zeilen.
+    Optional auf bestimmte Orte begrenzen (guenstiger Scan beim Abruf eines Ortes)
+    und/oder auf einen Zeitraum ab ``seit`` (z. B. nur laufender Monat im Recorder-Takt,
+    damit die Kosten nicht mit der Archivgroesse wachsen). Liefert die Anzahl der
+    geschriebenen (Ort, Variable, Jahr, Monat)-Zeilen.
     """
     jahr_e = cast(func.extract("year", Messwert.zeit), Integer).label("jahr")
     monat_e = cast(func.extract("month", Messwert.zeit), Integer).label("monat")
@@ -36,6 +43,8 @@ async def aktualisiere(orte: list[str] | None = None) -> int:
     ).group_by(Messwert.ort, Messwert.variable, jahr_e, monat_e)
     if orte:
         stmt = stmt.where(Messwert.ort.in_(orte))
+    if seit is not None:
+        stmt = stmt.where(Messwert.zeit >= seit)
 
     async with SessionLocal() as session:
         zeilen = (await session.execute(stmt)).all()
@@ -57,19 +66,22 @@ async def aktualisiere(orte: list[str] | None = None) -> int:
             }
             for r in zeilen
         ]
-        ins = pg_insert(KlimaAggregat).values(werte)
-        upsert = ins.on_conflict_do_update(
-            constraint="uq_klima_aggregat",
-            set_={
-                "mittel": ins.excluded.mittel,
-                "minimum": ins.excluded.minimum,
-                "maximum": ins.excluded.maximum,
-                "summe": ins.excluded.summe,
-                "anzahl": ins.excluded.anzahl,
-                "stand": ins.excluded.stand,
-            },
-        )
-        await session.execute(upsert)
+        # In Batches upserten, damit das asyncpg-Parameterlimit nie erreicht wird.
+        for start in range(0, len(werte), _BATCH):
+            teil = werte[start : start + _BATCH]
+            ins = pg_insert(KlimaAggregat).values(teil)
+            upsert = ins.on_conflict_do_update(
+                constraint="uq_klima_aggregat",
+                set_={
+                    "mittel": ins.excluded.mittel,
+                    "minimum": ins.excluded.minimum,
+                    "maximum": ins.excluded.maximum,
+                    "summe": ins.excluded.summe,
+                    "anzahl": ins.excluded.anzahl,
+                    "stand": ins.excluded.stand,
+                },
+            )
+            await session.execute(upsert)
         await session.commit()
         return len(werte)
 

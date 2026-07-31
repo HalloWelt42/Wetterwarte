@@ -28,6 +28,7 @@
   const gid = `lc-grad-${++zaehler}`;
   let b = $state(0);
   let h = $state(0);
+  let hoverI = $state<number | null>(null);
   const pad = { oben: 10, rechts: 14, unten: 20, links: 40 };
 
   const werte = $derived(punkte.map((p) => p.wert));
@@ -51,6 +52,20 @@
     return nachkomma > 0 ? w.toFixed(nachkomma) : String(Math.round(w));
   }
 
+  // Naechsten Datenpunkt zur Mausposition bestimmen (Pixel = viewBox, 1:1).
+  function beiZeiger(e: PointerEvent): void {
+    const n = punkte.length;
+    if (!n) {
+      hoverI = null;
+      return;
+    }
+    const r = (e.currentTarget as SVGElement).getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const innen = b - pad.links - pad.rechts;
+    const anteil = innen <= 0 ? 0 : (x - pad.links) / innen;
+    hoverI = Math.max(0, Math.min(n - 1, Math.round(anteil * (n - 1))));
+  }
+
   const linie = $derived(punkte.map((p, i) => `${cx(i)},${cy(p.wert)}`).join(" "));
   const flaeche = $derived.by(() => {
     if (!punkte.length || !b) return "";
@@ -70,7 +85,7 @@
 
 <div class="lc" bind:clientWidth={b} bind:clientHeight={h}>
   {#if b > 0 && punkte.length}
-    <svg width={b} height={h} viewBox="0 0 {b} {h}">
+    <svg width={b} height={h} viewBox="0 0 {b} {h}" onpointermove={beiZeiger} onpointerleave={() => (hoverI = null)} role="img">
       <defs>
         <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color={farbe} stop-opacity="0.32" />
@@ -90,6 +105,20 @@
       {#each xTicks as t}
         <text x={t.x} y={h - 6} fill="var(--text-3)" font-size="10" text-anchor="middle">{t.label}</text>
       {/each}
+      {#if hoverI !== null && punkte[hoverI]}
+        {@const px = cx(hoverI)}
+        {@const py = cy(punkte[hoverI].wert)}
+        {@const txt = `${punkte[hoverI].label} · ${fmt(punkte[hoverI].wert)}${einheit}`}
+        {@const bw = Math.max(46, txt.length * 6.2 + 14)}
+        {@const bx = Math.max(pad.links, Math.min(b - pad.rechts - bw, px - bw / 2))}
+        {@const by = py < 30 ? py + 10 : py - 24}
+        <line x1={px} y1={pad.oben} x2={px} y2={h - pad.unten} stroke="var(--text-3)" stroke-width="1" stroke-dasharray="2 2" />
+        <circle cx={px} cy={py} r="4.5" fill="none" stroke={farbe} stroke-width="2" />
+        <g transform="translate({bx}, {by})" pointer-events="none">
+          <rect width={bw} height="18" rx="4" fill="var(--flaeche-2)" stroke="var(--rand)" stroke-width="1" />
+          <text x={bw / 2} y="12.5" text-anchor="middle" font-size="10.5" fill="var(--text)" font-weight="600">{txt}</text>
+        </g>
+      {/if}
     </svg>
   {/if}
 </div>
@@ -102,5 +131,6 @@
   }
   .lc svg {
     display: block;
+    cursor: crosshair;
   }
 </style>

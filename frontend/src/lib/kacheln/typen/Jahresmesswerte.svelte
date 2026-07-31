@@ -45,6 +45,13 @@
   $effect(() => {
     const o = ort;
     if (!o) return;
+    // Ortswechsel: alten Zustand synchron verwerfen, damit der Monatswerte-Effekt nicht
+    // mit dem Jahr des vorigen Ortes feuert und kein stale Hover-Index stehen bleibt.
+    jahr = null;
+    monate = [];
+    hover = null;
+    laedt = true;
+    fehler = false;
     hole<{ jahre: number[]; variablen: string[]; aktuelles_jahr: number }>(`/wetter/messjahre/${o}`)
       .then((r) => {
         jahre = r.jahre;
@@ -130,7 +137,7 @@
     return w === null ? "-" : `${w}${meta.einheit}`;
   }
   // Bubble-Position mit Rand-Klammerung im Sichtfenster.
-  const bubbleX = $derived(hover === null ? 0 : Math.min(VBW - 46, Math.max(46, tx(monate[hover].monat))));
+  const bubbleX = $derived(hover === null || !monate[hover] ? 0 : Math.min(VBW - 46, Math.max(46, tx(monate[hover].monat))));
 </script>
 
 <div class="jm-kopf">
@@ -141,7 +148,7 @@
     </button>
     <span class="jm-jahr tnum">{jahr ?? "-"}</span>
     {#if istAktuellesJahr}<span class="jm-badge">aktuell</span>{/if}
-    <button class="jm-pfeil" onclick={() => blaettern(1)} disabled={!kannVor} aria-label="Naechstes Jahr">
+    <button class="jm-pfeil" onclick={() => blaettern(1)} disabled={!kannVor} aria-label="Nächstes Jahr">
       <i class="fa-solid fa-chevron-right"></i>
     </button>
   </div>
@@ -201,7 +208,7 @@
     {/each}
 
     <!-- Hover: Marker + Bubble -->
-    {#if hover !== null}
+    {#if hover !== null && monate[hover]}
       {@const m = monate[hover]}
       <line x1={tx(m.monat)} y1={OY} x2={tx(m.monat)} y2={UY} stroke="var(--text-3)" stroke-width="0.8" stroke-dasharray="1 2" />
       {#if m.mittel !== null}

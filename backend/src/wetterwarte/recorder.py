@@ -92,8 +92,11 @@ async def schleife() -> None:
     while True:
         try:
             await _schreibe_aktuell()
-            # Frisch geschriebene Werte gleich in die Monatsaggregate verdichten.
-            await klima_aggregat.aktualisiere()
+            # Frisch geschriebene Werte verdichten - nur den laufenden Monat, damit die
+            # Zyklus-Kosten unabhaengig von der Archivgroesse konstant bleiben (aeltere
+            # Monate aendern sich nicht mehr und wurden bereits frueher aggregiert).
+            monatsanfang = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            await klima_aggregat.aktualisiere(seit=monatsanfang)
         except Exception:
             pass
         await asyncio.sleep(INTERVALL_SEKUNDEN)
