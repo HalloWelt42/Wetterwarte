@@ -20,11 +20,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/karte/, "/api/v1"),
         },
-        // Welt-Kacheln (hell/dunkel/Satellit) vom lightningmap-Dienst.
+        // Welt-Kacheln ueber den cachenden Backend-Endpunkt (Offline-Cache).
         "/kachel": {
-          target: env.KACHEL_HOST || "http://192.168.178.49:8100",
+          target: `http://localhost:${backendPort}`,
           changeOrigin: true,
-          rewrite: (p) => p.replace(/^\/kachel/, "/api/tile"),
+          rewrite: (p) => p.replace(/^\/kachel/, "/api/v1/kachel"),
         },
         // Live-Blitze (bbox-Abfrage) vom lightningmap-Dienst.
         "/blitze": {

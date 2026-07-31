@@ -1,6 +1,11 @@
 """Konfiguration ueber Umgebungsvariablen (pydantic-settings)."""
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Backend-Wurzel (.../backend) - fuer projektinterne Standard-Pfade (unabh. vom cwd).
+_BACKEND = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -14,7 +19,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://wetterwarte:wetterwarte@localhost:6152/wetterwarte"
     redis_url: str = "redis://localhost:6153/0"
     app_secret: str = "entwicklung"
-    version: str = "0.38.2"
+    version: str = "0.39.0"
 
     # Basis-URL fuer Open-Meteo. Vorerst der oeffentliche Dienst (nutzt fuer
     # Deutschland die DWD-ICON-Modelle); spaeter der lokal gespiegelte Dienst.
@@ -33,6 +38,9 @@ class Settings(BaseSettings):
     dwd_radar_base: str = "https://opendata.dwd.de/weather/radar"
     # DWD GeoServer (WFS): amtliche Warn-Polygone (zusammengefasst) fuer das Karten-Overlay.
     dwd_warn_wfs: str = "https://maps.dwd.de/geoserver/dwd/ows"
+    # Verzeichnis fuer den Offline-Kachel-Cache (themengetrennt je Anbieter). Dev: fest
+    # im Backend-Ordner; Prod: Bind-Mount auf die externe SSD (/cache -> /mnt/data/...).
+    kachel_cache_dir: str = str(_BACKEND / ".kachelcache")
 
 
 settings = Settings()

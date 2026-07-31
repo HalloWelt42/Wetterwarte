@@ -2824,3 +2824,108 @@ button.nav-eintrag {
   flex-direction: column;
   z-index: 41;
 }
+
+/* Offline-Kartencache (Dienste-Modal) */
+.speicher {
+  margin-top: var(--a1);
+}
+.speicher .sp-titel {
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+}
+.sp-themen {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: var(--a2) 0;
+}
+.sp-thema {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+}
+.sp-thema .sp-name {
+  width: 96px;
+  flex-shrink: 0;
+  font-size: 0.82rem;
+}
+.sp-thema .sp-bahn {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--flaeche-3);
+  overflow: hidden;
+}
+.sp-thema .sp-fuell {
+  display: block;
+  height: 100%;
+  background: var(--akzent);
+  border-radius: 999px;
+}
+.sp-thema .sp-meta {
+  width: 130px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+.sp-gesamt {
+  font-size: 0.82rem;
+  margin: 2px 0 var(--a3);
+}
+.sp-bot {
+  border-top: 1px solid var(--rand);
+  padding-top: var(--a3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--a2);
+}
+.sp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sp-zooms {
+  display: flex;
+  gap: var(--a4);
+  flex-wrap: wrap;
+}
+.sp-zoom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.76rem;
+  color: var(--text-2);
+  flex: 1;
+  min-width: 150px;
+}
+.sp-zoom input[type="range"] {
+  accent-color: var(--akzent);
+}
+.sp-fortschritt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sp-pbahn {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--flaeche-3);
+  overflow: hidden;
+}
+.sp-pfuell {
+  display: block;
+  height: 100%;
+  background: var(--akzent);
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+.sp-pinfo {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--a2);
+  flex-wrap: wrap;
+}
+.sp-fertig {
+  margin: 0;
+}

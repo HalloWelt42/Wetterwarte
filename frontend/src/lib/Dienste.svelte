@@ -5,6 +5,7 @@
   import { ui } from "./ui.svelte";
   import { hole } from "./api";
   import HilfeLink from "./HilfeLink.svelte";
+  import Speicher from "./Speicher.svelte";
 
   interface Dienst {
     key: string;
@@ -90,6 +91,9 @@
       {#if !laedt && dienste.length === 0}
         <div class="kw-leer"><i class="fa-solid fa-plug-circle-xmark"></i><div>Status nicht abrufbar</div></div>
       {/if}
+
+      <div class="kat-gruppe" style="margin-top: var(--a4)">Speicher &amp; Offline</div>
+      <Speicher />
     </div>
     <div class="modal-fuss">
       <button class="knopf primaer" onclick={zu}>Fertig</button>

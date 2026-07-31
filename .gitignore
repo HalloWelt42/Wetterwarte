@@ -21,3 +21,7 @@ frontend/dist/
 
 # System
 .DS_Store
+
+# Offline-Kachel-Cache (Dev)
+.kachelcache/
+**/.kachelcache/

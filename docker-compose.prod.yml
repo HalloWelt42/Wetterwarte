@@ -32,6 +32,10 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-wetterwarte}:${POSTGRES_PASSWORD:-wetterwarte}@postgres:5432/${POSTGRES_DB:-wetterwarte}
       REDIS_URL: redis://redis:6379/0
       LIGHTNING_BASE: ${LIGHTNING_BASE:-http://192.168.178.49:8100}
+      KACHEL_CACHE_DIR: /cache
+    volumes:
+      # Offline-Kachel-Cache auf der externen SSD (kann mehrere GB werden).
+      - ${DATA_DIR:-./data}/kachelcache:/cache
     ports:
       # Kompatibilitaets-API der alten weathercache-Konsumenten (Cutover: 8060).
       - "${API_PORT:-8062}:8000"
