@@ -19,9 +19,10 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 
 - [x] Hover-Tooltips in allen Diagrammen (LinienChart/Klima/Nowcast/Jahresmesswerte) + aktueller Monat/jetzt markiert; adversarial geprueft + Fixes (v0.31.0)
 - [x] Zeitzonen vollstaendig: Wetterdaten in lokaler Ortszeit (timezone=auto), Bestandsorte nachgezogen - New York stimmt (v0.31.1)
+- [x] Hilfe deutlich ausgebaut: 14 Themen in 4 Bereichen (Dropdown gegliedert), Tiefenlinks je Kacheltyp + in Aufzeichnung/Archiv/Dienste; adversarial geprueft (v0.32.0)
+- [x] Katalog zeigt je Kachel, wie oft sie im aktuellen Profil gesetzt ist (v0.32.0)
 
 ## Offen
-- [ ] Hilfe deutlich und sinnvoll ausbauen (mehr Themen, Tiefenlinks, gute Suche; grosse Schrift beibehalten)
 - [ ] Grosskarte fertig: eigenes DWD-RADOLAN-Regenradar, vereinfachte Vektor-Karte (osmlocal-Vektor), Overlays Radar/Temp/Wind/Warnungen funktional
 - [ ] Offline-Cache themengetrennt; Speicher-Statistik sichtbar; Prozessbalken bei Daten-Aggregation in den Einstellungen mit vollstaendiger Fehler-/Fertig-Logik; Fuell-Bot (naeher am Wohnort mehr, Satellit progressiv)
 - [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
