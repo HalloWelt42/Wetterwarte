@@ -2,9 +2,24 @@
   import { onMount } from "svelte";
   import { route, gehe } from "./route.svelte";
   import { wetter, ladeWetter } from "./wetter.svelte";
-  import { orteState, entferneOrt, startOrt, type Ort } from "./orte.svelte";
+  import { orteState, entferneOrt, startOrt, sortiereOrte, type Ort } from "./orte.svelte";
   import { ui } from "./ui.svelte";
   import { hole } from "./api";
+
+  // Orte per Drag-and-Drop umsortieren.
+  let ziehIndex = $state<number | null>(null);
+  function ablegen(ziel: number): void {
+    if (ziehIndex === null || ziehIndex === ziel) {
+      ziehIndex = null;
+      return;
+    }
+    const liste = [...orteState.liste];
+    const [bewegt] = liste.splice(ziehIndex, 1);
+    liste.splice(ziel, 0, bewegt);
+    orteState.liste = liste;
+    ziehIndex = null;
+    void sortiereOrte(liste.map((o) => o.id));
+  }
 
   let version = $state("");
   onMount(async () => {
@@ -37,8 +52,17 @@
       <i class="fa-solid fa-plus"></i>
     </button>
   </div>
-  {#each orteState.liste as o (o.id)}
-    <div class="nav-ort-wrap">
+  {#each orteState.liste as o, i (o.id)}
+    <div
+      class="nav-ort-wrap"
+      class:zieht={ziehIndex === i}
+      draggable="true"
+      role="listitem"
+      ondragstart={() => (ziehIndex = i)}
+      ondragover={(e) => e.preventDefault()}
+      ondrop={() => ablegen(i)}
+      ondragend={() => (ziehIndex = null)}
+    >
       <button class="nav-eintrag" class:aktiv={route.ansicht === "dashboard" && wetter.slug === o.slug} onclick={() => waehle(o)}>
         <i class="fa-solid fa-location-dot ort-punkt"></i>
         <span class="haupt">{o.name} <small>{o.region}</small></span>

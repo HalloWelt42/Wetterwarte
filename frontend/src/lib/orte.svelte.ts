@@ -61,3 +61,11 @@ export async function entferneOrt(id: string): Promise<void> {
 export function startOrt(): Ort | undefined {
   return orteState.liste.find((o) => o.ist_start) ?? orteState.liste[0];
 }
+
+export async function sortiereOrte(ids: string[]): Promise<void> {
+  try {
+    await sende("/orte/reihenfolge", "PUT", { ids });
+  } catch {
+    // Fehler still - die lokale Reihenfolge bleibt trotzdem stehen.
+  }
+}

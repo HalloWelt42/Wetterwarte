@@ -4,7 +4,7 @@ Die Liste ist datengetrieben (Datenbank); es gibt keine fest verdrahteten Orte
 mehr im Quellcode - der Nutzer waehlt seine Orte selbst per Suche.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,6 +44,17 @@ async def orte_suchen(q: str = "") -> dict:
 async def anlegen(eingabe: OrtEingabe, session: AsyncSession = Depends(get_session)) -> dict:
     ort = await ortsdienst.anlegen(session, eingabe.name, eingabe.region, eingabe.land, eingabe.lat, eingabe.lon)
     return wrap(ort.model_dump())
+
+
+@router.put("/reihenfolge")
+async def reihenfolge(ids: list[str] = Body(..., embed=True), session: AsyncSession = Depends(get_session)) -> dict:
+    """Neue Reihenfolge der Orte speichern (Liste der Orte-IDs in Zielreihenfolge)."""
+    for i, oid in enumerate(ids):
+        ort = await session.get(Ort, oid)
+        if ort is not None:
+            ort.reihenfolge = i
+    await session.commit()
+    return wrap({"ok": True})
 
 
 @router.delete("/{ort_id}")
