@@ -75,6 +75,35 @@ def _grenz_ringe() -> list:
     return _GRENZE
 
 
+def _punkt_in_ring(lon: float, lat: float, ring: list) -> bool:
+    inside = False
+    n = len(ring)
+    j = n - 1
+    for i in range(n):
+        xi, yi = ring[i]
+        xj, yj = ring[j]
+        if ((yi > lat) != (yj > lat)) and (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+_GRID_DE: np.ndarray | None = None
+
+
+def _grid_in_deutschland() -> np.ndarray:
+    """Bool-Gitter (NLAT x NLON): liegt der Gitterpunkt in Deutschland? (einmal berechnet)."""
+    global _GRID_DE
+    if _GRID_DE is None:
+        ringe = _grenz_ringe()
+        m = np.zeros((NLAT, NLON), dtype=bool)
+        for i, la in enumerate(_LATS):
+            for j, lo in enumerate(_LONS):
+                m[i, j] = any(_punkt_in_ring(float(lo), float(la), r) for r in ringe)
+        _GRID_DE = m
+    return _GRID_DE
+
+
 def _deutschland_maske(hoehe: int, breite: int) -> np.ndarray:
     """Weiche Alpha-Maske (0..1): 1 innerhalb Deutschlands, 0 ausserhalb."""
     key = (hoehe, breite)
@@ -121,9 +150,12 @@ async def wind_geojson() -> dict:
     """Wind-Gitter als GeoJSON-Punkte: Tempo (km/h), Richtung (Grad), Stufe 0-4."""
     grid = await _hole_grid()
     tempo, richtung = grid["tempo"], grid["richtung"]
+    in_de = _grid_in_deutschland()
     features = []
     for i, la in enumerate(_LATS):
         for j, lo in enumerate(_LONS):
+            if not in_de[i, j]:
+                continue  # Wind-Pfeile nur ueber Deutschland zeigen
             v = float(tempo[i, j])
             stufe = 0 if v < 5 else 1 if v < 15 else 2 if v < 30 else 3 if v < 50 else 4
             features.append(

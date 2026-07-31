@@ -51,10 +51,13 @@
     ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);
     map.on("load", () => {
       baueOrientierung();
+      baueTempEbene();
+      baueWindEbene();
       baueWarnEbene();
       baueBlitzEbene();
       baueWellenEbene();
       void ladeBlitze();
+      if (karteEinst.overlays.temperatur || karteEinst.overlays.wind) void ladeGitter();
     });
     map.on("moveend", () => void ladeBlitze());
     map.on("mousemove", beiMausTemp);
@@ -354,27 +357,19 @@
     }
   }
 
-  // Temperatur-Feld an den Schalter koppeln.
+  // Temperatur-Feld an den Schalter koppeln (Ebene wird in map.load gebaut).
   $effect(() => {
     const an = karteEinst.overlays.temperatur;
-    if (an && !tempGebaut) {
-      baueTempEbene();
-      void ladeGitter();
-    } else if (map?.getLayer("temperatur")) {
-      map.setLayoutProperty("temperatur", "visibility", an ? "visible" : "none");
-    }
+    if (map?.getLayer("temperatur")) map.setLayoutProperty("temperatur", "visibility", an ? "visible" : "none");
+    if (an) void ladeGitter();
     gitterTaktSichern();
   });
 
-  // Wind-Pfeile an den Schalter koppeln.
+  // Wind-Pfeile an den Schalter koppeln (Ebene wird in map.load gebaut).
   $effect(() => {
     const an = karteEinst.overlays.wind;
-    if (an && !windGebaut) {
-      baueWindEbene();
-      void ladeGitter();
-    } else if (map?.getLayer("wind")) {
-      map.setLayoutProperty("wind", "visibility", an ? "visible" : "none");
-    }
+    if (map?.getLayer("wind")) map.setLayoutProperty("wind", "visibility", an ? "visible" : "none");
+    if (an) void ladeGitter();
     gitterTaktSichern();
   });
 

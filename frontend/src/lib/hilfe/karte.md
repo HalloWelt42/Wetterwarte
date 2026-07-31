@@ -27,6 +27,14 @@ allem für die Satellitenkarte und die datenarme Dunkelkarte zur Orientierung.
 
 Ebenen wie **Blitze** liegen über der Karte. Die Blitze kommen live.
 
+## Temperatur & Wind
+
+Das **Temperatur**-Overlay legt ein glattes Farbfeld (Legende in °C) über
+Deutschland - genau auf die Landesgrenze zugeschnitten. Fährst du mit der Maus
+darüber, zeigt eine Sprechblase die Temperatur an der Position. Das **Wind**-
+Overlay zeigt Richtungspfeile im Gitter; Farbe und Größe stehen für die Stärke,
+ein Klick nennt Tempo und Richtung.
+
 ## Regen-Radar
 
 Das Radar zeigt den echten Niederschlag aus dem eigenen DWD-RADOLAN-Bezug - farbig
