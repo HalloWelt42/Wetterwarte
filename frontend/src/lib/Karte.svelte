@@ -804,6 +804,17 @@
       </div>
     {/if}
 
+    {#if karteEinst.overlays.wind}
+      <div class="radar-legende" style="z-index: 3; bottom: 66px;">
+        <span class="rl-titel">Wind km/h</span>
+        <span class="rl-chip" style="background: #9aa5b1">&lt;5</span>
+        <span class="rl-chip" style="background: #38bdf8">5</span>
+        <span class="rl-chip" style="background: #34d399">15</span>
+        <span class="rl-chip" style="background: #fb923c">30</span>
+        <span class="rl-chip" style="background: #ef4444">50+</span>
+      </div>
+    {/if}
+
     {#if karteEinst.overlays.temperatur}
       <div class="temp-legende" style="z-index: 3;">
         <span class="tl-titel">Temperatur °C</span>
