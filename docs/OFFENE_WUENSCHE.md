@@ -17,8 +17,10 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Zeitzonen pro Ort in Sonne/Mond/Uhr korrekt; ruhiger Glow um die Tagsonne (v0.29)
 - [x] Klimadaten als Monatsaggregate in der DB; Jahresmesswerte-Diagramm (Jahres-Blaetterung, aktueller Monat markiert, Hover-Bubble) (v0.30)
 
+- [x] Hover-Tooltips in allen Diagrammen (LinienChart/Klima/Nowcast/Jahresmesswerte) + aktueller Monat/jetzt markiert; adversarial geprueft + Fixes (v0.31.0)
+- [x] Zeitzonen vollstaendig: Wetterdaten in lokaler Ortszeit (timezone=auto), Bestandsorte nachgezogen - New York stimmt (v0.31.1)
+
 ## Offen
-- [ ] Hover-Tooltips in ALLEN Diagrammen (Bubble am Mauszeiger + Punkt-Markierung); wo sinnvoll aktuellen Wert/Monat/Zeit hervorheben (Jahresmesswerte erledigt)
 - [ ] Hilfe deutlich und sinnvoll ausbauen (mehr Themen, Tiefenlinks, gute Suche; grosse Schrift beibehalten)
 - [ ] Grosskarte fertig: eigenes DWD-RADOLAN-Regenradar, vereinfachte Vektor-Karte (osmlocal-Vektor), Overlays Radar/Temp/Wind/Warnungen funktional
 - [ ] Offline-Cache themengetrennt; Speicher-Statistik sichtbar; Prozessbalken bei Daten-Aggregation in den Einstellungen mit vollstaendiger Fehler-/Fertig-Logik; Fuell-Bot (naeher am Wohnort mehr, Satellit progressiv)
