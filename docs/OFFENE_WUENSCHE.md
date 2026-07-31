@@ -23,9 +23,11 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Katalog zeigt je Kachel, wie oft sie im aktuellen Profil gesetzt ist (v0.32.0)
 - [x] Grosskarte: eigenes DWD-RADOLAN-Regenradar (RY gemessen + RV-Nowcast bis +2h), reprojiziertes Bild-Overlay mit Abspiel-Zeitleiste + mm/h-Legende (v0.33.0)
 - [x] Radardaten optional historisch speichern (DB-Archiv, Schalter+Aufbewahrung), Abspieler blaettert weiter zurueck (v0.34.0)
+- [x] Mini-Karte: aktueller Radar-Stand (ohne Abspieler) + Icon-Schalter (Beschriftung/Blitze/Radar); Radar-Steuerung der grossen Karte repariert (v0.35.0)
+- [x] Warnungen-Overlay: amtliche DWD-Warn-Polygone farbig nach Stufe, Klick-Popup, Zaehler (v0.36.0)
 
 ## Offen
-- [ ] Grosskarte-Rest: weitere Overlays Warnungen (DWD-Polygone) / Temperatur / Wind funktional; vereinfachte Vektor-Karte (osmlocal-Vektor); Radar auch in der Mini-Karte (statisch)
+- [ ] Grosskarte-Rest: Overlays Temperatur + Wind funktional (Open-Meteo-Gitter); vereinfachte Vektor-Karte (osmlocal-Vektor)
 - [ ] Offline-Cache themengetrennt; Speicher-Statistik sichtbar; Prozessbalken bei Daten-Aggregation in den Einstellungen mit vollstaendiger Fehler-/Fertig-Logik; Fuell-Bot (naeher am Wohnort mehr, Satellit progressiv)
 - [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
 - [ ] Rettungsring / Onboarding fuer Erstnutzer (Muster wie im Projekt RadioHub)
