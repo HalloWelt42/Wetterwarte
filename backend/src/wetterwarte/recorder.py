@@ -82,6 +82,11 @@ async def _schreibe_aktuell() -> None:
 
 
 async def schleife() -> None:
+    # Bestandsorte ohne Zeitzone einmalig nachziehen (fuer Uhr/Sonne/Mond je Ort).
+    try:
+        await ortsdienst.backfill_zeitzonen()
+    except Exception:
+        pass
     if await _archiv_leer():
         await _backfill()
         # Nach dem Backfill sofort die Monatsaggregate aufbauen.

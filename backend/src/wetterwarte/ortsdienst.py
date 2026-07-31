@@ -32,6 +32,32 @@ def slugify(name: str) -> str:
     return s or "ort"
 
 
+async def backfill_zeitzonen() -> int:
+    """Bestandsorte ohne Zeitzone nachtraeglich mit ihrer IANA-Zeitzone fuellen.
+
+    Orte, die vor der Zeitzonen-Unterstuetzung angelegt wurden, haben ein leeres
+    Feld; ohne das zeigen Uhr/Sonne/Mond dort die Geraetezeit statt der Ortszeit.
+    """
+    from .providers import openmeteo
+
+    gefuellt = 0
+    async with SessionLocal() as session:
+        offen = (
+            await session.execute(select(Ort).where((Ort.zeitzone == "") | (Ort.zeitzone.is_(None))))
+        ).scalars().all()
+        for o in offen:
+            try:
+                tz = await openmeteo.zeitzone_fuer(o.lat, o.lon)
+            except Exception:
+                continue
+            if tz:
+                o.zeitzone = tz
+                gefuellt += 1
+        if gefuellt:
+            await session.commit()
+    return gefuellt
+
+
 async def anlegen(session: AsyncSession, name: str, region: str, land: str, lat: float, lon: float, zeitzone: str = "") -> Ort:
     """Neuen Ort mit eindeutigem Slug anlegen (gemeinsam genutzt von Orte- und Kompat-Router)."""
     basis = slugify(name)

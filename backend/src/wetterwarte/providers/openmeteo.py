@@ -99,7 +99,9 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
         "hourly": "temperature_2m,weather_code,precipitation_probability,visibility,pressure_msl,is_day",
         "minutely_15": "precipitation",
         "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
-        "timezone": "Europe/Berlin",
+        # auto = Zeiten (Sonne, Stunden, aktuell) in der LOKALEN Zeitzone des Ortes,
+        # nicht in Berliner Zeit - sonst stimmen Sonnenzeiten fuer ferne Orte nicht.
+        "timezone": "auto",
         "forecast_days": 7,
         "wind_speed_unit": "kmh",
     }
@@ -192,9 +194,28 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
 
     return {
         "ort": {"name": name, "region": region, "lat": lat, "lon": lon},
+        "zeitzone": d.get("timezone", ""),
         "aktuell": aktuell,
         "stunden": stunden,
         "tage": tage,
         "sonne": sonne,
         "nowcast": nowcast,
     }
+
+
+async def zeitzone_fuer(lat: float, lon: float) -> str:
+    """IANA-Zeitzone zu Koordinaten (Open-Meteo loest sie via timezone=auto auf).
+
+    Fuer den Backfill der Ortsliste - schlanke Abfrage nur fuer das timezone-Feld.
+    """
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": "temperature_2m",
+        "timezone": "auto",
+        "forecast_days": 1,
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        antwort = await client.get(f"{settings.open_meteo_base}/forecast", params=params)
+        antwort.raise_for_status()
+        return antwort.json().get("timezone", "")
