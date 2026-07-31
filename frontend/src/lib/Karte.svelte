@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
@@ -258,7 +258,11 @@
       if (!radarGebaut) void ladeRadar();
       else {
         if (map?.getLayer("radar")) map.setLayoutProperty("radar", "visibility", "visible");
-        if (!radarSpielt) starteRadar();
+        // untrack: sonst wuerde Pause (radarSpielt=false) diesen Effect neu ausloesen
+        // und die Wiedergabe sofort wieder starten - die Steuerung waere kaputt.
+        untrack(() => {
+          if (!radarSpielt) starteRadar();
+        });
       }
       if (!radarRahmenTimer) radarRahmenTimer = setInterval(() => void frischeRahmen(), 180000);
     } else {

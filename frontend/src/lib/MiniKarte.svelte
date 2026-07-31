@@ -97,6 +97,7 @@
 
     return () => {
       clearInterval(blitzTimer);
+      if (radarTimer) clearInterval(radarTimer);
       beobachter.disconnect();
       ortMarker?.remove();
       map?.remove();
@@ -122,6 +123,57 @@
     if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
   });
 
+  // --- Radar (nur der aktuelle Stand, ohne Abspieler/Vorhersage) ---
+  let radarGebaut = false;
+  let radarTimer: ReturnType<typeof setInterval> | undefined;
+
+  async function ladeMiniRadar(): Promise<void> {
+    if (!map) return;
+    try {
+      const d = (await (await fetch("/api/v1/radar/rahmen")).json()).data as {
+        coords: [number, number][];
+        frames: { id: string; art: string }[];
+      };
+      const gemessen = d.frames.filter((f) => f.art === "gemessen");
+      const jetzt = gemessen.at(-1) ?? d.frames.at(-1);
+      if (!jetzt) return;
+      const url = `/api/v1/radar/bild/${jetzt.id}.png`;
+      const koord = d.coords as [[number, number], [number, number], [number, number], [number, number]];
+      if (!radarGebaut) {
+        map.addSource("radar", { type: "image", url, coordinates: koord });
+        map.addLayer(
+          {
+            id: "radar",
+            type: "raster",
+            source: "radar",
+            paint: { "raster-opacity": 0.7, "raster-fade-duration": 0 },
+            layout: { visibility: karteEinst.overlays.radar ? "visible" : "none" },
+          },
+          map.getLayer("beschriftung") ? "beschriftung" : undefined,
+        );
+        radarGebaut = true;
+      } else {
+        (map.getSource("radar") as maplibregl.ImageSource | undefined)?.updateImage({ url });
+      }
+    } catch {
+      // still ignorieren
+    }
+  }
+
+  // Radar an den Schalter koppeln (aktueller Stand, alle 5 min auffrischen).
+  $effect(() => {
+    const an = karteEinst.overlays.radar;
+    if (an) {
+      if (!radarGebaut) void ladeMiniRadar();
+      else if (map?.getLayer("radar")) map.setLayoutProperty("radar", "visibility", "visible");
+      if (!radarTimer) radarTimer = setInterval(() => void ladeMiniRadar(), 300000);
+    } else {
+      if (radarTimer) clearInterval(radarTimer);
+      radarTimer = undefined;
+      if (map?.getLayer("radar")) map.setLayoutProperty("radar", "visibility", "none");
+    }
+  });
+
   // Auf Ortswechsel schwenken und die Pinnnadel mitfuehren.
   $effect(() => {
     void slug;
@@ -134,6 +186,27 @@
 
 <div class="mini-karte">
   <div bind:this={kartenEl} class="mini-karte-flaeche"></div>
+  <!-- Icon-Schalter fuer das, was die Karte kann (teilt sich mit der grossen Karte). -->
+  <div class="mini-ebenen">
+    <button
+      class:an={karteEinst.orientierung}
+      title="Beschriftung &amp; Grenzen"
+      aria-label="Beschriftung und Grenzen"
+      onclick={() => (karteEinst.orientierung = !karteEinst.orientierung)}
+    ><i class="fa-solid fa-signs-post"></i></button>
+    <button
+      class:an={karteEinst.overlays.blitze}
+      title="Blitze"
+      aria-label="Blitze"
+      onclick={() => (karteEinst.overlays.blitze = !karteEinst.overlays.blitze)}
+    ><i class="fa-solid fa-bolt"></i></button>
+    <button
+      class:an={karteEinst.overlays.radar}
+      title="Regen-Radar"
+      aria-label="Regen-Radar"
+      onclick={() => (karteEinst.overlays.radar = !karteEinst.overlays.radar)}
+    ><i class="fa-solid fa-cloud-showers-heavy"></i></button>
+  </div>
   <button class="icon-knopf mini-auf" aria-label="Grosse Karte oeffnen" onclick={() => gehe("karte")}>
     <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
   </button>
