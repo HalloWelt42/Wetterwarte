@@ -43,5 +43,4 @@
     </span>
   </div>
   <div class="kw-koerper"><KachelKoerper {typ} {conf} {ort} /></div>
-  <span class="kw-griff"></span>
 </div>

@@ -7,6 +7,14 @@
   const def = $derived(registry[konf.typ]);
   const felder = $derived(def?.einstellungen ?? []);
 
+  // Alle echten IANA-Zeitzonen (fuer das Zeitzonen-Feld der Uhr).
+  const zeitzonen: string[] = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone") ?? [];
+
+  function setzeFeld(schluessel: string, wert: string): void {
+    konf.werte[schluessel] = wert;
+    geaendert();
+  }
+
   function geaendert(): void {
     konf.version++;
   }
@@ -101,6 +109,19 @@
                 <button class:aktiv={aktuelleAuswahl(feld) === o.wert} onclick={() => setzeAuswahl(feld, o.wert)}>{o.label}</button>
               {/each}
             </span>
+          </div>
+        {:else if feld.art === "zeitzone"}
+          <div class="formzeile">
+            <label for="feld-{feld.schluessel}">{feld.label}</label>
+            <select
+              id="feld-{feld.schluessel}"
+              class="feld"
+              value={(konf.werte[feld.schluessel] as string) ?? ""}
+              onchange={(e) => setzeFeld(feld.schluessel, e.currentTarget.value)}
+            >
+              <option value="">Automatisch (Gerät)</option>
+              {#each zeitzonen as z}<option value={z}>{z.replace(/_/g, " ")}</option>{/each}
+            </select>
           </div>
         {/if}
       {/each}

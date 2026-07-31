@@ -856,21 +856,15 @@ textarea,
   display: flex;
   flex-direction: column;
 }
-/* Resize-Griff unten rechts (deutet gridstack-Groessenaenderung an) */
-.kw-griff {
-  position: absolute;
-  right: 4px;
-  bottom: 4px;
-  width: 12px;
-  height: 12px;
-  border-right: 2px solid var(--text-3);
-  border-bottom: 2px solid var(--text-3);
-  border-bottom-right-radius: 3px;
-  opacity: 0;
-  transition: opacity var(--schnell);
+/* Kein sichtbares Resize-Winkelsymbol unten rechts; die gridstack-Groessenaenderung
+   bleibt ueber den (unsichtbaren) Griff funktionsfaehig. */
+.grid-stack-item > .ui-resizable-se {
+  background-image: none;
+  box-shadow: none;
+  transform: none;
 }
-.kachel-w:hover .kw-griff {
-  opacity: 0.45;
+.grid-stack-item > .ui-resizable-se::before {
+  content: none;
 }
 
 /* Meteocons-Groessen */
@@ -2412,6 +2406,24 @@ button.nav-eintrag {
 .brett-wrap > .grid-stack {
   min-height: 100%;
   background: transparent;
+}
+/* Ablage-Platzhalter beim Ziehen/Umgroessern: blaue Strichlinie, abgerundet */
+.grid-stack > .grid-stack-placeholder > .placeholder-content {
+  border: 2px dashed var(--akzent);
+  border-radius: var(--r3);
+  background: color-mix(in srgb, var(--akzent) 8%, transparent);
+  inset: 0;
+  margin: 0;
+  left: var(--a1);
+  right: var(--a1);
+  top: var(--a1);
+  bottom: var(--a1);
+}
+/* Gezogene Kachel abgerundet halten (Ecken sauber) */
+.grid-stack-item.ui-draggable-dragging .kachel-w,
+.grid-stack-item.grid-stack-item-moving .kachel-w {
+  border-radius: var(--r3);
+  overflow: hidden;
 }
 /* Ueberlagerung + rechtes Seiten-Panel (Kachel hinzufuegen) */
 .ueberlagerung {

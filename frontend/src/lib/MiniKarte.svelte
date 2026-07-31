@@ -15,6 +15,7 @@
 
   let kartenEl: HTMLDivElement;
   let map: maplibregl.Map | undefined;
+  let ortMarker: maplibregl.Marker | undefined;
   let blitzTimer: ReturnType<typeof setInterval> | undefined;
   let blitzAnzahl = $state(0);
 
@@ -58,6 +59,8 @@
       attributionControl: false,
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    // Pinnnadel am Ort dieser Karte.
+    ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);
     map.on("load", () => {
       // Orientierungs-Ebene (voyager), wie in der grossen Karte.
       map!.addSource("beschriftung", { type: "raster", tiles: ["/kachel/voyager/{z}/{x}/{y}"], tileSize: 256 });
@@ -95,6 +98,7 @@
     return () => {
       clearInterval(blitzTimer);
       beobachter.disconnect();
+      ortMarker?.remove();
       map?.remove();
     };
   });
@@ -118,10 +122,13 @@
     if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
   });
 
-  // Auf Ortswechsel schwenken.
+  // Auf Ortswechsel schwenken und die Pinnnadel mitfuehren.
   $effect(() => {
     void slug;
-    map?.flyTo({ center: aktiverOrt(), zoom: 6, duration: 700 });
+    void orteState.liste.length;
+    const ziel = aktiverOrt();
+    ortMarker?.setLngLat(ziel);
+    map?.flyTo({ center: ziel, zoom: 6, duration: 700 });
   });
 </script>
 

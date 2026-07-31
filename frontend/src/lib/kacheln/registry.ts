@@ -2,7 +2,7 @@
 // das Brett werden daraus gespeist; neue Typen hier + in KachelKoerper ergaenzen.
 
 export interface Feld {
-  art: "mehrfach" | "auswahl" | "zahl" | "schalter";
+  art: "mehrfach" | "auswahl" | "zahl" | "schalter" | "zeitzone";
   schluessel: string;
   label: string;
   optionen?: { wert: string | number; label: string }[];
@@ -97,6 +97,7 @@ export const registry: Record<string, KachelDef> = {
         art: "auswahl", schluessel: "variante", label: "Darstellung",
         optionen: [{ wert: "analog", label: "Analog" }, { wert: "gross", label: "Groß" }, { wert: "digital", label: "Digital" }],
       },
+      { art: "zeitzone", schluessel: "zeitzone", label: "Zeitzone" },
     ],
   },
   kalender: {
