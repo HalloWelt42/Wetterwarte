@@ -131,7 +131,12 @@ def _kacheln_im_gebiet(bbox: tuple[float, float, float, float], z: int) -> list[
     return [(z, x, y) for x in range(x0, x1 + 1) for y in range(y_nord, y_sued + 1)]
 
 
-async def _lauf(anbieter_liste: list[str], z_de: int, z_heimat: int, heim: tuple[float, float]) -> None:
+# Grobe Kachelgroesse je Anbieter (Bytes), falls noch nichts gemessen vorliegt.
+_STD_BYTES = {"dark": 8000, "light": 26000, "satellite": 22000, "voyager": 14000}
+
+
+def _aufgaben(anbieter_liste: list[str], z_de: int, z_heimat: int, heim: tuple[float, float]) -> list[tuple[str, str, int, int, int]]:
+    """Die zu ladenden (anbieter, gebiet, z, x, y): Deutschland flaechig + Wohnort feiner."""
     lon, lat = heim
     heimat_bbox = (lon - 1.1, lat - 0.8, lon + 1.1, lat + 0.8)
     aufgaben: list[tuple[str, str, int, int, int]] = []
@@ -142,6 +147,31 @@ async def _lauf(anbieter_liste: list[str], z_de: int, z_heimat: int, heim: tuple
         for z in range(z_de + 1, z_heimat + 1):
             for (_z, x, y) in _kacheln_im_gebiet(heimat_bbox, z):
                 aufgaben.append((anbieter, "heimat", z, x, y))
+    return aufgaben
+
+
+async def _heimat() -> tuple[float, float]:
+    start = await ortsdienst.per_slug((await _startort_slug()) or "")
+    return (start.lon, start.lat) if start else (10.45, 51.16)
+
+
+async def schaetze(anbieter_liste: list[str], z_de: int, z_heimat: int) -> dict:
+    """Grobe Schaetzung: wie viele Kacheln + wie viele Bytes faellt die Aktion an?"""
+    anbieter_liste = [a for a in anbieter_liste if a in ANBIETER] or ANBIETER
+    z_de = max(5, min(10, z_de))
+    z_heimat = max(z_de, min(13, z_heimat))
+    aufgaben = _aufgaben(anbieter_liste, z_de, z_heimat, await _heimat())
+    # Gemessene Durchschnittsgroesse je Anbieter nutzen, sonst Standardwert.
+    gemessen = {t["anbieter"]: (t["bytes"] / t["anzahl"] if t["anzahl"] else None) for t in statistik()["themen"]}
+    anzahl_je = {}
+    for a, *_rest in aufgaben:
+        anzahl_je[a] = anzahl_je.get(a, 0) + 1
+    bytes_ges = sum(n * (gemessen.get(a) or _STD_BYTES.get(a, 15000)) for a, n in anzahl_je.items())
+    return {"anzahl": len(aufgaben), "bytes": int(bytes_ges)}
+
+
+async def _lauf(anbieter_liste: list[str], z_de: int, z_heimat: int, heim: tuple[float, float]) -> None:
+    aufgaben = _aufgaben(anbieter_liste, z_de, z_heimat, heim)
     _zustand.update(gesamt=len(aufgaben), fertig=0, fehler=0, laufend=True, abbrechen=False, fehlermeldung="")
     sem = asyncio.Semaphore(6)
 
@@ -177,10 +207,8 @@ async def starte(anbieter_liste: list[str], z_de: int = 8, z_heimat: int = 11) -
     anbieter_liste = [a for a in anbieter_liste if a in ANBIETER] or ANBIETER
     z_de = max(5, min(10, z_de))
     z_heimat = max(z_de, min(13, z_heimat))
-    start = await ortsdienst.per_slug((await _startort_slug()) or "")
-    heim = (start.lon, start.lat) if start else (10.45, 51.16)
     _zustand.update(laufend=True, abbrechen=False, fertig=0, fehler=0, gesamt=0, fehlermeldung="")
-    _task = asyncio.create_task(_lauf(anbieter_liste, z_de, z_heimat, heim))
+    _task = asyncio.create_task(_lauf(anbieter_liste, z_de, z_heimat, await _heimat()))
     return zustand()
 
 

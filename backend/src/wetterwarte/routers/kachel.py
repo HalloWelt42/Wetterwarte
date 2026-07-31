@@ -18,6 +18,13 @@ async def statistik() -> dict:
     return wrap({**kachel_cache.statistik(), "bot": kachel_cache.zustand()})
 
 
+@router.get("/schaetzung")
+async def schaetzung(anbieter: str = "", zoom_deutschland: int = 8, zoom_heimat: int = 11) -> dict:
+    """Grobe Vorab-Schaetzung des Datenvolumens fuer die aktuelle Fuell-Einstellung."""
+    liste = [a for a in anbieter.split(",") if a]
+    return wrap(await kachel_cache.schaetze(liste, zoom_deutschland, zoom_heimat))
+
+
 @router.get("/fuellbot")
 async def fuellbot_status() -> dict:
     return wrap(kachel_cache.zustand())

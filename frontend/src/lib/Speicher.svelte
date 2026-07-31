@@ -33,6 +33,29 @@
   let zoomDe = $state(8);
   let zoomHeim = $state(11);
   let poll: ReturnType<typeof setInterval> | undefined;
+  let schaetzung = $state<{ anzahl: number; bytes: number } | null>(null);
+  let schaetzTimer: ReturnType<typeof setTimeout> | undefined;
+
+  // Grob-Schaetzung des Datenvolumens vorab (aktualisiert sich entprellt mit der Auswahl).
+  $effect(() => {
+    const anbieter = Object.entries(auswahl)
+      .filter(([, an]) => an)
+      .map(([k]) => k)
+      .join(",");
+    const zd = zoomDe;
+    const zh = zoomHeim;
+    if (stat?.bot.laufend) return; // waehrend des Laufs nicht schaetzen
+    clearTimeout(schaetzTimer);
+    schaetzTimer = setTimeout(async () => {
+      try {
+        schaetzung = await hole<{ anzahl: number; bytes: number }>(
+          `/kachel/schaetzung?anbieter=${anbieter}&zoom_deutschland=${zd}&zoom_heimat=${zh}`,
+        );
+      } catch {
+        /* still */
+      }
+    }, 300);
+  });
 
   function fmt(b: number): string {
     if (b < 1024) return `${b} B`;
@@ -135,6 +158,12 @@
           </p>
         {/if}
         {#if bot?.fehlermeldung}<p class="klein-txt" style="color: var(--gefahr)">{bot.fehlermeldung}</p>{/if}
+        {#if schaetzung}
+          <p class="klein-txt dimm" style="margin: 0">
+            Diese Aktion lädt grob <b class="tnum">{schaetzung.anzahl.toLocaleString("de-DE")}</b> Kacheln
+            (~<b class="tnum">{fmt(schaetzung.bytes)}</b>). Nur neue Kacheln werden geladen.
+          </p>
+        {/if}
         <button class="knopf primaer" onclick={starten}><i class="fa-solid fa-download"></i> Füllen starten</button>
       {/if}
     </div>
