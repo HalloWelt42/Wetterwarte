@@ -59,6 +59,7 @@
     blitzTimer = setInterval(() => void ladeBlitze(), 30000);
     return () => {
       clearInterval(blitzTimer);
+      stoppeRadar();
       ortMarker?.remove();
       map?.remove();
     };
@@ -138,6 +139,121 @@
   $effect(() => {
     const an = karteEinst.overlays.blitze;
     if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
+  });
+
+  // --- Regen-Radar (eigenes DWD-RADOLAN: gemessen + Nowcast, als Bild-Overlay) ---
+  interface RadarFrame {
+    id: string;
+    zeit: string;
+    offset: number;
+    art: "gemessen" | "vorhersage";
+  }
+  let radarFrames = $state<RadarFrame[]>([]);
+  let radarIdx = $state(0);
+  let radarSpielt = $state(false);
+  let radarLaedt = $state(false);
+  let radarStand = $state("");
+  let radarGebaut = false;
+  let radarTimer: ReturnType<typeof setInterval> | undefined;
+  const radarUrl = (id: string) => `/api/v1/radar/bild/${id}.png`;
+
+  async function ladeRadar(): Promise<void> {
+    if (radarLaedt) return;
+    radarLaedt = true;
+    try {
+      const antwort = await fetch("/api/v1/radar/rahmen");
+      const d = (await antwort.json()).data as { coords: [number, number][]; frames: RadarFrame[]; stand: string };
+      if (!d.frames?.length) return;
+      radarFrames = d.frames;
+      radarStand = d.stand ?? "";
+      // Bilder vorladen, damit der Abspieler nicht flackert.
+      for (const f of d.frames) new Image().src = radarUrl(f.id);
+      // Startbild = "jetzt" (letzter gemessener Frame).
+      const jetztI = d.frames.map((f) => f.art).lastIndexOf("gemessen");
+      const startI = jetztI >= 0 ? jetztI : 0;
+      if (map) {
+        const koord = d.coords as [[number, number], [number, number], [number, number], [number, number]];
+        if (!radarGebaut) {
+          // Quelle gleich mit dem Startbild bauen (kein sofortiges updateImage -> kein Abbruch).
+          map.addSource("radar", { type: "image", url: radarUrl(d.frames[startI].id), coordinates: koord });
+          const drueber = map.getLayer("beschriftung") ? "beschriftung" : map.getLayer("blitze") ? "blitze" : undefined;
+          map.addLayer(
+            { id: "radar", type: "raster", source: "radar", paint: { "raster-opacity": 0.72, "raster-fade-duration": 0 } },
+            drueber,
+          );
+          radarGebaut = true;
+        } else {
+          (map.getSource("radar") as maplibregl.ImageSource | undefined)?.setCoordinates(koord);
+          zeigeRadar(startI);
+        }
+      }
+      radarIdx = startI;
+      starteRadar();
+    } catch {
+      // still ignorieren - alter Stand bleibt
+    } finally {
+      radarLaedt = false;
+    }
+  }
+
+  function zeigeRadar(i: number): void {
+    const f = radarFrames[i];
+    if (!f || !map?.getSource("radar")) return;
+    (map.getSource("radar") as maplibregl.ImageSource).updateImage({ url: radarUrl(f.id) });
+  }
+
+  function starteRadar(): void {
+    if (radarTimer || radarFrames.length < 2) return;
+    radarSpielt = true;
+    radarTimer = setInterval(() => {
+      // am Ende kurz halten, dann von vorn.
+      const naechster = radarIdx + 1 >= radarFrames.length ? 0 : radarIdx + 1;
+      radarIdx = naechster;
+      zeigeRadar(naechster);
+    }, 450);
+  }
+
+  function stoppeRadar(): void {
+    if (radarTimer) clearInterval(radarTimer);
+    radarTimer = undefined;
+    radarSpielt = false;
+  }
+
+  function radarAbspielen(): void {
+    if (radarSpielt) stoppeRadar();
+    else starteRadar();
+  }
+
+  function radarSchieben(i: number): void {
+    stoppeRadar();
+    radarIdx = i;
+    zeigeRadar(i);
+  }
+
+  // Radar an den Schalter koppeln: einschalten laedt + spielt, ausschalten blendet aus.
+  $effect(() => {
+    const an = karteEinst.overlays.radar;
+    if (an) {
+      if (!radarGebaut) void ladeRadar();
+      else {
+        if (map?.getLayer("radar")) map.setLayoutProperty("radar", "visibility", "visible");
+        if (!radarSpielt) starteRadar();
+      }
+    } else {
+      stoppeRadar();
+      if (map?.getLayer("radar")) map.setLayoutProperty("radar", "visibility", "none");
+    }
+  });
+
+  // Beschriftung des aktuellen Frames (Ortszeit Deutschland).
+  const radarAktiv = $derived(radarFrames[radarIdx]);
+  const radarZeitLabel = $derived.by(() => {
+    const f = radarAktiv;
+    if (!f) return "";
+    const t = new Date(f.zeit).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
+    if (f.offset === 0) return `${t} Uhr - jetzt`;
+    if (f.offset < 0) return `${t} Uhr - vor ${-f.offset} Min`;
+    return `${t} Uhr - Vorhersage +${f.offset} Min`;
   });
 
   // --- Optionale Blitz-Wellen-Simulation (live via WebSocket) ---
@@ -312,6 +428,39 @@
       </div>
     </div>
 
-    <div class="attribution" style="z-index: 2;">© OpenStreetMap, © CARTO &middot; Blitze: Blitzortung.org</div>
+    {#if karteEinst.overlays.radar}
+      <!-- Radar-Abspieler: Zeitleiste ueber gemessene + Vorhersage-Frames -->
+      <div class="radar-leiste" style="z-index: 3;">
+        <button class="radar-play" onclick={radarAbspielen} aria-label={radarSpielt ? "Pause" : "Abspielen"}>
+          <i class="fa-solid {radarSpielt ? 'fa-pause' : 'fa-play'}"></i>
+        </button>
+        <input
+          class="radar-schieber"
+          type="range"
+          min="0"
+          max={Math.max(0, radarFrames.length - 1)}
+          value={radarIdx}
+          oninput={(e) => radarSchieben(+e.currentTarget.value)}
+          aria-label="Radar-Zeitpunkt"
+        />
+        <span class="radar-zeit tnum" class:vorhersage={radarAktiv?.art === "vorhersage"}>
+          {radarLaedt && !radarFrames.length ? "Radar wird geladen ..." : radarZeitLabel}
+        </span>
+      </div>
+      <!-- Legende: Regenrate mm/h -->
+      <div class="radar-legende" style="z-index: 3;">
+        <span class="rl-titel">Regen mm/h</span>
+        <span class="rl-chip" style="background: #4d8df2">0,1</span>
+        <span class="rl-chip" style="background: #2980e6">0,5</span>
+        <span class="rl-chip" style="background: #26c7b8">1</span>
+        <span class="rl-chip" style="background: #40cc59">2</span>
+        <span class="rl-chip" style="background: #f2e64d; color: #1f2933">5</span>
+        <span class="rl-chip" style="background: #fa9e33; color: #1f2933">10</span>
+        <span class="rl-chip" style="background: #eb4d33">20</span>
+        <span class="rl-chip" style="background: #bf33bf">40+</span>
+      </div>
+    {/if}
+
+    <div class="attribution" style="z-index: 2;">© OpenStreetMap, © CARTO &middot; Blitze: Blitzortung.org &middot; Radar: DWD RADOLAN</div>
   </div>
 </section>

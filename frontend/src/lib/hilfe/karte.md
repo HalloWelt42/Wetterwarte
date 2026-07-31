@@ -27,6 +27,15 @@ allem für die Satellitenkarte und die datenarme Dunkelkarte zur Orientierung.
 
 Ebenen wie **Blitze** liegen über der Karte. Die Blitze kommen live.
 
+## Regen-Radar
+
+Das Radar zeigt den echten Niederschlag aus dem eigenen DWD-RADOLAN-Bezug - farbig
+nach Regenrate (mm/h, siehe Legende). Unten läuft ein **Abspieler**: die gemessene
+Vergangenheit der letzten Minuten und anschließend die **Vorhersage bis +2 Stunden**
+(orange gekennzeichnet). Mit dem Schieber springst du zu einem Zeitpunkt, mit dem
+Knopf hältst du an oder spielst weiter. Die Rohdaten liegen bei uns lokal vor und
+werden selbst gerendert.
+
 ## Blitz-Wellen (Simulation)
 
 Optional zeigt die Karte je Blitz ein kurzes **Aufblitzen am Punkt** und eine

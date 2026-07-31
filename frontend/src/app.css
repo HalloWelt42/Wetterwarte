@@ -1978,6 +1978,84 @@ textarea,
   margin-left: 0;
 }
 
+/* Radar-Abspieler + Legende (grosse Karte) */
+.radar-leiste {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  width: min(460px, calc(100% - 2 * var(--a4)));
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--flaeche) 88%, transparent);
+  border: 1px solid var(--rand);
+  box-shadow: var(--schatten-2);
+  backdrop-filter: blur(6px);
+}
+.radar-play {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--akzent);
+  color: var(--akzent-text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+.radar-play:hover {
+  background: var(--akzent-stark);
+}
+.radar-schieber {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--akzent);
+  cursor: pointer;
+}
+.radar-zeit {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.radar-zeit.vorhersage {
+  color: var(--warn);
+}
+.radar-legende {
+  position: absolute;
+  right: var(--a4);
+  bottom: 34px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 8px;
+  border-radius: var(--r2);
+  background: color-mix(in srgb, var(--flaeche) 88%, transparent);
+  border: 1px solid var(--rand);
+  box-shadow: var(--schatten-1);
+  backdrop-filter: blur(6px);
+}
+.radar-legende .rl-titel {
+  font-size: 0.68rem;
+  color: var(--text-2);
+  margin-right: 5px;
+}
+.radar-legende .rl-chip {
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 3px;
+  min-width: 16px;
+  text-align: center;
+}
+
 /* Kachel-Platzhalter beim Ziehen */
 .kachel-platz {
   border: 2px dashed var(--akzent);

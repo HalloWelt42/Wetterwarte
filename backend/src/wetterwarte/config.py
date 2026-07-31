@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://wetterwarte:wetterwarte@localhost:6152/wetterwarte"
     redis_url: str = "redis://localhost:6153/0"
     app_secret: str = "entwicklung"
-    version: str = "0.32.0"
+    version: str = "0.33.0"
 
     # Basis-URL fuer Open-Meteo. Vorerst der oeffentliche Dienst (nutzt fuer
     # Deutschland die DWD-ICON-Modelle); spaeter der lokal gespiegelte Dienst.
@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     lightning_base: str = "http://192.168.178.49:8100"
     # Eigener OSM-Vektor-/Raster-Renderdienst (Deutschland) - Backend-API.
     osmlocal_base: str = "http://192.168.178.49:8120"
+    # DWD OpenData: RADOLAN-Radar. RY = gemessene Regenrate (5 min, mm/h, 900x900);
+    # RV = RADVOR-Nowcast (Analyse + bis +2 h, mm/h, DE1200). Selbst geholt und gerendert.
+    dwd_radar_base: str = "https://opendata.dwd.de/weather/radar"
 
 
 settings = Settings()
