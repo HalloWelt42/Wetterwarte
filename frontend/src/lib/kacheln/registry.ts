@@ -90,6 +90,24 @@ export const registry: Record<string, KachelDef> = {
   },
   barometer: { typ: "barometer", titel: "Luftdruck", icon: "fa-gauge", w: 4, h: 3, familie: "Detail" },
   verlauf: { typ: "verlauf", titel: "Temperaturverlauf", icon: "fa-chart-line", w: 8, h: 3, familie: "Archiv", unter: "24 Stunden" },
+  uhr: {
+    typ: "uhr", titel: "Uhr", icon: "fa-clock", w: 4, h: 2, familie: "Rahmen",
+    einstellungen: [
+      {
+        art: "auswahl", schluessel: "variante", label: "Darstellung",
+        optionen: [{ wert: "analog", label: "Analog" }, { wert: "gross", label: "Groß" }, { wert: "digital", label: "Digital" }],
+      },
+    ],
+  },
+  kalender: {
+    typ: "kalender", titel: "Kalender", icon: "fa-calendar-days", w: 4, h: 3, familie: "Rahmen",
+    einstellungen: [
+      {
+        art: "auswahl", schluessel: "variante", label: "Darstellung",
+        optionen: [{ wert: "tag", label: "Tag" }, { wert: "monat", label: "Monat" }],
+      },
+    ],
+  },
 };
 
 export const standardKacheln = [
@@ -98,4 +116,4 @@ export const standardKacheln = [
   "blitze", "pollen",
 ];
 
-export const familien = ["Wetter", "Karte", "Umwelt", "Detail", "Archiv"];
+export const familien = ["Wetter", "Karte", "Umwelt", "Detail", "Archiv", "Rahmen"];

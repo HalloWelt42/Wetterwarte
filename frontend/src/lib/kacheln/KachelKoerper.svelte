@@ -16,6 +16,8 @@
   import Barometer from "./typen/Barometer.svelte";
   import Blitze from "./typen/Blitze.svelte";
   import Verlauf from "./typen/Verlauf.svelte";
+  import Uhr from "./typen/Uhr.svelte";
+  import Kalender from "./typen/Kalender.svelte";
 
   const KOMPONENTEN: Record<string, unknown> = {
     aktuell: Aktuell,
@@ -33,6 +35,8 @@
     barometer: Barometer,
     blitze: Blitze,
     verlauf: Verlauf,
+    uhr: Uhr,
+    kalender: Kalender,
   };
 
   let { typ, conf = {}, ort }: { typ: string; conf?: Record<string, any>; ort: string } = $props();
