@@ -37,7 +37,25 @@ function parseFrontmatter(source: string): { meta: Record<string, string>; body:
 const rawFiles = import.meta.glob("./hilfe/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 
 // Feste Reihenfolge der Themen (Rest danach alphabetisch).
-const REIHENFOLGE = ["uebersicht", "kacheln", "orte", "karte", "layouts", "datenfrische", "dienste"];
+const REIHENFOLGE = [
+  "uebersicht",
+  "hilfe",
+  "kacheln",
+  "orte",
+  "layouts",
+  "themen",
+  "diagramme",
+  "karte",
+  "zeit",
+  "aufzeichnung",
+  "archiv",
+  "datenfrische",
+  "datenquellen",
+  "dienste",
+];
+
+// Reihenfolge der Bereiche im Themen-Dropdown.
+const KATEGORIE_REIHENFOLGE = ["Allgemein", "Bedienung", "Ansichten", "Hintergrund"];
 
 const themen: Record<string, Thema> = {};
 
@@ -97,4 +115,21 @@ export function listeThemen(): Thema[] {
     if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
     return a.title.localeCompare(b.title, "de");
   });
+}
+
+/** Themen nach Bereich gruppiert (fuer die Gliederung im Dropdown). */
+export function listeGruppen(): { kategorie: string; themen: Thema[] }[] {
+  const gruppen = new Map<string, Thema[]>();
+  for (const t of listeThemen()) {
+    const liste = gruppen.get(t.category) ?? [];
+    liste.push(t);
+    gruppen.set(t.category, liste);
+  }
+  return [...gruppen.keys()]
+    .sort((a, b) => {
+      const ia = KATEGORIE_REIHENFOLGE.indexOf(a);
+      const ib = KATEGORIE_REIHENFOLGE.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    })
+    .map((kategorie) => ({ kategorie, themen: gruppen.get(kategorie) as Thema[] }));
 }

@@ -2,6 +2,7 @@
   import { hole } from "./api";
   import LinienChart from "./LinienChart.svelte";
   import { orteState } from "./orte.svelte";
+  import HilfeLink from "./HilfeLink.svelte";
 
   const variablen = [
     { slug: "temperatur", label: "Temperatur", einheit: "°" },
@@ -61,7 +62,7 @@
 
 <section class="inhalt">
   <div class="seite">
-    <h1>Archiv und Analyse</h1>
+    <h1>Archiv und Analyse <HilfeLink topic="archiv" /></h1>
     <p class="unter-gross">
       Langzeitdaten aus der eigenen PostgreSQL - periodisch aufgezeichnet und hier ausgewertet.
     </p>

@@ -21,8 +21,20 @@
   const ort = $derived((conf.ort as string) || wetter.slug);
   const ortName = $derived(orteState.liste.find((o) => o.slug === ort)?.name ?? wetter.ort);
   const unter = $derived(def?.unter === "ORT" ? ortName : def?.unter);
-  // Passendes Hilfethema je Kacheltyp (Deeplink).
-  const hilfeThema = $derived(typ === "karte" ? "karte" : typ === "pollen" || typ === "luftqualitaet" ? "kacheln" : "kacheln");
+  // Passendes Hilfethema je Kacheltyp (Deeplink zum jeweils treffendsten Thema).
+  const THEMA_JE_TYP: Record<string, string> = {
+    karte: "karte",
+    nowcast: "diagramme",
+    verlauf: "diagramme",
+    barometer: "diagramme",
+    klima: "archiv",
+    jahresmesswerte: "archiv",
+    uhr: "zeit",
+    kalender: "zeit",
+    sonne: "zeit",
+    mond: "zeit",
+  };
+  const hilfeThema = $derived(THEMA_JE_TYP[typ] ?? "kacheln");
 
   function oeffneEinstellungen(): void {
     konf.id = id;

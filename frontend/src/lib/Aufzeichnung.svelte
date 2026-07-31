@@ -3,6 +3,7 @@
   // Echte Daten aus dem Backend (/aufzeichnung); jede Aenderung wird sofort gespeichert.
   import { onMount } from "svelte";
   import { hole, sende } from "./api";
+  import HilfeLink from "./HilfeLink.svelte";
 
   interface Eintrag {
     ort: string;
@@ -54,7 +55,7 @@
 
 <section class="inhalt">
   <div class="seite">
-    <h1>Aufzeichnungs-Manager</h1>
+    <h1>Aufzeichnungs-Manager <HilfeLink topic="aufzeichnung" /></h1>
     <p class="unter-gross">
       Die PostgreSQL zeichnet ausgewählte Orte langfristig auf. Lege je Ort und Variable fest, was dauerhaft
       archiviert wird. Neue Orte werden automatisch aufgezeichnet, bis du es hier änderst.

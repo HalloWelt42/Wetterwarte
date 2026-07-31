@@ -6,7 +6,7 @@
   import { profilTypen } from "./profile";
   import { sende } from "./api";
   import { layoutState } from "./layout.svelte";
-  import { kachelAktion } from "./kachelAktion.svelte";
+  import { kachelAktion, brettState } from "./kachelAktion.svelte";
   import { konf } from "./kachelConf.svelte";
 
   interface Instanz {
@@ -26,6 +26,13 @@
   let standGeladen = -1;
   let ladend = false;
   let entprellen: ReturnType<typeof setTimeout> | undefined;
+
+  // Anzahl je Kacheltyp im aktuellen Layout fuer den Katalog spiegeln.
+  $effect(() => {
+    const zaehler: Record<string, number> = {};
+    for (const k of kacheln) zaehler[k.typ] = (zaehler[k.typ] ?? 0) + 1;
+    brettState.anzahlJeTyp = zaehler;
+  });
 
   // Leeres Layout uebernimmt die zu seinem Namen passende Profil-Anordnung.
   function profilInstanzen(name: string): Instanz[] {

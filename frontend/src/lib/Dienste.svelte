@@ -4,6 +4,7 @@
   import { onMount } from "svelte";
   import { ui } from "./ui.svelte";
   import { hole } from "./api";
+  import HilfeLink from "./HilfeLink.svelte";
 
   interface Dienst {
     key: string;
@@ -53,7 +54,7 @@
 <div class="modal-hg" role="presentation" onclick={zu}>
   <div class="modal breit" role="dialog" tabindex="-1" onclick={(e) => e.stopPropagation()}>
     <div class="modal-kopf">
-      <h2><i class="fa-solid fa-diagram-project"></i> System &amp; Dienste</h2>
+      <h2><i class="fa-solid fa-diagram-project"></i> System &amp; Dienste <HilfeLink topic="dienste" /></h2>
       <span style="flex: 1"></span>
       <button class="icon-knopf" title="Neu prüfen" aria-label="Neu prüfen" onclick={lade}><i class="fa-solid fa-rotate" class:fa-spin={laedt}></i></button>
       <button class="icon-knopf" onclick={zu} aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>

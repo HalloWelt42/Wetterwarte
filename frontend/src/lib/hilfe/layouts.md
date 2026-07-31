@@ -14,10 +14,10 @@ du zwischen deinen Layouts um.
 
 Die vorgesehenen Profile starten mit einer zum Zweck passenden Auswahl:
 
-- **Zuhause** - umfassendes Dashboard.
-- **Garten** - Pollen, UV, Nowcast, Wind, Sonne, Vorhersage.
-- **Reise** - kompakter Überblick mit Karte.
-- **Unwetter** - Warnungen, Karte, Blitze, Nowcast, Wind groß.
+- **Zuhause** - umfassendes Dashboard mit allen Kacheln.
+- **Garten** - Aktuell, Pollen, UV, Nowcast, Wind, Sonne, Vorhersage, Temperaturverlauf.
+- **Reise** - kompakter Überblick: Aktuell, Vorhersage, Stunden, Karte, Sonne.
+- **Unwetter** - Warnungen, Karte, Blitze, Nowcast, Wind, Aktuell.
 
 ## Verwalten
 

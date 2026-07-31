@@ -5,9 +5,9 @@
   // Portiert aus hilfe-fenster-demo (HalloWelt42), Farben ueber unsere Tokens.
   import { untrack } from "svelte";
   import { hilfe } from "./hilfeStore.svelte";
-  import { getThema, listeThemen } from "./hilfeThemen";
+  import { getThema, listeGruppen } from "./hilfeThemen";
 
-  const themen = listeThemen();
+  const gruppen = listeGruppen();
   const topic = $derived(hilfe.topicKey ? getThema(hilfe.topicKey) : null);
 
   let inhaltEl = $state<HTMLElement | null>(null);
@@ -156,7 +156,11 @@
     {#if !hilfe.minimized}
       <div class="hp-leiste">
         <select class="hp-thema" value={hilfe.topicKey} onchange={(e) => hilfe.select(e.currentTarget.value)}>
-          {#each themen as t}<option value={t.key}>{t.title}</option>{/each}
+          {#each gruppen as g}
+            <optgroup label={g.kategorie}>
+              {#each g.themen as t}<option value={t.key}>{t.title}</option>{/each}
+            </optgroup>
+          {/each}
         </select>
         <div class="hp-suchzeile">
           <div class="hp-bereich" role="group" aria-label="Suchbereich">

@@ -1956,6 +1956,27 @@ textarea,
   margin-left: auto;
   color: var(--text-3);
 }
+/* Zaehler: so oft ist diese Kachel im aktuellen Profil gesetzt. */
+.kat-item .kat-anzahl {
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--akzent-weich);
+  color: var(--akzent);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* Steht der Zaehler da, uebernimmt er das Ausrichten - das Plus folgt dicht. */
+.kat-item .kat-anzahl + .griff {
+  margin-left: 0;
+}
 
 /* Kachel-Platzhalter beim Ziehen */
 .kachel-platz {

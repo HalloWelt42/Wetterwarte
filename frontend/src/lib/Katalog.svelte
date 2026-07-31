@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ui } from "./ui.svelte";
   import { registry, familien } from "./kacheln/registry";
-  import { kachelAktion } from "./kachelAktion.svelte";
+  import { kachelAktion, brettState } from "./kachelAktion.svelte";
 
   let suche = $state("");
   const gruppen = $derived.by(() => {
@@ -40,9 +40,11 @@
     {#each gruppen as g}
       <div class="kat-gruppe">{g.name}</div>
       {#each g.eintraege as e}
+        {@const anzahl = brettState.anzahlJeTyp[e.typ] ?? 0}
         <button class="kat-item" style="width: 100%; text-align: left; font: inherit" onclick={() => hinzufuegen(e.typ)}>
           <i class="fa-solid {e.icon}"></i>
-          <span class="kat-txt">{e.titel}<small>Kachel hinzufügen</small></span>
+          <span class="kat-txt">{e.titel}<small>{anzahl > 0 ? `${anzahl}-mal im Profil` : "Kachel hinzufügen"}</small></span>
+          {#if anzahl > 0}<span class="kat-anzahl" title="So oft ist diese Kachel im aktuellen Profil">{anzahl}</span>{/if}
           <i class="fa-solid fa-plus griff"></i>
         </button>
       {/each}
