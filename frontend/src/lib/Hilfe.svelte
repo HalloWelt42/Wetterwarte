@@ -344,8 +344,8 @@
     padding: 14px 16px;
   }
   .hp-artikel {
-    font-size: 13.5px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.65;
   }
   .hp-leer {
     color: var(--text-2);
@@ -364,8 +364,8 @@
   .hp-artikel :global(h1),
   .hp-artikel :global(h2),
   .hp-artikel :global(h3) {
-    font-size: 15px;
-    margin: 14px 0 6px;
+    font-size: 18.5px;
+    margin: 16px 0 7px;
     color: var(--text);
   }
   .hp-artikel :global(p) {
@@ -383,13 +383,13 @@
     background: var(--bg);
     padding: 1px 5px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 14px;
   }
   .hp-artikel :global(table) {
     border-collapse: collapse;
     width: 100%;
     margin: 8px 0;
-    font-size: 12.5px;
+    font-size: 14.5px;
   }
   .hp-artikel :global(th),
   .hp-artikel :global(td) {

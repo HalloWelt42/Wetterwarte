@@ -16,13 +16,13 @@ Die vorgesehenen Profile starten mit einer zum Zweck passenden Auswahl:
 
 - **Zuhause** - umfassendes Dashboard.
 - **Garten** - Pollen, UV, Nowcast, Wind, Sonne, Vorhersage.
-- **Reise** - kompakter Ueberblick mit Karte.
-- **Unwetter** - Warnungen, Karte, Blitze, Nowcast, Wind gross.
+- **Reise** - kompakter Überblick mit Karte.
+- **Unwetter** - Warnungen, Karte, Blitze, Nowcast, Wind groß.
 
 ## Verwalten
 
-Ueber das Plus neben den Layout-Tabs oeffnest du die Verwaltung. Dort kannst du
-Layouts **umbenennen, duplizieren, loeschen**, als **Standard** setzen und auf den
-**Profil-Standard zuruecksetzen**. Die Vorschau zeigt die echte Anordnung.
+Über das Plus neben den Layout-Tabs öffnest du die Verwaltung. Dort kannst du
+Layouts **umbenennen, duplizieren, löschen**, als **Standard** setzen und auf den
+**Profil-Standard zurücksetzen**. Die Vorschau zeigt die echte Anordnung.
 
-Jede Aenderung an der Anordnung wird automatisch im aktiven Layout gespeichert.
+Jede Änderung an der Anordnung wird automatisch im aktiven Layout gespeichert.

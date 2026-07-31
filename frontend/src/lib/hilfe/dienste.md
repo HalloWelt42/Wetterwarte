@@ -7,9 +7,9 @@ icon: fa-diagram-project
 
 # System & Dienste
 
-Ueber das Zahnrad oben oeffnest du die Dienste-Uebersicht. Sie zeigt alle Dienste,
-die die Wetterwarte nutzt, mit Live-Status und Latenz - damit die Zusammenhaenge
-klar sind und nichts im Verborgenen haengt.
+Über das Zahnrad oben öffnest du die Dienste-Übersicht. Sie zeigt alle Dienste,
+die die Wetterwarte nutzt, mit Live-Status und Latenz - damit die Zusammenhänge
+klar sind und nichts im Verborgenen hängt.
 
 ## Gruppen
 
@@ -17,8 +17,8 @@ klar sind und nichts im Verborgenen haengt.
 - **Lokal auf dem Pi** - eigene Dienste ohne externen Abruf zur Laufzeit:
   der Kartendienst (Deutschland als eigener Vektor-Render) und der Welt-Kachel-
   und Blitz-Dienst.
-- **Externe Rohdaten** - die einzige Aussenanbindung: die Wetter-Rohdaten
+- **Externe Rohdaten** - die einzige Außenanbindung: die Wetter-Rohdaten
   (Vorhersage, amtliche Warnungen, Pollen).
 
-Ein gruener Punkt heisst erreichbar, gelb gestoert, rot nicht erreichbar. Mit dem
-Knopf oben rechts pruefst du erneut.
+Ein grüner Punkt heißt erreichbar, gelb gestört, rot nicht erreichbar. Mit dem
+Knopf oben rechts prüfst du erneut.

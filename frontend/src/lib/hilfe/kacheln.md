@@ -1,27 +1,27 @@
 ---
 title: Kacheln
-subtitle: Hinzufuegen, einstellen, eigener Ort
+subtitle: Hinzufügen, einstellen, eigener Ort
 category: Bedienung
 icon: fa-table-cells-large
 ---
 
 # Kacheln
 
-Das Dashboard besteht aus Kacheln. Jede Kachel ist ein eigenstaendiges Modul, das
+Das Dashboard besteht aus Kacheln. Jede Kachel ist ein eigenständiges Modul, das
 seine Daten selbst holt.
 
-## Hinzufuegen und anordnen
+## Hinzufügen und anordnen
 
-- Oben rechts auf **Kachel** klicken und einen Typ aus dem Katalog waehlen.
+- Oben rechts auf **Kachel** klicken und einen Typ aus dem Katalog wählen.
 - Kacheln lassen sich am Kopf **ziehen** und an der unteren rechten Ecke in der
-  **Groesse ziehen**. Die Anordnung wird im aktiven Layout gespeichert.
+  **Größe ziehen**. Die Anordnung wird im aktiven Layout gespeichert.
 
 ## Einstellungen je Kachel
 
-Ueber das Zahnrad in der Kachel oeffnest du ihre Einstellungen:
+Über das Zahnrad in der Kachel öffnest du ihre Einstellungen:
 
-- **Eigener Titel** - ueberschreibt den Standardnamen.
-- **Ort dieser Kachel** - standardmaessig folgt die Kachel dem aktiven Ort oben.
+- **Eigener Titel** - überschreibt den Standardnamen.
+- **Ort dieser Kachel** - standardmäßig folgt die Kachel dem aktiven Ort oben.
   Du kannst ihr aber einen **festen eigenen Ort** geben. So zeigst du z.B. das
   Wetter mehrerer Orte gleichzeitig nebeneinander.
 - **Typspezifische Optionen** - je nach Kachel, etwa welche Kennzahlen die

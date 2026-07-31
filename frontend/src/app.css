@@ -872,16 +872,8 @@ textarea,
   display: flex;
   flex-direction: column;
 }
-/* Kein sichtbares Resize-Winkelsymbol unten rechts; die gridstack-Groessenaenderung
-   bleibt ueber den (unsichtbaren) Griff funktionsfaehig. */
-.grid-stack-item > .ui-resizable-se {
-  background-image: none;
-  box-shadow: none;
-  transform: none;
-}
-.grid-stack-item > .ui-resizable-se::before {
-  content: none;
-}
+/* Das eigene Winkelsymbol (.kw-griff) ist entfernt; der gridstack-Resize-Griff
+   (Ziehpfeile unten rechts) bleibt sichtbar und funktionsfaehig. */
 
 /* Meteocons-Groessen */
 .mc {
@@ -1933,6 +1925,7 @@ textarea,
 }
 .modal {
   background: var(--flaeche);
+  color: var(--text);
   border: 1px solid var(--rand);
   border-radius: var(--r3);
   box-shadow: var(--schatten-2);
@@ -2406,7 +2399,9 @@ textarea,
 }
 .grid-stack-item-content {
   display: flex;
-  overflow: visible;
+  /* Auf die runde Kachelform clippen, damit die Glas-Kacheln (backdrop-filter)
+     keine eckigen Ecken durchblenden. */
+  border-radius: var(--r3);
 }
 .grid-stack-item-content > .kachel-w {
   flex: 1;
@@ -2465,6 +2460,7 @@ button.nav-eintrag {
   bottom: 0;
   width: min(360px, 92vw);
   background: var(--flaeche);
+  color: var(--text);
   border-left: 1px solid var(--rand);
   box-shadow: var(--schatten-2);
   display: flex;
