@@ -90,6 +90,7 @@ export const registry: Record<string, KachelDef> = {
   },
   barometer: { typ: "barometer", titel: "Luftdruck", icon: "fa-gauge", w: 4, h: 3, familie: "Detail" },
   verlauf: { typ: "verlauf", titel: "Temperaturverlauf", icon: "fa-chart-line", w: 8, h: 3, familie: "Archiv", unter: "24 Stunden" },
+  klima: { typ: "klima", titel: "Klima-Diagramm", icon: "fa-chart-column", w: 6, h: 4, familie: "Archiv", unter: "Monatsnormale" },
   uhr: {
     typ: "uhr", titel: "Uhr", icon: "fa-clock", w: 4, h: 2, familie: "Rahmen",
     einstellungen: [

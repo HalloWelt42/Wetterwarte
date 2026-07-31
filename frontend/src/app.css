@@ -662,6 +662,17 @@ textarea,
   color: var(--text-3);
 }
 
+/* Klima-Diagramm-Kachel */
+.klima-kopf {
+  margin-bottom: var(--a1);
+}
+.klima-svg {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+
 /* Uhr-Kachel */
 .uhr-digital,
 .uhr-gross {

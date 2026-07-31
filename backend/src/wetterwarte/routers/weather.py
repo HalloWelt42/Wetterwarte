@@ -9,14 +9,18 @@ jeden Bereich in seinem eigenen Takt ab (siehe wetter.svelte.ts).
 """
 
 import asyncio
+import json
 from collections.abc import Awaitable, Callable
+from datetime import datetime, timedelta
 from typing import TypeVar
 
 import httpx
 from fastapi import APIRouter, HTTPException
 
 from .. import cache, ortsdienst
-from ..providers import blitze, luftqualitaet, openmeteo, pollen_dwd, warnungen
+from ..db import SessionLocal
+from ..models.klima import KlimaNormale
+from ..providers import blitze, klima, luftqualitaet, openmeteo, pollen_dwd, warnungen
 from ..schemas.envelope import wrap
 
 router = APIRouter(prefix="/wetter", tags=["wetter"])
@@ -150,3 +154,29 @@ async def luft_ep(ort: str) -> dict:
 async def pollen_ep(ort: str) -> dict:
     """Pollenflug - sehr traege."""
     return wrap(await _pollen(await _ort(ort)))
+
+
+@router.get("/klima/{ort}")
+async def klima_ep(ort: str) -> dict:
+    """Klima-Normale (Monatsmittel Temperatur + Niederschlag). Wird gespeichert und
+    nur alle ~30 Tage neu aus dem Archiv berechnet."""
+    o = await _ort(ort)
+    async with SessionLocal() as session:
+        row = await session.get(KlimaNormale, o.slug)
+        if row is not None and (datetime.now() - row.stand) < timedelta(days=30):
+            return wrap(json.loads(row.daten))
+    try:
+        daten = await klima.normalen(o.lat, o.lon)
+    except Exception:
+        if row is not None:
+            return wrap(json.loads(row.daten))  # notfalls die gespeicherten (evtl. aelteren) Werte
+        raise HTTPException(status_code=502, detail="Klima-Archiv nicht erreichbar")
+    async with SessionLocal() as session:
+        gespeichert = await session.get(KlimaNormale, o.slug)
+        if gespeichert is not None:
+            gespeichert.daten = json.dumps(daten)
+            gespeichert.stand = datetime.now()
+        else:
+            session.add(KlimaNormale(ort=o.slug, daten=json.dumps(daten), stand=datetime.now()))
+        await session.commit()
+    return wrap(daten)

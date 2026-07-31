@@ -18,6 +18,7 @@
   import Verlauf from "./typen/Verlauf.svelte";
   import Uhr from "./typen/Uhr.svelte";
   import Kalender from "./typen/Kalender.svelte";
+  import Klima from "./typen/Klima.svelte";
 
   const KOMPONENTEN: Record<string, unknown> = {
     aktuell: Aktuell,
@@ -37,6 +38,7 @@
     verlauf: Verlauf,
     uhr: Uhr,
     kalender: Kalender,
+    klima: Klima,
   };
 
   let { typ, conf = {}, ort }: { typ: string; conf?: Record<string, any>; ort: string } = $props();
