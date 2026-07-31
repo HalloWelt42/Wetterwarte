@@ -673,6 +673,74 @@ textarea,
   overflow: visible;
 }
 
+/* Jahresmesswerte-Kachel */
+.jm-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a2);
+  margin-bottom: var(--a1);
+}
+.jm-titel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jm-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--a1);
+  flex-shrink: 0;
+}
+.jm-pfeil {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--rand);
+  border-radius: var(--r1);
+  background: var(--flaeche-2);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 0.72rem;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.jm-pfeil:hover:not(:disabled) {
+  background: var(--akzent-weich);
+  border-color: var(--akzent);
+  color: var(--akzent);
+}
+.jm-pfeil:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.jm-jahr {
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 3ch;
+  text-align: center;
+}
+.jm-badge {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--akzent-weich);
+  color: var(--akzent);
+}
+.jm-svg {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+.jm-svg rect[role="presentation"] {
+  cursor: crosshair;
+}
+
 /* Uhr-Kachel */
 .uhr-digital,
 .uhr-gross {

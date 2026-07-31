@@ -29,6 +29,7 @@ async def init_db() -> None:
 
     from .models.aufzeichnung import AufzeichnungOrt  # noqa: F401 - Tabelle registrieren
     from .models.klima import KlimaNormale  # noqa: F401 - Tabelle registrieren
+    from .models.klima_aggregat import KlimaAggregat  # noqa: F401 - Tabelle registrieren
     from .models.layout import Layout
     from .models.messwert import Messwert  # noqa: F401 - Tabelle registrieren
     from .models.ort import Ort

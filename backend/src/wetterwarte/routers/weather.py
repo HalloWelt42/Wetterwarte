@@ -17,13 +17,16 @@ from typing import TypeVar
 import httpx
 from fastapi import APIRouter, HTTPException
 
-from .. import cache, ortsdienst
+from .. import cache, klima_aggregat, ortsdienst
 from ..db import SessionLocal
 from ..models.klima import KlimaNormale
 from ..providers import blitze, klima, luftqualitaet, openmeteo, pollen_dwd, warnungen
 from ..schemas.envelope import wrap
 
 router = APIRouter(prefix="/wetter", tags=["wetter"])
+
+# Kurze Monatsnamen fuer die Diagramm-Beschriftung.
+MONATE_KURZ = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
 
 T = TypeVar("T")
 
@@ -180,3 +183,30 @@ async def klima_ep(ort: str) -> dict:
             session.add(KlimaNormale(ort=o.slug, daten=json.dumps(daten), stand=datetime.now()))
         await session.commit()
     return wrap(daten)
+
+
+@router.get("/messjahre/{ort}")
+async def messjahre_ep(ort: str) -> dict:
+    """Verfuegbare Jahre und Variablen der aufgezeichneten Messwerte eines Ortes.
+
+    Frischt die Aggregate dieses Ortes vorab auf, damit gerade erst aufgezeichnete
+    Werte sofort erscheinen."""
+    o = await _ort(ort)
+    await klima_aggregat.aktualisiere([o.slug])
+    jahre, variablen = await asyncio.gather(klima_aggregat.jahre(o.slug), klima_aggregat.variablen(o.slug))
+    return wrap({"jahre": jahre, "variablen": variablen, "aktuelles_jahr": datetime.now().year})
+
+
+@router.get("/jahresmesswerte/{ort}")
+async def jahresmesswerte_ep(ort: str, jahr: int, variable: str = "temperatur") -> dict:
+    """Echte, aggregierte Monatsmesswerte eines Ortes fuer ein Jahr und eine Variable.
+
+    Liefert immer alle zwoelf Monate (fehlende als null), plus das aktuelle Jahr fuer
+    die Markierung im Diagramm."""
+    o = await _ort(ort)
+    vorhanden = {m["monat"]: m for m in await klima_aggregat.monate(o.slug, variable, jahr)}
+    monate = [
+        {"monat": i, "kurz": MONATE_KURZ[i - 1], **({k: v for k, v in vorhanden[i].items() if k != "monat"} if i in vorhanden else {"mittel": None, "minimum": None, "maximum": None, "summe": None, "anzahl": 0})}
+        for i in range(1, 13)
+    ]
+    return wrap({"jahr": jahr, "variable": variable, "aktuelles_jahr": datetime.now().year, "monate": monate})

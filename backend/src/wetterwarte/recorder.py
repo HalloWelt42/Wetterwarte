@@ -10,7 +10,7 @@ from datetime import datetime
 
 from sqlmodel import select
 
-from . import ortsdienst
+from . import klima_aggregat, ortsdienst
 from .db import SessionLocal
 from .models.aufzeichnung import AufzeichnungOrt
 from .models.messwert import Messwert
@@ -84,9 +84,16 @@ async def _schreibe_aktuell() -> None:
 async def schleife() -> None:
     if await _archiv_leer():
         await _backfill()
+        # Nach dem Backfill sofort die Monatsaggregate aufbauen.
+        try:
+            await klima_aggregat.aktualisiere()
+        except Exception:
+            pass
     while True:
         try:
             await _schreibe_aktuell()
+            # Frisch geschriebene Werte gleich in die Monatsaggregate verdichten.
+            await klima_aggregat.aktualisiere()
         except Exception:
             pass
         await asyncio.sleep(INTERVALL_SEKUNDEN)
