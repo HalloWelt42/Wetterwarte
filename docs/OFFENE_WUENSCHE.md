@@ -21,9 +21,11 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Zeitzonen vollstaendig: Wetterdaten in lokaler Ortszeit (timezone=auto), Bestandsorte nachgezogen - New York stimmt (v0.31.1)
 - [x] Hilfe deutlich ausgebaut: 14 Themen in 4 Bereichen (Dropdown gegliedert), Tiefenlinks je Kacheltyp + in Aufzeichnung/Archiv/Dienste; adversarial geprueft (v0.32.0)
 - [x] Katalog zeigt je Kachel, wie oft sie im aktuellen Profil gesetzt ist (v0.32.0)
+- [x] Grosskarte: eigenes DWD-RADOLAN-Regenradar (RY gemessen + RV-Nowcast bis +2h), reprojiziertes Bild-Overlay mit Abspiel-Zeitleiste + mm/h-Legende (v0.33.0)
+- [x] Radardaten optional historisch speichern (DB-Archiv, Schalter+Aufbewahrung), Abspieler blaettert weiter zurueck (v0.34.0)
 
 ## Offen
-- [ ] Grosskarte fertig: eigenes DWD-RADOLAN-Regenradar, vereinfachte Vektor-Karte (osmlocal-Vektor), Overlays Radar/Temp/Wind/Warnungen funktional
+- [ ] Grosskarte-Rest: weitere Overlays Warnungen (DWD-Polygone) / Temperatur / Wind funktional; vereinfachte Vektor-Karte (osmlocal-Vektor); Radar auch in der Mini-Karte (statisch)
 - [ ] Offline-Cache themengetrennt; Speicher-Statistik sichtbar; Prozessbalken bei Daten-Aggregation in den Einstellungen mit vollstaendiger Fehler-/Fertig-Logik; Fuell-Bot (naeher am Wohnort mehr, Satellit progressiv)
 - [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
 - [ ] Rettungsring / Onboarding fuer Erstnutzer (Muster wie im Projekt RadioHub)
