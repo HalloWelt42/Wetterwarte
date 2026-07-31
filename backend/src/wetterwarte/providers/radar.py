@@ -171,11 +171,22 @@ async def aktualisiere(force: bool = False) -> None:
         bezug = max((f["zeit"] for f in gemessen), default=neu[-1]["zeit"])
         for f in neu:
             f["offset"] = round((f["zeit"] - bezug).total_seconds() / 60)
-        gueltig = {f["id"] for f in neu}
-        for tot in [k for k in _cache if k.startswith("rv-") and k not in gueltig]:
-            _cache.pop(tot, None)  # alte Vorhersage-Frames entsorgen
-        for tot in [f["id"] for f in _frames if f["id"].startswith("ry-") and f["id"] not in gueltig]:
-            _cache.pop(tot, None)  # zu alte gemessene Frames entsorgen
+        # Karenz-Puffer: Frames NICHT sofort entsorgen, sobald ein neues Archiv kommt -
+        # sonst laufen kurz noch referenzierte IDs (zweite Karte, Auffrisch-Fenster) ins
+        # Leere. Zeitbasiert behalten: Vorhersage 15 min, gemessen 75 min.
+        jetzt2 = datetime.now(timezone.utc)
+
+        def _zu_alt(fid: str, minuten: int) -> bool:
+            try:
+                return _ts(fid.split("-")[1]) < jetzt2 - timedelta(minutes=minuten)
+            except Exception:
+                return False
+
+        for k in list(_cache.keys()):
+            if k.startswith("rv-") and _zu_alt(k, 15):
+                _cache.pop(k, None)
+            elif k.startswith("ry-") and _zu_alt(k, 75):
+                _cache.pop(k, None)
         _frames = neu
         _stand = datetime.now(timezone.utc)
 

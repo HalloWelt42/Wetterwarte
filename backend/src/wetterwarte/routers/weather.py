@@ -20,7 +20,7 @@ from fastapi import APIRouter, HTTPException
 from .. import cache, klima_aggregat, ortsdienst
 from ..db import SessionLocal
 from ..models.klima import KlimaNormale
-from ..providers import blitze, klima, luftqualitaet, openmeteo, pollen_dwd, warnungen
+from ..providers import blitze, klima, luftqualitaet, openmeteo, pollen_dwd, warnpolygone, warnungen
 from ..schemas.envelope import wrap
 
 router = APIRouter(prefix="/wetter", tags=["wetter"])
@@ -157,6 +157,12 @@ async def luft_ep(ort: str) -> dict:
 async def pollen_ep(ort: str) -> dict:
     """Pollenflug - sehr traege."""
     return wrap(await _pollen(await _ort(ort)))
+
+
+@router.get("/warnkarte")
+async def warnkarte_ep() -> dict:
+    """Amtliche Warn-Polygone (ganz Deutschland) als GeoJSON fuer das Karten-Overlay."""
+    return wrap(await warnpolygone.hole())
 
 
 @router.get("/klima/{ort}")

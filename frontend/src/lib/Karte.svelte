@@ -51,6 +51,7 @@
     ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);
     map.on("load", () => {
       baueOrientierung();
+      baueWarnEbene();
       baueBlitzEbene();
       baueWellenEbene();
       void ladeBlitze();
@@ -61,6 +62,7 @@
       clearInterval(blitzTimer);
       stoppeRadar();
       if (radarRahmenTimer) clearInterval(radarRahmenTimer);
+      if (warnTimer) clearInterval(warnTimer);
       ortMarker?.remove();
       map?.remove();
     };
@@ -87,6 +89,92 @@
   $effect(() => {
     const b = karteEinst.basis;
     if (map?.getLayer("beschriftung")) map.setPaintProperty("beschriftung", "raster-opacity", b === "satellit" ? 0.5 : 0.7);
+  });
+
+  // --- Amtliche Warnungen (DWD-Polygone) ---
+  let warnAnzahl = $state(0);
+  let warnTimer: ReturnType<typeof setInterval> | undefined;
+  // Farbe nach Warnstufe (DWD: gelb/orange/rot/violett).
+  const WARN_FARBE = [
+    "match",
+    ["get", "SEVERITY"],
+    "Minor",
+    "#ffd400",
+    "Moderate",
+    "#ff9800",
+    "Severe",
+    "#e53935",
+    "Extreme",
+    "#8e24aa",
+    "#ffd400",
+  ] as unknown as maplibregl.ExpressionSpecification;
+
+  function baueWarnEbene(): void {
+    if (!map || map.getSource("warnungen")) return;
+    const sicht = karteEinst.overlays.warnungen ? "visible" : "none";
+    const drueber = map.getLayer("beschriftung") ? "beschriftung" : undefined;
+    map.addSource("warnungen", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer(
+      {
+        id: "warn-fill",
+        type: "fill",
+        source: "warnungen",
+        layout: { visibility: sicht },
+        paint: { "fill-color": WARN_FARBE, "fill-opacity": 0.25 },
+      },
+      drueber,
+    );
+    map.addLayer(
+      {
+        id: "warn-linie",
+        type: "line",
+        source: "warnungen",
+        layout: { visibility: sicht },
+        paint: { "line-color": WARN_FARBE, "line-width": 1.4, "line-opacity": 0.85 },
+      },
+      drueber,
+    );
+    map.on("click", "warn-fill", (e) => {
+      const p = e.features?.[0]?.properties as Record<string, string> | undefined;
+      if (!p || !map) return;
+      const bis = p.EXPIRES
+        ? new Date(p.EXPIRES).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+        : "";
+      new maplibregl.Popup({ closeButton: true, maxWidth: "260px" })
+        .setLngLat(e.lngLat)
+        .setHTML(
+          `<strong>${p.EVENT ?? "Warnung"}</strong>${p.HEADLINE ? `<br>${p.HEADLINE}` : ""}${bis ? `<br><small>gültig bis ${bis} Uhr</small>` : ""}`,
+        )
+        .addTo(map);
+    });
+    map.on("mouseenter", "warn-fill", () => map && (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", "warn-fill", () => map && (map.getCanvas().style.cursor = ""));
+  }
+
+  async function ladeWarnungen(): Promise<void> {
+    if (!map) return;
+    try {
+      const d = (await (await fetch("/api/v1/wetter/warnkarte")).json()).data as GeoJSON.FeatureCollection;
+      (map.getSource("warnungen") as maplibregl.GeoJSONSource | undefined)?.setData(d);
+      warnAnzahl = d.features?.length ?? 0;
+    } catch {
+      // still ignorieren
+    }
+  }
+
+  // Warn-Overlay an den Schalter koppeln (alle 3 min auffrischen).
+  $effect(() => {
+    const an = karteEinst.overlays.warnungen;
+    const sicht = an ? "visible" : "none";
+    if (map?.getLayer("warn-fill")) map.setLayoutProperty("warn-fill", "visibility", sicht);
+    if (map?.getLayer("warn-linie")) map.setLayoutProperty("warn-linie", "visibility", sicht);
+    if (an) {
+      void ladeWarnungen();
+      if (!warnTimer) warnTimer = setInterval(() => void ladeWarnungen(), 180000);
+    } else {
+      if (warnTimer) clearInterval(warnTimer);
+      warnTimer = undefined;
+    }
   });
 
   // --- Blitze (Live-Ebene aus dem lightningmap-Dienst) ---
@@ -440,7 +528,7 @@
       <div class="kat-gruppe">Overlays</div>
       {#each overlayNamen as [schluessel, label]}
         <div class="formzeile-quer">
-          <span class="fz-lab">{label}{#if schluessel === "blitze" && blitzAnzahl > 0}&nbsp;<b class="tnum" style="color: var(--warn)">{blitzAnzahl}</b>{/if}</span>
+          <span class="fz-lab">{label}{#if schluessel === "blitze" && blitzAnzahl > 0}&nbsp;<b class="tnum" style="color: var(--warn)">{blitzAnzahl}</b>{/if}{#if schluessel === "warnungen" && warnAnzahl > 0}&nbsp;<b class="tnum" style="color: var(--warn)">{warnAnzahl}</b>{/if}</span>
           <button
             class="schalter"
             class:an={karteEinst.overlays[schluessel]}

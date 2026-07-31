@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://wetterwarte:wetterwarte@localhost:6152/wetterwarte"
     redis_url: str = "redis://localhost:6153/0"
     app_secret: str = "entwicklung"
-    version: str = "0.35.0"
+    version: str = "0.36.0"
 
     # Basis-URL fuer Open-Meteo. Vorerst der oeffentliche Dienst (nutzt fuer
     # Deutschland die DWD-ICON-Modelle); spaeter der lokal gespiegelte Dienst.
@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     # DWD OpenData: RADOLAN-Radar. RY = gemessene Regenrate (5 min, mm/h, 900x900);
     # RV = RADVOR-Nowcast (Analyse + bis +2 h, mm/h, DE1200). Selbst geholt und gerendert.
     dwd_radar_base: str = "https://opendata.dwd.de/weather/radar"
+    # DWD GeoServer (WFS): amtliche Warn-Polygone (zusammengefasst) fuer das Karten-Overlay.
+    dwd_warn_wfs: str = "https://maps.dwd.de/geoserver/dwd/ows"
 
 
 settings = Settings()
