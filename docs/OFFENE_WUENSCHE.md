@@ -40,10 +40,13 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Deep-Links ohne Hash: Ansicht + Ort in der URL (History-API), neuladefest und teilbar (v0.41.0)
 - [x] Dark-Mode-Schriftkontrast angehoben; Overlay-Stapelordnung (z-index) vereinheitlicht, Hilfe-Fenster tritt beim Oeffnen eines Modals zurueck (v0.41.0)
 - [x] Aufzeichnungs-Takt einstellbar (5-60 min, Standard 10) im Aufzeichnungs-Manager; loest den fest verdrahteten 10-min-Takt ab (v0.42.0)
+- [x] Mobile-Ansicht: Navigations-Schublade (Hamburger) mit Orte/Ansichten/Layouts/Mehr - vorher war die Sidebar auf Mobil unerreichbar; Kopfleiste entzerrt, Karten-Steuerung entzerrt (v0.43.0)
 
 ## Offen
-- [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch
-- [ ] Mobile-Ansicht optimieren - ganz zum Schluss, wenn alles andere fertig ist
+- [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch.
+  Bewusst zurueckgestellt: der Stil deckt nur Deutschland ab und braucht map.setStyle(), was alle
+  programmatisch gebauten Overlays (Radar/Warnungen/Temperatur/Wind/Blitze/Beschriftung) verwirft und
+  einen kompletten Neuaufbau danach erfordert - Regressionsrisiko fuer rein kosmetischen, DE-only-Gewinn.
 
 Referenzen: RadioHub (github.com/HalloWelt42/RadioHub) fuer Spenden + Lizenzen;
 hilfe-fenster-demo (bereits uebernommen).

@@ -9,6 +9,7 @@ export const ui = $state<{
   demoOrte: boolean; // Demo-Orte-Auswahl (Extremwetter + bekannte Orte)
   spende: boolean; // Spende-/Unterstuetzen-Overlay
   willkommen: boolean; // Onboarding-/Rettungsring-Overlay fuer Erstnutzer
+  menu: boolean; // mobile Navigations-Schublade (Drawer)
 }>({
   katalog: false,
   hilfe: false,
@@ -19,4 +20,5 @@ export const ui = $state<{
   demoOrte: false,
   spende: false,
   willkommen: false,
+  menu: false,
 });

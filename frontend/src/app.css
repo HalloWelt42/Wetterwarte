@@ -2711,8 +2711,41 @@ textarea,
 .nowrap { white-space: nowrap; }
 .tnum { font-variant-numeric: tabular-nums; }
 
+/* Sichtbarkeits-Helfer: nur-mobil ist auf dem Desktop aus, im Mobil-Block wieder an;
+   nur-desktop ist standardmaessig sichtbar und wird im Mobil-Block ausgeblendet. */
+.nur-mobil { display: none; }
+
+/* Chrome der mobilen Navigations-Schublade - auf dem Desktop ohne Wirkung (ausgeblendet). */
+.nav-hg {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: rgba(8, 14, 22, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--schnell);
+  z-index: 178;
+}
+.nav-hg.offen {
+  opacity: 1;
+  pointer-events: auto;
+}
+.nav-schliessen {
+  align-self: flex-end;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: var(--a1) var(--a2);
+}
+
 /* ============================================================ Mobil */
 @media (max-width: 720px) {
+  .nur-mobil { display: flex; }
+  .nur-desktop { display: none; }
+  .marke-txt { display: none; }
+  .nur-desktop-inline { display: none; }
   .app,
   .app.mit-detail {
     grid-template-columns: 1fr;
@@ -2720,11 +2753,27 @@ textarea,
       "kopf"
       "inhalt";
   }
-  .nav,
   .detail {
     display: none;
   }
+  /* Sidebar wird zur einschiebbaren Schublade (Hamburger im Kopf oeffnet sie). */
+  .nav {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 84vw);
+    transform: translateX(-100%);
+    transition: transform var(--schnell);
+    z-index: 180;
+    box-shadow: var(--schatten-2);
+  }
+  .nav.offen {
+    transform: translateX(0);
+  }
+  .kopf { gap: var(--a2); padding: 0 var(--a3); }
   .kopf-suche { max-width: none; }
+  .kopf-suche-wrap { max-width: none; }
   .layout-tabs { display: none; }
   .brett {
     grid-template-columns: 1fr;
@@ -2738,6 +2787,10 @@ textarea,
     min-height: 150px;
   }
   .seite { padding: var(--a4); }
+  /* Karten-Steuerung entzerren: Radar-Leiste ganz unten, Legenden eine Reihe darueber. */
+  .radar-leiste { bottom: 8px; }
+  .radar-legende,
+  .temp-legende { bottom: 58px; }
 }
 
 /* Erzwungene Schmal-Ansicht: mobiles Layout unabhaengig vom Viewport (fuer handy.html) */
