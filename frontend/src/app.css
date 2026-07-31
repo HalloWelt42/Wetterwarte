@@ -179,6 +179,11 @@ textarea,
   width: 26px;
   height: 26px;
 }
+.kopf-suche-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 440px;
+}
 .kopf-suche {
   flex: 1;
   max-width: 440px;
@@ -190,6 +195,29 @@ textarea,
   border-radius: var(--r2);
   padding: 0 var(--a3);
   height: 38px;
+}
+.kopf-suche-wrap .kopf-suche {
+  max-width: none;
+  width: 100%;
+}
+.kopf-suche-hg {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.kopf-suche-liste {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  box-shadow: var(--schatten-2);
+  z-index: 60;
+  padding: var(--a1);
 }
 .kopf-suche i {
   color: var(--text-3);

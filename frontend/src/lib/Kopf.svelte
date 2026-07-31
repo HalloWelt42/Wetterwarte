@@ -4,6 +4,7 @@
   import { ui } from "./ui.svelte";
   import { layoutState, setzeAktiv } from "./layout.svelte";
   import { hilfe } from "./hilfeStore.svelte";
+  import KopfSuche from "./KopfSuche.svelte";
 
   const iconMap: Record<string, string> = {
     Zuhause: "fa-house",
@@ -18,16 +19,7 @@
 
 <header class="kopf">
   <div class="marke"><img class="mc" src={meteocon("partly-cloudy-day")} alt="" /> Wetterwarte</div>
-  <div class="kopf-suche">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <input
-      type="text"
-      placeholder="Ort suchen ..."
-      readonly
-      onclick={() => (ui.ortssuche = true)}
-      onfocus={() => (ui.ortssuche = true)}
-    />
-  </div>
+  <KopfSuche />
   <div class="layout-tabs">
     {#each layoutState.liste as l}
       <button class:aktiv={layoutState.aktivId === l.id} onclick={() => setzeAktiv(l.id)}>

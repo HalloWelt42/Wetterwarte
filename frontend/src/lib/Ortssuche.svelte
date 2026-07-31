@@ -57,7 +57,7 @@
   </div>
   <div style="flex: 1; overflow-y: auto; padding: 0 var(--a4) var(--a4)">
     {#if laedt}
-      <div class="such-hinweis">Suche laeuft ...</div>
+      <div class="such-hinweis">Suche läuft ...</div>
     {:else if begriff.trim().length < 2}
       <div class="such-hinweis">Mindestens zwei Zeichen eingeben. Weltweite Suche.</div>
     {:else if treffer.length === 0}
