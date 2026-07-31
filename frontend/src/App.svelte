@@ -12,6 +12,7 @@
   import KachelEinstellungen from "./lib/KachelEinstellungen.svelte";
   import Ortssuche from "./lib/Ortssuche.svelte";
   import Dienste from "./lib/Dienste.svelte";
+  import DemoOrte from "./lib/DemoOrte.svelte";
   import { route } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts } from "./lib/layout.svelte";
@@ -57,5 +58,6 @@
 <Hilfe />
 {#if ui.layouts}<Layouts />{/if}
 {#if ui.ortssuche}<Ortssuche />{/if}
+{#if ui.demoOrte}<DemoOrte />{/if}
 {#if ui.einstellungen}<KachelEinstellungen />{/if}
 {#if ui.dienste}<Dienste />{/if}

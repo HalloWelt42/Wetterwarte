@@ -1,0 +1,45 @@
+"""Kuratierte Demo-Orte zum Ausprobieren und Vorfuehren: Orte mit Extremwetter und
+bekannte Orte weltweit. Koordinaten/Zeitzonen ueber die Geocoding-API verifiziert,
+drei manuell korrigiert (Cherrapunji, New York City, Mount Washington/NH).
+"""
+
+DEMO_ORTE: list[dict] = [
+    # --- Extremwetter ---
+    {"name": "Death Valley", "region": "Kalifornien", "land": "Vereinigte Staaten", "lat": 36.2396, "lon": -116.8113,
+     "zeitzone": "America/Los_Angeles", "kategorie": "extremwetter", "notiz": "Heißester Ort der Erde"},
+    {"name": "Oimjakon", "region": "Sacha", "land": "Russland", "lat": 63.4622, "lon": 142.7949,
+     "zeitzone": "Asia/Magadan", "kategorie": "extremwetter", "notiz": "Kältester bewohnter Ort"},
+    {"name": "Cherrapunji", "region": "Meghalaya", "land": "Indien", "lat": 25.3000, "lon": 91.5800,
+     "zeitzone": "Asia/Kolkata", "kategorie": "extremwetter", "notiz": "Einer der regenreichsten Orte"},
+    {"name": "Mount Washington", "region": "New Hampshire", "land": "Vereinigte Staaten", "lat": 44.2706, "lon": -71.3033,
+     "zeitzone": "America/New_York", "kategorie": "extremwetter", "notiz": "Berüchtigt für Sturmböen"},
+    {"name": "Ushuaia", "region": "Feuerland", "land": "Argentinien", "lat": -54.8108, "lon": -68.3159,
+     "zeitzone": "America/Argentina/Ushuaia", "kategorie": "extremwetter", "notiz": "Südlichste Stadt der Welt"},
+    {"name": "Reykjavík", "region": "Hauptstadtregion", "land": "Island", "lat": 64.1355, "lon": -21.8954,
+     "zeitzone": "Atlantic/Reykjavik", "kategorie": "extremwetter", "notiz": "Raues Nordatlantik-Wetter"},
+    {"name": "Dubai", "region": "Dubai", "land": "Vereinigte Arabische Emirate", "lat": 25.0772, "lon": 55.3093,
+     "zeitzone": "Asia/Dubai", "kategorie": "extremwetter", "notiz": "Extreme Wüstenhitze"},
+    {"name": "Timbuktu", "region": "Timbuktu", "land": "Mali", "lat": 16.7735, "lon": -3.0074,
+     "zeitzone": "Africa/Bamako", "kategorie": "extremwetter", "notiz": "Am Rand der Sahara"},
+    # --- Bekannte Orte ---
+    {"name": "Paris", "region": "Île-de-France", "land": "Frankreich", "lat": 48.8534, "lon": 2.3488,
+     "zeitzone": "Europe/Paris", "kategorie": "bekannt", "notiz": ""},
+    {"name": "London", "region": "England", "land": "Vereinigtes Königreich", "lat": 51.5085, "lon": -0.1257,
+     "zeitzone": "Europe/London", "kategorie": "bekannt", "notiz": ""},
+    {"name": "New York City", "region": "New York", "land": "Vereinigte Staaten", "lat": 40.7128, "lon": -74.0060,
+     "zeitzone": "America/New_York", "kategorie": "bekannt", "notiz": ""},
+    {"name": "Tokio", "region": "Tokio", "land": "Japan", "lat": 35.6895, "lon": 139.6917,
+     "zeitzone": "Asia/Tokyo", "kategorie": "bekannt", "notiz": ""},
+    {"name": "Sydney", "region": "New South Wales", "land": "Australien", "lat": -33.8678, "lon": 151.2073,
+     "zeitzone": "Australia/Sydney", "kategorie": "bekannt", "notiz": ""},
+    {"name": "Rio de Janeiro", "region": "Rio de Janeiro", "land": "Brasilien", "lat": -22.9064, "lon": -43.1822,
+     "zeitzone": "America/Sao_Paulo", "kategorie": "bekannt", "notiz": ""},
+    {"name": "Kapstadt", "region": "Westkap", "land": "Südafrika", "lat": -33.9258, "lon": 18.4232,
+     "zeitzone": "Africa/Johannesburg", "kategorie": "bekannt", "notiz": ""},
+    {"name": "Singapur", "region": "", "land": "Singapur", "lat": 1.2897, "lon": 103.8501,
+     "zeitzone": "Asia/Singapore", "kategorie": "bekannt", "notiz": ""},
+    {"name": "Moskau", "region": "Moskau", "land": "Russland", "lat": 55.7520, "lon": 37.6178,
+     "zeitzone": "Europe/Moscow", "kategorie": "bekannt", "notiz": ""},
+    {"name": "Rom", "region": "Latium", "land": "Italien", "lat": 41.8919, "lon": 12.5113,
+     "zeitzone": "Europe/Rome", "kategorie": "bekannt", "notiz": ""},
+]

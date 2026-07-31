@@ -48,6 +48,9 @@
 <nav class="nav">
   <div class="nav-titel">
     Orte
+    <button class="plus" title="Demo-Orte (Extremwetter + bekannte Orte)" aria-label="Demo-Orte" onclick={() => (ui.demoOrte = true)}>
+      <i class="fa-solid fa-earth-americas"></i>
+    </button>
     <button class="plus" title="Ort suchen und hinzufügen" aria-label="Ort suchen und hinzufügen" onclick={() => (ui.ortssuche = true)}>
       <i class="fa-solid fa-plus"></i>
     </button>

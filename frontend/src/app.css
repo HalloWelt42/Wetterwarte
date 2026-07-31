@@ -2929,3 +2929,53 @@ button.nav-eintrag {
 .sp-fertig {
   margin: 0;
 }
+
+/* Demo-Orte-Auswahl */
+.demo-liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--a2);
+  margin-top: var(--a2);
+}
+.demo-ort {
+  display: flex;
+  align-items: center;
+  gap: var(--a2);
+  text-align: left;
+  padding: var(--a2) var(--a3);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  background: var(--flaeche);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.12s, background 0.12s;
+}
+.demo-ort:hover:not(:disabled) {
+  border-color: var(--akzent);
+  background: var(--flaeche-2);
+}
+.demo-ort:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+.demo-ort.demo-da {
+  border-color: color-mix(in srgb, var(--gut) 45%, var(--rand));
+}
+.demo-ort > i {
+  margin-left: auto;
+  color: var(--akzent);
+  flex-shrink: 0;
+}
+.demo-ort.demo-da > i {
+  color: var(--gut);
+}
+.demo-haupt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.demo-notiz {
+  line-height: 1.25;
+}

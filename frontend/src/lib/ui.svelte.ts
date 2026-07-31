@@ -6,6 +6,7 @@ export const ui = $state<{
   ortssuche: boolean;
   einstellungen: boolean; // Einstellungs-Modal offen (welche Kachel steht in kachelConf)
   dienste: boolean; // System- & Dienste-Uebersicht
+  demoOrte: boolean; // Demo-Orte-Auswahl (Extremwetter + bekannte Orte)
 }>({
   katalog: false,
   hilfe: false,
@@ -13,4 +14,5 @@ export const ui = $state<{
   ortssuche: false,
   einstellungen: false,
   dienste: false,
+  demoOrte: false,
 });

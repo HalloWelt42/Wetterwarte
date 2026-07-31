@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import ortsdienst
 from ..db import get_session
+from ..demo_orte import DEMO_ORTE
 from ..models.ort import Ort
 from ..providers import geocoding
 from ..schemas.envelope import wrap
@@ -29,6 +30,12 @@ class OrtEingabe(BaseModel):
 @router.get("")
 async def liste() -> dict:
     return wrap([o.model_dump() for o in await ortsdienst.alle()])
+
+
+@router.get("/demo")
+async def demo() -> dict:
+    """Kuratierte Demo-Orte (Extremwetter + bekannte Orte) zum Ausprobieren/Vorfuehren."""
+    return wrap(DEMO_ORTE)
 
 
 @router.get("/suche")
