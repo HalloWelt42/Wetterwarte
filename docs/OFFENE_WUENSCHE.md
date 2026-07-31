@@ -28,8 +28,14 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 
 - [x] Overlays Temperatur (Farbfeld, auf Deutschland zugeschnitten, Maus-Hover + Legende) + Wind (Richtungspfeile, auf DE zugeschnitten, Klick-Popup); Blitz-Menge einstellbar; Warn-Popup dunkelmodusfest + zeigt alle Ueberlappungen (v0.37-0.38.1)
 
+- [x] Offline-Kartencache (Server): Kacheln themengetrennt auf Platte (Bind-Mount), Fuell-Bot (Deutschland + Wohnort-gewichtet) mit Fortschritt/Fehler/Fertig, Speicher-Statistik je Thema in den Einstellungen (v0.39.0)
+
 ## Offen
 - [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch
+- [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
+- [ ] Rettungsring/Onboarding fuer Erstnutzer + Spendenlogik (Spendenherz, Overlay, Pulsieren)
+- [ ] README mit Screenshot (OHNE den Ort "Zeitz") + Lizenzpruefung (Referenz RadioHub)
+- [ ] Mobile-Ansicht optimieren - ganz zum Schluss
 - [ ] Offline-Cache themengetrennt; Speicher-Statistik sichtbar; Prozessbalken bei Daten-Aggregation in den Einstellungen mit vollstaendiger Fehler-/Fertig-Logik; Fuell-Bot (naeher am Wohnort mehr, Satellit progressiv)
 - [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
 - [ ] Rettungsring / Onboarding fuer Erstnutzer (Muster wie im Projekt RadioHub)
