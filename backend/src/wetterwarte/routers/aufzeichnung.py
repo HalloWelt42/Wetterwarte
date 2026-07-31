@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body
 from sqlalchemy import func
 from sqlmodel import select
 
-from .. import ortsdienst
+from .. import ortsdienst, recorder
 from ..db import SessionLocal
 from ..models.aufzeichnung import AufzeichnungOrt
 from ..models.messwert import Messwert
@@ -48,7 +48,25 @@ async def liste() -> dict:
                 "anzahl": int(anzahl.get(o.slug, 0)),
             }
         )
-    return wrap({"orte": eintraege, "verfuegbar": [{"wert": v, "label": LABELS[v]} for v in STANDARD_VARS]})
+    return wrap(
+        {
+            "orte": eintraege,
+            "verfuegbar": [{"wert": v, "label": LABELS[v]} for v in STANDARD_VARS],
+            "takt": {
+                "intervall_min": await recorder.intervall_min(),
+                "min": recorder.MIN_INTERVALL_MIN,
+                "max": recorder.MAX_INTERVALL_MIN,
+                "standard": recorder.STD_INTERVALL_MIN,
+            },
+        }
+    )
+
+
+@router.put("/takt")
+async def takt_setzen(koerper: dict = Body(...)) -> dict:
+    """Aufzeichnungs-Takt (Minuten zwischen zwei Messpunkten) global setzen."""
+    minuten = int(koerper.get("intervall_min", recorder.STD_INTERVALL_MIN))
+    return wrap({"intervall_min": await recorder.setze_intervall(minuten)})
 
 
 @router.put("/{ort}")

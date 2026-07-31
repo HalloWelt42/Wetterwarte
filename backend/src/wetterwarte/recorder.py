@@ -1,8 +1,11 @@
 """Hintergrund-Recorder: schreibt ausgewaehlte Messwerte periodisch in die Postgres.
 
 Beim ersten Start wird das Archiv mit der stuendlichen Temperatur der letzten
-30 Tage befuellt (Open-Meteo), danach werden alle 10 Minuten die aktuellen
-Werte fortgeschrieben. Der Zustand liegt in der Datenbank, nicht im Speicher.
+30 Tage befuellt (Open-Meteo), danach werden im eingestellten Takt (Standard
+10 Minuten) die aktuellen Werte fortgeschrieben. Fuer aussagekraeftige Statistik
+- gerade bei kleinschrittigen Einzelwerten - ist ein enger Takt sinnvoll. Der
+Takt ist im UI (Aufzeichnungs-Manager) sichtbar und einstellbar; der Zustand
+liegt in der Datenbank, nicht im Speicher.
 """
 
 import asyncio
@@ -13,13 +16,47 @@ from sqlmodel import select
 from . import klima_aggregat, ortsdienst, radar_archiv
 from .db import SessionLocal
 from .models.aufzeichnung import AufzeichnungOrt
+from .models.einstellung import Einstellung
 from .models.messwert import Messwert
 from .providers import luftqualitaet, openmeteo
 
-INTERVALL_SEKUNDEN = 600
+# Aufzeichnungs-Takt in Minuten: Standard 10, grosszuegig einstellbar. Untere
+# Grenze eng genug fuer feine Einzelwerte, obere Grenze noch statistiktauglich.
+STD_INTERVALL_MIN = 10
+MIN_INTERVALL_MIN = 5
+MAX_INTERVALL_MIN = 60
+INTERVALL_SCHLUESSEL = "aufzeichnung_intervall_min"
+
 BASIS_VARS = {"temperatur", "feuchte", "wind", "druck"}
 LUFT_VARS = {"aqi", "pm2_5", "pm10", "o3", "no2"}
 STANDARD_VARS = BASIS_VARS | LUFT_VARS
+
+
+def _klemme(minuten: int) -> int:
+    return max(MIN_INTERVALL_MIN, min(MAX_INTERVALL_MIN, minuten))
+
+
+async def intervall_min() -> int:
+    """Eingestellter Aufzeichnungs-Takt in Minuten (geklemmt auf den erlaubten Bereich)."""
+    async with SessionLocal() as session:
+        row = await session.get(Einstellung, INTERVALL_SCHLUESSEL)
+    try:
+        return _klemme(int(row.wert)) if row else STD_INTERVALL_MIN
+    except (ValueError, AttributeError):
+        return STD_INTERVALL_MIN
+
+
+async def setze_intervall(minuten: int) -> int:
+    """Aufzeichnungs-Takt setzen; gibt den tatsaechlich gespeicherten (geklemmten) Wert zurueck."""
+    wert = _klemme(int(minuten))
+    async with SessionLocal() as session:
+        row = await session.get(Einstellung, INTERVALL_SCHLUESSEL)
+        if row is not None:
+            row.wert = str(wert)
+        else:
+            session.add(Einstellung(schluessel=INTERVALL_SCHLUESSEL, wert=str(wert)))
+        await session.commit()
+    return wert
 
 
 async def _auswahl() -> dict[str, tuple[bool, set[str]]]:
@@ -106,4 +143,5 @@ async def schleife() -> None:
             await radar_archiv.schnappschuss()
         except Exception:
             pass
-        await asyncio.sleep(INTERVALL_SEKUNDEN)
+        # Takt jeden Zyklus frisch lesen: Aenderungen im UI wirken ab dem naechsten Durchlauf.
+        await asyncio.sleep(await intervall_min() * 60)

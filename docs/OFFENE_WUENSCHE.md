@@ -39,6 +39,7 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Redundanten Karten-Overlay "Niederschlag-Nowcast" entfernt (steckt bereits im Radar-Overlay) (v0.41.0)
 - [x] Deep-Links ohne Hash: Ansicht + Ort in der URL (History-API), neuladefest und teilbar (v0.41.0)
 - [x] Dark-Mode-Schriftkontrast angehoben; Overlay-Stapelordnung (z-index) vereinheitlicht, Hilfe-Fenster tritt beim Oeffnen eines Modals zurueck (v0.41.0)
+- [x] Aufzeichnungs-Takt einstellbar (5-60 min, Standard 10) im Aufzeichnungs-Manager; loest den fest verdrahteten 10-min-Takt ab (v0.42.0)
 
 ## Offen
 - [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch

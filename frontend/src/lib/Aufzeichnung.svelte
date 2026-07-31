@@ -26,17 +26,29 @@
     neuest: string | null;
     bytes: number;
   }
+  interface Takt {
+    intervall_min: number;
+    min: number;
+    max: number;
+    standard: number;
+  }
 
   let orte = $state<Eintrag[]>([]);
   let verfuegbar = $state<VarDef[]>([]);
   let geladen = $state(false);
   let radar = $state<RadarArchiv | null>(null);
+  let takt = $state<Takt | null>(null);
+
+  // Auswahl an Takt-Stufen (Minuten), auf den erlaubten Bereich begrenzt.
+  const taktStufen = $derived((takt ? [5, 10, 15, 20, 30, 45, 60] : []).filter((m) => takt && m >= takt.min && m <= takt.max));
+  const taktMin = $derived(takt?.intervall_min ?? 10);
 
   async function lade(): Promise<void> {
     try {
-      const d = await hole<{ orte: Eintrag[]; verfuegbar: VarDef[] }>("/aufzeichnung");
+      const d = await hole<{ orte: Eintrag[]; verfuegbar: VarDef[]; takt: Takt }>("/aufzeichnung");
       orte = d.orte;
       verfuegbar = d.verfuegbar;
+      takt = d.takt;
     } catch {
       /* leer lassen */
     }
@@ -48,6 +60,15 @@
     geladen = true;
   }
   onMount(lade);
+
+  async function setzeTakt(minuten: number): Promise<void> {
+    try {
+      const d = await sende<{ intervall_min: number }>("/aufzeichnung/takt", "PUT", { intervall_min: minuten });
+      if (takt) takt = { ...takt, intervall_min: d.intervall_min };
+    } catch {
+      /* still */
+    }
+  }
 
   async function setzeRadar(aktiv: boolean, stunden: number): Promise<void> {
     try {
@@ -93,6 +114,24 @@
       Die PostgreSQL zeichnet ausgewählte Orte langfristig auf. Lege je Ort und Variable fest, was dauerhaft
       archiviert wird. Neue Orte werden automatisch aufgezeichnet, bis du es hier änderst.
     </p>
+
+    {#if takt}
+      <div class="panel">
+        <h2><i class="fa-solid fa-clock"></i> Aufzeichnungs-Takt</h2>
+        <p class="unter">
+          Abstand zwischen zwei Messpunkten. Ein enger Takt liefert mehr Auflösung für die Statistik - gerade bei
+          kleinschrittigen Einzelwerten. Gilt für alle aufgezeichneten Orte und Variablen.
+        </p>
+        <div class="formzeile">
+          <label for="takt-wahl">Alle</label>
+          <select id="takt-wahl" class="feld" value={takt.intervall_min} onchange={(e) => setzeTakt(+e.currentTarget.value)}>
+            {#each taktStufen as m}
+              <option value={m}>{m} Minuten{m === takt.standard ? " (Standard)" : ""}</option>
+            {/each}
+          </select>
+        </div>
+      </div>
+    {/if}
 
     <div class="panel">
       <h2><i class="fa-solid fa-database"></i> Aufgezeichnete Orte</h2>
@@ -147,7 +186,7 @@
         </div>
         <p class="unter">
           Gespeichert: <b class="tnum">{radar.anzahl}</b> Frames &middot; <b class="tnum">{fmtBytes(radar.bytes)}</b>
-          {#if radarZeitraum}&middot; {radarZeitraum}{/if}. Neue Frames kommen alle 10 Minuten dazu.
+          {#if radarZeitraum}&middot; {radarZeitraum}{/if}. Neue Frames kommen alle {taktMin} Minuten dazu.
         </p>
       {/if}
     </div>
@@ -156,7 +195,7 @@
       <h2><i class="fa-solid fa-hard-drive"></i> Archiv</h2>
       <p class="unter">
         Insgesamt <b class="tnum">{gesamt.toLocaleString("de-DE")}</b> gespeicherte Messwerte über {orte.length}
-        {orte.length === 1 ? "Ort" : "Orte"}. Neue Werte kommen alle 10 Minuten dazu; der Verlauf steht in der
+        {orte.length === 1 ? "Ort" : "Orte"}. Neue Werte kommen alle {taktMin} Minuten dazu; der Verlauf steht in der
         Historie-Kachel und unter Archiv zur Verfügung.
       </p>
     </div>
