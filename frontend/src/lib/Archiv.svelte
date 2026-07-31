@@ -4,12 +4,11 @@
   import { orteState } from "./orte.svelte";
   import HilfeLink from "./HilfeLink.svelte";
 
-  const variablen = [
-    { slug: "temperatur", label: "Temperatur", einheit: "°" },
-    { slug: "wind", label: "Wind", einheit: " km/h" },
-    { slug: "druck", label: "Luftdruck", einheit: " hPa" },
-    { slug: "feuchte", label: "Feuchte", einheit: " %" },
-  ];
+  interface VarDef {
+    slug: string;
+    label: string;
+    einheit: string;
+  }
   const zeitraeume = [
     { tage: 7, label: "7 Tage" },
     { tage: 30, label: "30 Tage" },
@@ -20,12 +19,27 @@
   let variable = $state("temperatur");
   let tage = $state(30);
   let verlauf = $state<{ tag: string; wert: number }[]>([]);
+  let variablen = $state<VarDef[]>([]);
 
   const einheit = $derived(variablen.find((v) => v.slug === variable)?.einheit ?? "");
 
   // Erste vorhandene Station vorwaehlen, sobald die Orte geladen sind.
   $effect(() => {
     if (!station && orteState.liste.length) station = orteState.liste[0].slug;
+  });
+
+  // Verfuegbare Variablen dynamisch aus dem Archiv des Ortes laden (alle aufgezeichneten).
+  $effect(() => {
+    const o = station;
+    if (!o) return;
+    hole<VarDef[]>(`/archiv/variablen?ort=${o}`)
+      .then((liste) => {
+        variablen = liste;
+        if (liste.length && !liste.some((v) => v.slug === variable)) variable = liste[0].slug;
+      })
+      .catch(() => {
+        variablen = [];
+      });
   });
 
   async function laden(o: string, v: string, t: number): Promise<void> {
