@@ -57,12 +57,15 @@
       void ladeBlitze();
     });
     map.on("moveend", () => void ladeBlitze());
+    map.on("mousemove", beiMausTemp);
+    map.on("mouseout", () => (tempHover = null));
     blitzTimer = setInterval(() => void ladeBlitze(), 30000);
     return () => {
       clearInterval(blitzTimer);
       stoppeRadar();
       if (radarRahmenTimer) clearInterval(radarRahmenTimer);
       if (warnTimer) clearInterval(warnTimer);
+      if (gitterTimer) clearInterval(gitterTimer);
       ortMarker?.remove();
       map?.remove();
     };
@@ -188,6 +191,191 @@
       if (warnTimer) clearInterval(warnTimer);
       warnTimer = undefined;
     }
+  });
+
+  // --- Temperatur-Feld + Wind-Pfeile (Open-Meteo-Gitter, gemeinsamer Abruf) ---
+  const TEMP_COORDS: [[number, number], [number, number], [number, number], [number, number]] = [
+    [5.8, 55.1],
+    [15.1, 55.1],
+    [15.1, 47.2],
+    [5.8, 47.2],
+  ];
+  let tempGebaut = false;
+  let windGebaut = false;
+  let windBilder = false;
+  let gitterTimer: ReturnType<typeof setInterval> | undefined;
+  let tempVersion = 0;
+  const tempUrl = () => `/api/v1/wetter/temperatur.png?v=${tempVersion}`;
+  const WIND_FARBEN = ["#9aa5b1", "#38bdf8", "#34d399", "#fb923c", "#ef4444"];
+
+  function windPfeilBild(farbe: string): ImageData {
+    const s = 26;
+    const c = document.createElement("canvas");
+    c.width = s;
+    c.height = s;
+    const x = c.getContext("2d")!;
+    x.translate(s / 2, s / 2);
+    x.lineCap = "round";
+    x.lineJoin = "round";
+    const pfeil = () => {
+      x.beginPath();
+      x.moveTo(0, 8);
+      x.lineTo(0, -8);
+      x.moveTo(-4, -3);
+      x.lineTo(0, -9);
+      x.lineTo(4, -3);
+      x.stroke();
+    };
+    x.strokeStyle = "rgba(0,0,0,0.4)";
+    x.lineWidth = 3.4;
+    pfeil();
+    x.strokeStyle = farbe;
+    x.lineWidth = 1.8;
+    pfeil();
+    return x.getImageData(0, 0, s, s);
+  }
+
+  function windBilderLaden(): void {
+    if (!map || windBilder) return;
+    WIND_FARBEN.forEach((f, i) => {
+      const id = `wind${i}`;
+      if (!map!.hasImage(id)) map!.addImage(id, windPfeilBild(f));
+    });
+    windBilder = true;
+  }
+
+  function baueTempEbene(): void {
+    if (!map || map.getSource("temperatur")) return;
+    tempVersion++;
+    map.addSource("temperatur", { type: "image", url: tempUrl(), coordinates: TEMP_COORDS });
+    const drueber = ["warn-fill", "radar", "beschriftung"].find((id) => map!.getLayer(id));
+    map.addLayer(
+      {
+        id: "temperatur",
+        type: "raster",
+        source: "temperatur",
+        layout: { visibility: karteEinst.overlays.temperatur ? "visible" : "none" },
+        paint: { "raster-opacity": 1, "raster-fade-duration": 0, "raster-resampling": "linear" },
+      },
+      drueber,
+    );
+    tempGebaut = true;
+  }
+
+  function baueWindEbene(): void {
+    if (!map || map.getSource("wind")) return;
+    windBilderLaden();
+    map.addSource("wind", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "wind",
+      type: "symbol",
+      source: "wind",
+      layout: {
+        "icon-image": ["match", ["get", "stufe"], 0, "wind0", 1, "wind1", 2, "wind2", 3, "wind3", 4, "wind4", "wind1"],
+        "icon-rotate": ["+", ["get", "richtung"], 180],
+        "icon-rotation-alignment": "map",
+        "icon-size": ["interpolate", ["linear"], ["get", "tempo"], 0, 0.5, 45, 1.15],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+        visibility: karteEinst.overlays.wind ? "visible" : "none",
+      },
+    });
+    map.on("click", "wind", (e) => {
+      const p = e.features?.[0]?.properties as Record<string, number> | undefined;
+      if (!p || !map) return;
+      const ri = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"][Math.round((p.richtung ?? 0) / 45) % 8];
+      new maplibregl.Popup({ closeButton: true, maxWidth: "200px" })
+        .setLngLat(e.lngLat)
+        .setHTML(`<strong>${p.tempo} km/h</strong><br><small>aus ${ri}</small>`)
+        .addTo(map);
+    });
+    windGebaut = true;
+  }
+
+  async function ladeGitter(): Promise<void> {
+    if (!map) return;
+    try {
+      const d = (await (await fetch("/api/v1/wetter/kartendaten")).json()).data as {
+        wind: GeoJSON.FeatureCollection;
+        temp: TempGitter;
+      };
+      (map.getSource("wind") as maplibregl.GeoJSONSource | undefined)?.setData(d.wind);
+      tempGitter = d.temp;
+      tempVersion++;
+      (map.getSource("temperatur") as maplibregl.ImageSource | undefined)?.updateImage({ url: tempUrl() });
+    } catch {
+      // still ignorieren
+    }
+  }
+
+  // Temperatur an einer Position bilinear aus dem Gitter interpolieren (fuer den Hover).
+  interface TempGitter {
+    lons: number[];
+    lats: number[];
+    werte: number[][];
+  }
+  let tempGitter: TempGitter | null = null;
+  let tempHover = $state<{ x: number; y: number; wert: number } | null>(null);
+
+  function tempBei(lon: number, lat: number): number | null {
+    const t = tempGitter;
+    if (!t) return null;
+    const { lons, lats, werte } = t;
+    if (lon < lons[0] || lon > lons[lons.length - 1] || lat < lats[0] || lat > lats[lats.length - 1]) return null;
+    let j = 0;
+    while (j < lons.length - 2 && lons[j + 1] < lon) j++;
+    let i = 0;
+    while (i < lats.length - 2 && lats[i + 1] < lat) i++;
+    const fx = (lon - lons[j]) / (lons[j + 1] - lons[j]);
+    const fy = (lat - lats[i]) / (lats[i + 1] - lats[i]);
+    return (
+      werte[i][j] * (1 - fx) * (1 - fy) +
+      werte[i][j + 1] * fx * (1 - fy) +
+      werte[i + 1][j] * (1 - fx) * fy +
+      werte[i + 1][j + 1] * fx * fy
+    );
+  }
+
+  function beiMausTemp(e: maplibregl.MapMouseEvent): void {
+    if (!karteEinst.overlays.temperatur || !tempGitter) {
+      if (tempHover) tempHover = null;
+      return;
+    }
+    const w = tempBei(e.lngLat.lng, e.lngLat.lat);
+    tempHover = w === null ? null : { x: e.point.x, y: e.point.y, wert: w };
+  }
+
+  function gitterTaktSichern(): void {
+    const aktiv = karteEinst.overlays.temperatur || karteEinst.overlays.wind;
+    if (aktiv && !gitterTimer) gitterTimer = setInterval(() => void ladeGitter(), 600000);
+    if (!aktiv && gitterTimer) {
+      clearInterval(gitterTimer);
+      gitterTimer = undefined;
+    }
+  }
+
+  // Temperatur-Feld an den Schalter koppeln.
+  $effect(() => {
+    const an = karteEinst.overlays.temperatur;
+    if (an && !tempGebaut) {
+      baueTempEbene();
+      void ladeGitter();
+    } else if (map?.getLayer("temperatur")) {
+      map.setLayoutProperty("temperatur", "visibility", an ? "visible" : "none");
+    }
+    gitterTaktSichern();
+  });
+
+  // Wind-Pfeile an den Schalter koppeln.
+  $effect(() => {
+    const an = karteEinst.overlays.wind;
+    if (an && !windGebaut) {
+      baueWindEbene();
+      void ladeGitter();
+    } else if (map?.getLayer("wind")) {
+      map.setLayoutProperty("wind", "visibility", an ? "visible" : "none");
+    }
+    gitterTaktSichern();
   });
 
   // --- Blitze (Live-Ebene aus dem lightningmap-Dienst) ---
@@ -612,6 +800,20 @@
         <span class="rl-chip" style="background: #fa9e33; color: #1f2933">10</span>
         <span class="rl-chip" style="background: #eb4d33">20</span>
         <span class="rl-chip" style="background: #bf33bf">40+</span>
+      </div>
+    {/if}
+
+    {#if tempHover && karteEinst.overlays.temperatur}
+      <div class="temp-hover tnum" style="left: {tempHover.x}px; top: {tempHover.y}px; z-index: 4;">
+        {tempHover.wert.toFixed(1)}°C
+      </div>
+    {/if}
+
+    {#if karteEinst.overlays.temperatur}
+      <div class="temp-legende" style="z-index: 3;">
+        <span class="tl-titel">Temperatur °C</span>
+        <span class="tl-bar"></span>
+        <span class="tl-marks tnum"><i>-10</i><i>0</i><i>10</i><i>20</i><i>30</i><i>40</i></span>
       </div>
     {/if}
 

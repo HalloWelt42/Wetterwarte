@@ -15,12 +15,12 @@ from datetime import datetime, timedelta
 from typing import TypeVar
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 
 from .. import cache, klima_aggregat, ortsdienst
 from ..db import SessionLocal
 from ..models.klima import KlimaNormale
-from ..providers import blitze, klima, luftqualitaet, openmeteo, pollen_dwd, warnpolygone, warnungen
+from ..providers import blitze, karten_gitter, klima, luftqualitaet, openmeteo, pollen_dwd, warnpolygone, warnungen
 from ..schemas.envelope import wrap
 
 router = APIRouter(prefix="/wetter", tags=["wetter"])
@@ -163,6 +163,25 @@ async def pollen_ep(ort: str) -> dict:
 async def warnkarte_ep() -> dict:
     """Amtliche Warn-Polygone (ganz Deutschland) als GeoJSON fuer das Karten-Overlay."""
     return wrap(await warnpolygone.hole())
+
+
+@router.get("/kartendaten")
+async def kartendaten_ep() -> dict:
+    """Overlay-Daten (Temperatur-Bild-Ecken + Wind-Gitter) in einem Abruf."""
+    try:
+        return wrap(await karten_gitter.kartendaten())
+    except Exception as fehler:
+        raise HTTPException(status_code=502, detail=f"Gitterdaten nicht erreichbar: {fehler}") from fehler
+
+
+@router.get("/temperatur.png")
+async def temperatur_png_ep() -> Response:
+    """Temperatur als glattes Farbfeld (halbtransparentes PNG) fuer das Karten-Overlay."""
+    try:
+        png = await karten_gitter.temperatur_png()
+    except Exception as fehler:
+        raise HTTPException(status_code=502, detail=f"Temperaturfeld nicht erreichbar: {fehler}") from fehler
+    return Response(content=png, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})
 
 
 @router.get("/klima/{ort}")

@@ -2140,6 +2140,64 @@ textarea,
   min-width: 16px;
   text-align: center;
 }
+/* Temperatur am Mauszeiger (folgt dem Cursor ueber dem Temperatur-Feld). */
+.temp-hover {
+  position: absolute;
+  transform: translate(12px, -50%);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--flaeche);
+  color: var(--text);
+  border: 1px solid var(--rand);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--schatten-1);
+}
+/* Temperatur-Legende (Farbverlauf) - unten links. */
+.temp-legende {
+  position: absolute;
+  left: var(--a4);
+  bottom: 34px;
+  width: 190px;
+  padding: 6px 9px 5px;
+  border-radius: var(--r2);
+  background: color-mix(in srgb, var(--flaeche) 88%, transparent);
+  border: 1px solid var(--rand);
+  box-shadow: var(--schatten-1);
+  backdrop-filter: blur(6px);
+}
+.temp-legende .tl-titel {
+  font-size: 0.68rem;
+  color: var(--text-2);
+}
+.temp-legende .tl-bar {
+  display: block;
+  height: 8px;
+  margin: 4px 0 2px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    #3136 0%,
+    #4575b4 0%,
+    #74add1 20%,
+    #abd9e9 30%,
+    #e0f3f8 40%,
+    #ffffbf 56%,
+    #fee090 64%,
+    #fdae61 72%,
+    #f46d43 80%,
+    #d73027 90%,
+    #a50026 100%
+  );
+}
+.temp-legende .tl-marks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.56rem;
+  color: var(--text-3);
+}
 
 /* Kachel-Platzhalter beim Ziehen */
 .kachel-platz {
