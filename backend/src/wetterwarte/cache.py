@@ -22,3 +22,11 @@ async def setze(schluessel: str, wert: object, ttl: int) -> None:
         await _redis.set(schluessel, json.dumps(wert), ex=ttl)
     except Exception:
         pass
+
+
+async def erreichbar() -> bool:
+    """Prueft, ob der Redis-Cache antwortet (fuer die Dienste-Uebersicht)."""
+    try:
+        return bool(await _redis.ping())
+    except Exception:
+        return False

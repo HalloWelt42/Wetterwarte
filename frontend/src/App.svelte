@@ -11,6 +11,7 @@
   import Layouts from "./lib/Layouts.svelte";
   import KachelEinstellungen from "./lib/KachelEinstellungen.svelte";
   import Ortssuche from "./lib/Ortssuche.svelte";
+  import Dienste from "./lib/Dienste.svelte";
   import { route } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts } from "./lib/layout.svelte";
@@ -57,3 +58,4 @@
 {#if ui.layouts}<Layouts />{/if}
 {#if ui.ortssuche}<Ortssuche />{/if}
 {#if ui.einstellungen}<KachelEinstellungen />{/if}
+{#if ui.dienste}<Dienste />{/if}

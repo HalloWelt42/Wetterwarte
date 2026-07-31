@@ -1004,6 +1004,64 @@ textarea,
   z-index: 3;
 }
 
+/* Dienste-Uebersicht */
+.dienst-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a1);
+}
+.dienst-zeile {
+  display: flex;
+  align-items: center;
+  gap: var(--a3);
+  padding: var(--a2) var(--a3);
+  background: var(--flaeche-2);
+  border: 1px solid var(--rand);
+  border-radius: var(--r1);
+}
+.dienst-punkt {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.dienst-punkt.status-ok {
+  background: var(--gut);
+  box-shadow: 0 0 0 3px var(--gut-weich);
+}
+.dienst-punkt.status-gestoert {
+  background: var(--warn);
+  box-shadow: 0 0 0 3px var(--warn-weich);
+}
+.dienst-punkt.status-offline {
+  background: var(--gefahr);
+  box-shadow: 0 0 0 3px var(--gefahr-weich);
+}
+.dienst-haupt {
+  flex: 1;
+  min-width: 0;
+}
+.dienst-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  flex: none;
+}
+.status-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.status-label.status-ok {
+  color: var(--gut);
+}
+.status-label.status-gestoert {
+  color: var(--warn);
+}
+.status-label.status-offline {
+  color: var(--gefahr);
+}
+
 /* Echte MapLibre-Mini-Karte in der Dashboard-Kachel */
 .mini-karte {
   flex: 1;

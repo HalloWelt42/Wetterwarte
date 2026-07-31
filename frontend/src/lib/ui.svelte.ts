@@ -5,10 +5,12 @@ export const ui = $state<{
   layouts: boolean;
   ortssuche: boolean;
   einstellungen: boolean; // Einstellungs-Modal offen (welche Kachel steht in kachelConf)
+  dienste: boolean; // System- & Dienste-Uebersicht
 }>({
   katalog: false,
   hilfe: false,
   layouts: false,
   ortssuche: false,
   einstellungen: false,
+  dienste: false,
 });
