@@ -3,36 +3,14 @@
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
-  import { lies, schreib } from "./speicher";
   import HilfeLink from "./HilfeLink.svelte";
-
-  const OVERLAYS_STANDARD: Record<string, boolean> = {
-    blitze: true,
-    warnungen: false,
-    radar: false,
-    wind: false,
-    nowcast: false,
-    temperatur: false,
-  };
+  import { karteEinst, kachelUrl } from "./karteEinst.svelte";
 
   let kartenEl: HTMLDivElement;
   let map: maplibregl.Map | undefined;
   let ortMarker: maplibregl.Marker | undefined;
-  // Gemerkte Einstellungen (localStorage) laden.
-  let basis = $state<"hell" | "dunkel" | "satellit">(lies("karte.basis", "hell"));
-  let overlays = $state<Record<string, boolean>>({ ...OVERLAYS_STANDARD, ...lies("karte.overlays", {}) });
 
-  // ... und bei Aenderung merken.
-  $effect(() => schreib("karte.basis", basis));
-  $effect(() => schreib("karte.overlays", overlays));
-
-  // Orientierungs-Overlay (Beschriftung, Grenzen, Strassen) - optional einblendbar,
-  // vor allem fuer Satellit und die datenarme Dunkelkarte. Nutzt die detailreichen
-  // voyager-Kacheln halbtransparent ueber der Basiskarte.
-  let orientierung = $state<boolean>(lies("karte.orientierung", false));
-  $effect(() => schreib("karte.orientierung", orientierung));
-
-  // Overlays, die schon Daten haben, zuerst; die uebrigen kommen Schritt fuer Schritt.
+  // Overlay-Namen fuer das Ebenen-Panel.
   const overlayNamen: [string, string][] = [
     ["blitze", "Blitze"],
     ["warnungen", "Warnungen"],
@@ -42,8 +20,7 @@
     ["temperatur", "Temperatur"],
   ];
 
-  const provider: Record<string, string> = { hell: "light", dunkel: "dark", satellit: "satellite" };
-  const kacheln = (b: string): string[] => [`/kachel/${provider[b] ?? "light"}/{z}/{x}/{y}`];
+  const kacheln = kachelUrl;
 
   function aktiverOrt(): [number, number] {
     const o = orteState.liste.find((x) => x.slug === wetter.slug);
@@ -56,14 +33,14 @@
       style: {
         version: 8,
         sources: {
-          basis: {
+          grund: {
             type: "raster",
-            tiles: kacheln(basis),
+            tiles: kacheln(karteEinst.basis),
             tileSize: 256,
             attribution: "© OpenStreetMap, © CARTO",
           },
         },
-        layers: [{ id: "basis", type: "raster", source: "basis" }],
+        layers: [{ id: "grund", type: "raster", source: "grund" }],
       },
       center: aktiverOrt(),
       zoom: 7,
@@ -89,25 +66,25 @@
 
   // --- Orientierungs-Overlay (voyager: Beschriftung, Grenzen, Strassen) ---
   function baueOrientierung(): void {
-    if (!map || map.getSource("orientierung")) return;
-    map.addSource("orientierung", { type: "raster", tiles: ["/kachel/voyager/{z}/{x}/{y}"], tileSize: 256 });
+    if (!map || map.getSource("beschriftung")) return;
+    map.addSource("beschriftung", { type: "raster", tiles: ["/kachel/voyager/{z}/{x}/{y}"], tileSize: 256 });
     map.addLayer({
-      id: "orientierung",
+      id: "beschriftung",
       type: "raster",
-      source: "orientierung",
-      layout: { visibility: orientierung ? "visible" : "none" },
-      paint: { "raster-opacity": basis === "satellit" ? 0.5 : 0.7 },
+      source: "beschriftung",
+      layout: { visibility: karteEinst.orientierung ? "visible" : "none" },
+      paint: { "raster-opacity": karteEinst.basis === "satellit" ? 0.5 : 0.7 },
     });
   }
   // Ein-/Ausblenden.
   $effect(() => {
-    const an = orientierung;
-    if (map?.getLayer("orientierung")) map.setLayoutProperty("orientierung", "visibility", an ? "visible" : "none");
+    const an = karteEinst.orientierung;
+    if (map?.getLayer("beschriftung")) map.setLayoutProperty("beschriftung", "visibility", an ? "visible" : "none");
   });
   // Deckkraft je Basiskarte (Satellitenbild soll durchscheinen).
   $effect(() => {
-    const b = basis;
-    if (map?.getLayer("orientierung")) map.setPaintProperty("orientierung", "raster-opacity", b === "satellit" ? 0.5 : 0.7);
+    const b = karteEinst.basis;
+    if (map?.getLayer("beschriftung")) map.setPaintProperty("beschriftung", "raster-opacity", b === "satellit" ? 0.5 : 0.7);
   });
 
   // --- Blitze (Live-Ebene aus dem lightningmap-Dienst) ---
@@ -121,7 +98,7 @@
       id: "blitze",
       type: "circle",
       source: "blitze",
-      layout: { visibility: overlays.blitze ? "visible" : "none" },
+      layout: { visibility: karteEinst.overlays.blitze ? "visible" : "none" },
       paint: {
         "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 2.5, 9, 5],
         // Farbe nach Alter in Minuten: frisch weiss -> gelb -> orange -> dunkel.
@@ -159,15 +136,13 @@
 
   // Blitz-Ebene an den Schalter koppeln.
   $effect(() => {
-    const an = overlays.blitze;
+    const an = karteEinst.overlays.blitze;
     if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
   });
 
   // --- Optionale Blitz-Wellen-Simulation (live via WebSocket) ---
   // Jeder eingehende Blitz wirft einen Ring, der waechst und ausblendet
   // (wie eine Schallwelle). Zeitkritisch -> Live-Feed statt Polling.
-  let simulation = $state<boolean>(lies("karte.simulation", false));
-  $effect(() => schreib("karte.simulation", simulation));
   let ws: WebSocket | undefined;
   let wellen: { lon: number; lat: number; start: number }[] = [];
   let animLaeuft = false;
@@ -278,15 +253,15 @@
   }
 
   $effect(() => {
-    if (!simulation) return;
+    if (!karteEinst.simulation) return;
     verbindeWs();
     return () => trenneWs();
   });
 
   // Basiskarte umschalten (Kacheln der vorhandenen Quelle austauschen).
   $effect(() => {
-    const b = basis;
-    const quelle = map?.getSource("basis") as maplibregl.RasterTileSource | undefined;
+    const b = karteEinst.basis;
+    const quelle = map?.getSource("grund") as maplibregl.RasterTileSource | undefined;
     // setTiles ersetzt die Kachel-URLs ohne Neuaufbau der Karte.
     (quelle as unknown as { setTiles?: (t: string[]) => void })?.setTiles?.(kacheln(b));
   });
@@ -310,13 +285,13 @@
       <h2><i class="fa-solid fa-layer-group"></i> Ebenen <span style="margin-left: auto"><HilfeLink topic="karte" /></span></h2>
       <div class="kat-gruppe">Basiskarte</div>
       <div class="segment tabgruppe" style="margin-bottom: var(--a2);">
-        <button class:aktiv={basis === "hell"} onclick={() => (basis = "hell")}>Hell</button>
-        <button class:aktiv={basis === "dunkel"} onclick={() => (basis = "dunkel")}>Dunkel</button>
-        <button class:aktiv={basis === "satellit"} onclick={() => (basis = "satellit")}>Satellit</button>
+        <button class:aktiv={karteEinst.basis === "hell"} onclick={() => (karteEinst.basis = "hell")}>Hell</button>
+        <button class:aktiv={karteEinst.basis === "dunkel"} onclick={() => (karteEinst.basis = "dunkel")}>Dunkel</button>
+        <button class:aktiv={karteEinst.basis === "satellit"} onclick={() => (karteEinst.basis = "satellit")}>Satellit</button>
       </div>
       <div class="formzeile-quer">
         <span class="fz-lab">Beschriftung &amp; Grenzen</span>
-        <button class="schalter" class:an={orientierung} onclick={() => (orientierung = !orientierung)} aria-label="Beschriftung und Grenzen einblenden"></button>
+        <button class="schalter" class:an={karteEinst.orientierung} onclick={() => (karteEinst.orientierung = !karteEinst.orientierung)} aria-label="Beschriftung und Grenzen einblenden"></button>
       </div>
       <div class="kat-gruppe">Overlays</div>
       {#each overlayNamen as [schluessel, label]}
@@ -324,16 +299,16 @@
           <span class="fz-lab">{label}{#if schluessel === "blitze" && blitzAnzahl > 0}&nbsp;<b class="tnum" style="color: var(--warn)">{blitzAnzahl}</b>{/if}</span>
           <button
             class="schalter"
-            class:an={overlays[schluessel]}
-            onclick={() => (overlays[schluessel] = !overlays[schluessel])}
+            class:an={karteEinst.overlays[schluessel]}
+            onclick={() => (karteEinst.overlays[schluessel] = !karteEinst.overlays[schluessel])}
             aria-label={label}
           ></button>
         </div>
       {/each}
       <div class="kat-gruppe">Simulation</div>
       <div class="formzeile-quer">
-        <span class="fz-lab">Blitz-Wellen (live){#if simulation}&nbsp;<i class="fa-solid fa-tower-broadcast" style="color: var(--gut); font-size: 0.68rem"></i>{/if}</span>
-        <button class="schalter" class:an={simulation} onclick={() => (simulation = !simulation)} aria-label="Blitz-Wellen (live)"></button>
+        <span class="fz-lab">Blitz-Wellen (live){#if karteEinst.simulation}&nbsp;<i class="fa-solid fa-tower-broadcast" style="color: var(--gut); font-size: 0.68rem"></i>{/if}</span>
+        <button class="schalter" class:an={karteEinst.simulation} onclick={() => (karteEinst.simulation = !karteEinst.simulation)} aria-label="Blitz-Wellen (live)"></button>
       </div>
     </div>
 

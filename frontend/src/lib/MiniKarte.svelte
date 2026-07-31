@@ -1,13 +1,13 @@
 <script lang="ts">
-  // Echte MapLibre-Mini-Karte fuer die Dashboard-Kachel: Basiskarte (themabewusst)
-  // zentriert auf den aktiven Ort, plus Live-Blitze. Aufklappen fuehrt zur
-  // Vollansicht. Nutzt dieselben Kachel-/Blitz-Quellen wie die grosse Karte.
+  // Echte MapLibre-Mini-Karte fuer die Dashboard-Kachel. Folgt denselben
+  // Einstellungen wie die grosse Karte (karteEinst): Basiskarte, Orientierungs-Ebene
+  // und Blitze-Overlay. Zentriert auf den Ort dieser Kachel; Aufklappen -> Vollansicht.
   import { onMount } from "svelte";
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
-  import { thema } from "./thema.svelte";
   import { gehe } from "./route.svelte";
+  import { karteEinst, kachelUrl } from "./karteEinst.svelte";
 
   // Ort dieser Karte (Standard: aktiver Ort).
   let { ort }: { ort?: string } = $props();
@@ -17,9 +17,6 @@
   let map: maplibregl.Map | undefined;
   let blitzTimer: ReturnType<typeof setInterval> | undefined;
   let blitzAnzahl = $state(0);
-
-  const provider: Record<string, string> = { hell: "light", dunkel: "dark" };
-  const kacheln = (t: string): string[] => [`/kachel/${provider[t] ?? "light"}/{z}/{x}/{y}`];
 
   function aktiverOrt(): [number, number] {
     const o = orteState.liste.find((x) => x.slug === slug);
@@ -53,7 +50,7 @@
       container: kartenEl,
       style: {
         version: 8,
-        sources: { basis: { type: "raster", tiles: kacheln(thema.wert), tileSize: 256 } },
+        sources: { basis: { type: "raster", tiles: kachelUrl(karteEinst.basis), tileSize: 256 } },
         layers: [{ id: "basis", type: "raster", source: "basis" }],
       },
       center: aktiverOrt(),
@@ -62,11 +59,21 @@
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("load", () => {
+      // Orientierungs-Ebene (voyager), wie in der grossen Karte.
+      map!.addSource("beschriftung", { type: "raster", tiles: ["/kachel/voyager/{z}/{x}/{y}"], tileSize: 256 });
+      map!.addLayer({
+        id: "beschriftung",
+        type: "raster",
+        source: "beschriftung",
+        layout: { visibility: karteEinst.orientierung ? "visible" : "none" },
+        paint: { "raster-opacity": karteEinst.basis === "satellit" ? 0.5 : 0.7 },
+      });
       map!.addSource("blitze", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map!.addLayer({
         id: "blitze",
         type: "circle",
         source: "blitze",
+        layout: { visibility: karteEinst.overlays.blitze ? "visible" : "none" },
         paint: {
           "circle-radius": 3,
           "circle-color": ["interpolate", ["linear"], ["get", "min"], 0, "#ffffff", 5, "#ffd400", 20, "#ff7b00", 60, "#b23a00"],
@@ -92,10 +99,23 @@
     };
   });
 
-  // Basiskarte dem Thema folgen lassen.
+  // Basiskarte den Einstellungen folgen lassen.
   $effect(() => {
-    const t = thema.wert;
-    (map?.getSource("basis") as unknown as { setTiles?: (u: string[]) => void } | undefined)?.setTiles?.(kacheln(t));
+    const b = karteEinst.basis;
+    (map?.getSource("basis") as unknown as { setTiles?: (u: string[]) => void } | undefined)?.setTiles?.(kachelUrl(b));
+    if (map?.getLayer("beschriftung")) map.setPaintProperty("beschriftung", "raster-opacity", b === "satellit" ? 0.5 : 0.7);
+  });
+
+  // Orientierungs-Ebene ein-/ausblenden.
+  $effect(() => {
+    const an = karteEinst.orientierung;
+    if (map?.getLayer("beschriftung")) map.setLayoutProperty("beschriftung", "visibility", an ? "visible" : "none");
+  });
+
+  // Blitze-Overlay ein-/ausblenden.
+  $effect(() => {
+    const an = karteEinst.overlays.blitze;
+    if (map?.getLayer("blitze")) map.setLayoutProperty("blitze", "visibility", an ? "visible" : "none");
   });
 
   // Auf Ortswechsel schwenken.
@@ -110,7 +130,7 @@
   <button class="icon-knopf mini-auf" aria-label="Grosse Karte oeffnen" onclick={() => gehe("karte")}>
     <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
   </button>
-  {#if blitzAnzahl > 0}
+  {#if blitzAnzahl > 0 && karteEinst.overlays.blitze}
     <div class="mini-blitz-zaehler"><i class="fa-solid fa-bolt"></i> {blitzAnzahl}</div>
   {/if}
   <div class="mini-attribution">&copy; OpenStreetMap, &copy; CARTO &middot; Blitze: Blitzortung.org</div>
