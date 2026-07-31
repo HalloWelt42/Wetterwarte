@@ -28,9 +28,11 @@ async def init_db() -> None:
     from sqlmodel import SQLModel, select
 
     from .models.aufzeichnung import AufzeichnungOrt  # noqa: F401 - Tabelle registrieren
+    from .models.einstellung import Einstellung  # noqa: F401 - Tabelle registrieren
     from .models.klima import KlimaNormale  # noqa: F401 - Tabelle registrieren
     from .models.klima_aggregat import KlimaAggregat  # noqa: F401 - Tabelle registrieren
     from .models.layout import Layout
+    from .models.radar_archiv import RadarArchivFrame  # noqa: F401 - Tabelle registrieren
     from .models.messwert import Messwert  # noqa: F401 - Tabelle registrieren
     from .models.ort import Ort
     from .orte import ORTE

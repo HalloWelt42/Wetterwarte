@@ -18,9 +18,19 @@
     label: string;
   }
 
+  interface RadarArchiv {
+    aktiv: boolean;
+    stunden: number;
+    anzahl: number;
+    aeltest: string | null;
+    neuest: string | null;
+    bytes: number;
+  }
+
   let orte = $state<Eintrag[]>([]);
   let verfuegbar = $state<VarDef[]>([]);
   let geladen = $state(false);
+  let radar = $state<RadarArchiv | null>(null);
 
   async function lade(): Promise<void> {
     try {
@@ -30,9 +40,32 @@
     } catch {
       /* leer lassen */
     }
+    try {
+      radar = await hole<RadarArchiv>("/radar/archiv");
+    } catch {
+      /* Radar-Archiv optional */
+    }
     geladen = true;
   }
   onMount(lade);
+
+  async function setzeRadar(aktiv: boolean, stunden: number): Promise<void> {
+    try {
+      radar = await sende<RadarArchiv>("/radar/archiv", "PUT", { aktiv, stunden });
+    } catch {
+      /* still */
+    }
+  }
+  function fmtBytes(b: number): string {
+    if (b < 1024) return `${b} B`;
+    if (b < 1048576) return `${Math.round(b / 1024)} KB`;
+    return `${(b / 1048576).toFixed(1)} MB`;
+  }
+  const radarZeitraum = $derived.by(() => {
+    if (!radar?.aeltest || !radar?.neuest) return "";
+    const f = (s: string) => new Date(s).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    return `${f(radar.aeltest)} - ${f(radar.neuest)}`;
+  });
 
   async function speichere(e: Eintrag): Promise<void> {
     try {
@@ -82,6 +115,41 @@
           <button class="schalter" class:an={e.aktiv} onclick={() => toggleAktiv(e)} aria-label="Aufzeichnung {e.name}"></button>
         </div>
       {/each}
+    </div>
+
+    <div class="panel">
+      <h2><i class="fa-solid fa-satellite-dish"></i> Radar-Archiv <HilfeLink topic="karte" find="Radar" /></h2>
+      <p class="unter">
+        Speichert die gemessenen Radar-Bilder historisch, damit du im Radar-Abspieler weiter in die
+        Vergangenheit zurückblättern kannst. Optional - beansprucht Speicher in der Datenbank.
+      </p>
+      <div class="formzeile-quer">
+        <span class="fz-lab">Radar historisch speichern</span>
+        <button
+          class="schalter"
+          class:an={radar?.aktiv}
+          onclick={() => setzeRadar(!radar?.aktiv, radar?.stunden ?? 24)}
+          aria-label="Radar historisch speichern"
+        ></button>
+      </div>
+      {#if radar?.aktiv}
+        <div class="formzeile">
+          <label for="radar-stunden">Aufbewahrung (Stunden)</label>
+          <input
+            id="radar-stunden"
+            class="feld"
+            type="number"
+            min="1"
+            max="336"
+            value={radar.stunden}
+            onchange={(e) => setzeRadar(true, +e.currentTarget.value)}
+          />
+        </div>
+        <p class="unter">
+          Gespeichert: <b class="tnum">{radar.anzahl}</b> Frames &middot; <b class="tnum">{fmtBytes(radar.bytes)}</b>
+          {#if radarZeitraum}&middot; {radarZeitraum}{/if}. Neue Frames kommen alle 10 Minuten dazu.
+        </p>
+      {/if}
     </div>
 
     <div class="panel">

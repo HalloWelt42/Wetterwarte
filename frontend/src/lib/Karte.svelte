@@ -60,6 +60,7 @@
     return () => {
       clearInterval(blitzTimer);
       stoppeRadar();
+      if (radarRahmenTimer) clearInterval(radarRahmenTimer);
       ortMarker?.remove();
       map?.remove();
     };
@@ -155,7 +156,27 @@
   let radarStand = $state("");
   let radarGebaut = false;
   let radarTimer: ReturnType<typeof setInterval> | undefined;
+  let radarRahmenTimer: ReturnType<typeof setInterval> | undefined;
   const radarUrl = (id: string) => `/api/v1/radar/bild/${id}.png`;
+
+  // Frame-Liste periodisch auffrischen: das Backend rotiert die Vorhersage-Frames
+  // (neues DWD-Archiv alle paar Minuten). Ohne Auffrischung zeigt der Abspieler auf
+  // inzwischen entfernte Frames -> 404. Die aktuelle Position wird ueber die ID gehalten.
+  async function frischeRahmen(): Promise<void> {
+    try {
+      const antwort = await fetch("/api/v1/radar/rahmen");
+      const d = (await antwort.json()).data as { frames: RadarFrame[]; stand: string };
+      if (!d.frames?.length) return;
+      const altId = radarFrames[radarIdx]?.id;
+      radarFrames = d.frames;
+      radarStand = d.stand ?? "";
+      for (const f of d.frames) new Image().src = radarUrl(f.id);
+      const neu = d.frames.findIndex((f) => f.id === altId);
+      radarIdx = neu >= 0 ? neu : Math.min(radarIdx, d.frames.length - 1);
+    } catch {
+      // still ignorieren
+    }
+  }
 
   async function ladeRadar(): Promise<void> {
     if (radarLaedt) return;
@@ -239,8 +260,11 @@
         if (map?.getLayer("radar")) map.setLayoutProperty("radar", "visibility", "visible");
         if (!radarSpielt) starteRadar();
       }
+      if (!radarRahmenTimer) radarRahmenTimer = setInterval(() => void frischeRahmen(), 180000);
     } else {
       stoppeRadar();
+      if (radarRahmenTimer) clearInterval(radarRahmenTimer);
+      radarRahmenTimer = undefined;
       if (map?.getLayer("radar")) map.setLayoutProperty("radar", "visibility", "none");
     }
   });

@@ -10,7 +10,7 @@ from datetime import datetime
 
 from sqlmodel import select
 
-from . import klima_aggregat, ortsdienst
+from . import klima_aggregat, ortsdienst, radar_archiv
 from .db import SessionLocal
 from .models.aufzeichnung import AufzeichnungOrt
 from .models.messwert import Messwert
@@ -102,6 +102,8 @@ async def schleife() -> None:
             # Monate aendern sich nicht mehr und wurden bereits frueher aggregiert).
             monatsanfang = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             await klima_aggregat.aktualisiere(seit=monatsanfang)
+            # Radar-Frames archivieren (nur wenn im UI aktiviert).
+            await radar_archiv.schnappschuss()
         except Exception:
             pass
         await asyncio.sleep(INTERVALL_SEKUNDEN)
