@@ -30,9 +30,11 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 
 - [x] Offline-Kartencache (Server): Kacheln themengetrennt auf Platte (Bind-Mount), Fuell-Bot (Deutschland + Wohnort-gewichtet) mit Fortschritt/Fehler/Fertig, Speicher-Statistik je Thema in den Einstellungen (v0.39.0)
 
+- [x] Archiv/Analyse: Variablen-Auswahl dynamisch (alle aufgezeichneten Werte inkl. Luftqualitaet) (v0.39.2)
+- [x] Demo-Orte zum Ausprobieren: Extremwetter + bekannte Orte, per Globus-Knopf hinzufuegbar (v0.40.0)
+
 ## Offen
 - [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch
-- [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
 - [ ] Rettungsring/Onboarding fuer Erstnutzer + Spendenlogik (Spendenherz, Overlay, Pulsieren)
 - [ ] README mit Screenshot (OHNE den Ort "Zeitz") + Lizenzpruefung (Referenz RadioHub)
 - [ ] Mobile-Ansicht optimieren - ganz zum Schluss
