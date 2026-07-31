@@ -26,8 +26,10 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Mini-Karte: aktueller Radar-Stand (ohne Abspieler) + Icon-Schalter (Beschriftung/Blitze/Radar); Radar-Steuerung der grossen Karte repariert (v0.35.0)
 - [x] Warnungen-Overlay: amtliche DWD-Warn-Polygone farbig nach Stufe, Klick-Popup, Zaehler (v0.36.0)
 
+- [x] Overlays Temperatur (Farbfeld, auf Deutschland zugeschnitten, Maus-Hover + Legende) + Wind (Richtungspfeile, auf DE zugeschnitten, Klick-Popup); Blitz-Menge einstellbar; Warn-Popup dunkelmodusfest + zeigt alle Ueberlappungen (v0.37-0.38.1)
+
 ## Offen
-- [ ] Grosskarte-Rest: Overlays Temperatur + Wind funktional (Open-Meteo-Gitter); vereinfachte Vektor-Karte (osmlocal-Vektor)
+- [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch
 - [ ] Offline-Cache themengetrennt; Speicher-Statistik sichtbar; Prozessbalken bei Daten-Aggregation in den Einstellungen mit vollstaendiger Fehler-/Fertig-Logik; Fuell-Bot (naeher am Wohnort mehr, Satellit progressiv)
 - [ ] Demo-Profile zum Ausprobieren: Orte mit Extremwetter + bekannte Orte
 - [ ] Rettungsring / Onboarding fuer Erstnutzer (Muster wie im Projekt RadioHub)
