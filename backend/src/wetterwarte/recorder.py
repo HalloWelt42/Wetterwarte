@@ -14,10 +14,12 @@ from . import ortsdienst
 from .db import SessionLocal
 from .models.aufzeichnung import AufzeichnungOrt
 from .models.messwert import Messwert
-from .providers import openmeteo
+from .providers import luftqualitaet, openmeteo
 
 INTERVALL_SEKUNDEN = 600
-STANDARD_VARS = {"temperatur", "feuchte", "wind", "druck"}
+BASIS_VARS = {"temperatur", "feuchte", "wind", "druck"}
+LUFT_VARS = {"aqi", "pm2_5", "pm10", "o3", "no2"}
+STANDARD_VARS = BASIS_VARS | LUFT_VARS
 
 
 async def _auswahl() -> dict[str, tuple[bool, set[str]]]:
@@ -52,16 +54,30 @@ async def _schreibe_aktuell() -> None:
         aktiv, variablen = auswahl.get(o.slug, (True, set(STANDARD_VARS)))
         if not aktiv or not variablen:
             continue
-        try:
-            daten = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
-        except Exception:
-            continue
-        a = daten["aktuell"]
+        werte: dict[str, float] = {}
+        # Basiswerte (Temperatur, Feuchte, Wind, Druck) aus dem Wetter-Provider.
+        if variablen & BASIS_VARS:
+            try:
+                daten = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
+                werte.update(daten["aktuell"])
+            except Exception:
+                pass
+        # Luftschadstoffe (AQI, PM2.5, PM10, Ozon, NO2) aus der Luftqualitaet.
+        if variablen & LUFT_VARS:
+            try:
+                luft = await luftqualitaet.hole(o.lat, o.lon)
+                if luft:
+                    werte.update(luft)
+            except Exception:
+                pass
         async with SessionLocal() as session:
             for variable in variablen:
-                wert = a.get(variable)
+                wert = werte.get(variable)
                 if wert is not None:
-                    session.add(Messwert(ort=o.slug, zeit=jetzt, variable=variable, wert=float(wert)))
+                    try:
+                        session.add(Messwert(ort=o.slug, zeit=jetzt, variable=variable, wert=float(wert)))
+                    except (TypeError, ValueError):
+                        pass
             await session.commit()
 
 

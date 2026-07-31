@@ -12,8 +12,18 @@ from ..schemas.envelope import wrap
 
 router = APIRouter(prefix="/aufzeichnung", tags=["aufzeichnung"])
 
-STANDARD_VARS = ["temperatur", "feuchte", "wind", "druck"]
-LABELS = {"temperatur": "Temperatur", "feuchte": "Feuchte", "wind": "Wind", "druck": "Druck"}
+STANDARD_VARS = ["temperatur", "feuchte", "wind", "druck", "aqi", "pm2_5", "pm10", "o3", "no2"]
+LABELS = {
+    "temperatur": "Temperatur",
+    "feuchte": "Feuchte",
+    "wind": "Wind",
+    "druck": "Druck",
+    "aqi": "Luftgüte (AQI)",
+    "pm2_5": "PM2,5",
+    "pm10": "PM10",
+    "o3": "Ozon",
+    "no2": "NO₂",
+}
 
 
 @router.get("")

@@ -646,6 +646,22 @@ textarea,
   border-color: color-mix(in srgb, var(--akzent) 45%, transparent);
 }
 
+/* Datenfrische-Ring im Dashboard-Kopf */
+.frische {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+.frische-ring {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.frische small {
+  color: var(--text-3);
+}
+
 /* Uhr-Kachel */
 .uhr-digital,
 .uhr-gross {
