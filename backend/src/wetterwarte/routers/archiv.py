@@ -48,16 +48,25 @@ async def verlauf(
     ort: str = "koeln",
     variable: str = "temperatur",
     tage: int = 30,
+    aufloesung: str = "tag",  # "roh" (Messpunkte) | "stunde" (Stundenmittel) | "tag" (Tagesmittel)
     session: AsyncSession = Depends(get_session),
 ) -> dict:
-    """Tagesmittel der gewaehlten Variable ueber den Zeitraum."""
+    """Verlauf der Variable ueber den Zeitraum in der gewuenschten Aufloesung.
+
+    "roh" zeigt die tatsaechlich aufgezeichneten Messpunkte (also die eingestellte
+    Aufzeichnungs-Kadenz, z.B. alle 10-20 Minuten); "stunde" und "tag" verdichten."""
     seit = datetime.now() - timedelta(days=tage)
-    tag = func.date(Messwert.zeit)
+    bedingung = (Messwert.ort == ort, Messwert.variable == variable, Messwert.zeit >= seit)
+    if aufloesung == "roh":
+        stmt = select(Messwert.zeit, Messwert.wert).where(*bedingung).order_by(Messwert.zeit).limit(3000)
+        zeilen = (await session.execute(stmt)).all()
+        return wrap([{"tag": zeit.isoformat(), "wert": round(float(wert), 1)} for zeit, wert in zeilen])
+    bucket = func.date_trunc("hour", Messwert.zeit) if aufloesung == "stunde" else func.date(Messwert.zeit)
     stmt = (
-        select(tag.label("t"), func.avg(Messwert.wert).label("m"))
-        .where(Messwert.ort == ort, Messwert.variable == variable, Messwert.zeit >= seit)
-        .group_by(tag)
-        .order_by(tag)
+        select(bucket.label("t"), func.avg(Messwert.wert).label("m"))
+        .where(*bedingung)
+        .group_by(bucket)
+        .order_by(bucket)
     )
     zeilen = (await session.execute(stmt)).all()
-    return wrap([{"tag": str(tag_wert), "wert": round(float(mittel), 1)} for tag_wert, mittel in zeilen])
+    return wrap([{"tag": str(bucket_wert), "wert": round(float(mittel), 1)} for bucket_wert, mittel in zeilen])
