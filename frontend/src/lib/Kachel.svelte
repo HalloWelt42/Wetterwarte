@@ -54,5 +54,5 @@
       <button class="icon-knopf gefahr" title="Kachel entfernen" aria-label="Kachel entfernen" onclick={onEntfernen}><i class="fa-solid fa-xmark"></i></button>
     </span>
   </div>
-  <div class="kw-koerper"><KachelKoerper {typ} {conf} {ort} /></div>
+  <div class="kw-koerper"><KachelKoerper {typ} {id} {conf} {ort} /></div>
 </div>

@@ -41,6 +41,7 @@ wird abgehakt; die App-Version im Fuss zeigt den Live-Stand.
 - [x] Dark-Mode-Schriftkontrast angehoben; Overlay-Stapelordnung (z-index) vereinheitlicht, Hilfe-Fenster tritt beim Oeffnen eines Modals zurueck (v0.41.0)
 - [x] Aufzeichnungs-Takt einstellbar (5-60 min, Standard 10) im Aufzeichnungs-Manager; loest den fest verdrahteten 10-min-Takt ab (v0.42.0)
 - [x] Mobile-Ansicht: Navigations-Schublade (Hamburger) mit Orte/Ansichten/Layouts/Mehr - vorher war die Sidebar auf Mobil unerreichbar; Kopfleiste entzerrt, Karten-Steuerung entzerrt (v0.43.0)
+- [x] Profil-/Widget-Unabhaengigkeit: alle Tile-IDs global eindeutig (UUID) statt kollidierender typ-i/typ-x-y (Backend-Migration bestehender Layouts); Karten-Kacheln pro Instanz statt globalem karteEinst (Overlays/Basis in der conf je Kachel); Uebersicht-Eintrag in ANSICHTEN (sauberer Rueckweg aus Karte/Aufzeichnung/Archiv); Deep-Link ?profil=<id> (Profil neuladefest + teilbar) (v0.44.0)
 
 ## Offen
 - [ ] Vereinfachte Vektor-Karte als Basiskarte (osmlocal-Vektorstil colorful/eclipse) - optional/kosmetisch.

@@ -111,6 +111,7 @@
   {/if}
 
   <div class="nav-titel" style="margin-top: var(--a3)">Ansichten</div>
+  <button class="nav-eintrag" class:aktiv={route.ansicht === "dashboard"} onclick={() => zeige("dashboard")}><i class="fa-solid fa-table-cells-large"></i> <span class="haupt">Übersicht</span></button>
   <button class="nav-eintrag" class:aktiv={route.ansicht === "karte"} onclick={() => zeige("karte")}><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></button>
   <button class="nav-eintrag" class:aktiv={route.ansicht === "aufzeichnung"} onclick={() => zeige("aufzeichnung")}><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></button>
   <button class="nav-eintrag" class:aktiv={route.ansicht === "archiv"} onclick={() => zeige("archiv")}><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv und Analyse</span></button>

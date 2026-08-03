@@ -7,7 +7,7 @@
   import { sende } from "./api";
   import { layoutState } from "./layout.svelte";
   import { kachelAktion, brettState } from "./kachelAktion.svelte";
-  import { konf } from "./kachelConf.svelte";
+  import { konf, konfPatch } from "./kachelConf.svelte";
 
   interface Instanz {
     id: string;
@@ -36,7 +36,8 @@
 
   // Leeres Layout uebernimmt die zu seinem Namen passende Profil-Anordnung.
   function profilInstanzen(name: string): Instanz[] {
-    return profilTypen(name).map((typ, i) => ({ id: `${typ}-${i}`, typ, w: registry[typ].w, h: registry[typ].h, conf: {} }));
+    // ID global eindeutig (UUID) - so koppeln sich Profile nie ueber gleiche IDs.
+    return profilTypen(name).map((typ) => ({ id: `${typ}-${crypto.randomUUID()}`, typ, w: registry[typ].w, h: registry[typ].h, conf: {} }));
   }
 
   function initGrid(): void {
@@ -172,6 +173,19 @@
     const k = kacheln.find((x) => x.id === konf.id);
     if (k) {
       k.conf = { ...konf.werte };
+      speichere();
+    }
+  });
+
+  // Teil-Patch einer Kachel-conf aus dem Widget heraus (z.B. Karten-Overlay).
+  let patchAngewandt = 0;
+  $effect(() => {
+    const v = konfPatch.version;
+    if (v === 0 || v === patchAngewandt || konfPatch.id === null) return;
+    patchAngewandt = v;
+    const k = kacheln.find((x) => x.id === konfPatch.id);
+    if (k) {
+      k.conf = { ...(k.conf ?? {}), ...konfPatch.patch };
       speichere();
     }
   });

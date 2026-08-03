@@ -42,7 +42,8 @@ export function profilDaten(name: string): KachelDaten[] {
       y += zeilenhoehe;
       zeilenhoehe = 0;
     }
-    const d: KachelDaten = { id: `${typ}-${x}-${y}`, typ, x, y, w: def.w, h: def.h, conf: {} };
+    // ID global eindeutig (UUID), damit sich Profile nie ueber gleiche IDs koppeln.
+    const d: KachelDaten = { id: `${typ}-${crypto.randomUUID()}`, typ, x, y, w: def.w, h: def.h, conf: {} };
     x += def.w;
     zeilenhoehe = Math.max(zeilenhoehe, def.h);
     return d;

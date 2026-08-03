@@ -8,12 +8,14 @@ from fastapi import FastAPI
 from . import recorder
 from .config import settings
 from .db import dispose_engine, init_db
+from .migrationen import migriere_tile_ids
 from .routers import archiv, aufzeichnung, dienste, health, kachel, kompat, layouts, orte, radar, weather
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await migriere_tile_ids()  # einmalig: kollidierende Kachel-IDs -> eindeutige UUIDs
     aufgabe = asyncio.create_task(recorder.schleife())
     yield
     aufgabe.cancel()

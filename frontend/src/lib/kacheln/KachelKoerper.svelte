@@ -43,12 +43,12 @@
     jahresmesswerte: Jahresmesswerte,
   };
 
-  let { typ, conf = {}, ort }: { typ: string; conf?: Record<string, any>; ort: string } = $props();
+  let { typ, id, conf = {}, ort }: { typ: string; id: string; conf?: Record<string, any>; ort: string } = $props();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Komponente = $derived(KOMPONENTEN[typ] as any);
 </script>
 
 {#if Komponente}
-  <Komponente {conf} {ort} />
+  <Komponente {id} {conf} {ort} />
 {/if}

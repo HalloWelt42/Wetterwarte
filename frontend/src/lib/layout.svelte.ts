@@ -56,8 +56,11 @@ export async function benenneLayout(id: string, name: string): Promise<void> {
 export async function dupliziereLayout(id: string): Promise<void> {
   const quelle = layoutState.liste.find((l) => l.id === id);
   if (!quelle) return;
+  // Kacheln mit frischen IDs kopieren, damit sich Original und Kopie nicht ueber
+  // gleiche IDs koppeln (sonst wandern Groesse/Einstellungen zwischen beiden).
+  const daten = quelle.daten.map((k) => ({ ...k, id: `${k.typ}-${crypto.randomUUID()}` }));
   try {
-    await sende("/layouts", "POST", { name: `${quelle.name} Kopie`, daten: quelle.daten });
+    await sende("/layouts", "POST", { name: `${quelle.name} Kopie`, daten });
     await ladeLayouts();
   } catch {
     // still ignorieren

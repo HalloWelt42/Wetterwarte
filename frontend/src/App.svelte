@@ -15,9 +15,9 @@
   import DemoOrte from "./lib/DemoOrte.svelte";
   import Spende from "./lib/Spende.svelte";
   import Willkommen from "./lib/Willkommen.svelte";
-  import { route, ortAusUrl, setzeOrtInUrl, initUrl } from "./lib/route.svelte";
+  import { route, ortAusUrl, profilAusUrl, setzeOrtInUrl, setzeProfilInUrl, initUrl } from "./lib/route.svelte";
   import { ui } from "./lib/ui.svelte";
-  import { ladeLayouts } from "./lib/layout.svelte";
+  import { ladeLayouts, layoutState, setzeAktiv } from "./lib/layout.svelte";
   import { ladeWetter, wetter } from "./lib/wetter.svelte";
   import { ladeOrte, startOrt, orteState } from "./lib/orte.svelte";
   import { stil } from "./lib/stil.svelte";
@@ -25,20 +25,24 @@
   import { lies, schreib } from "./lib/speicher";
 
   onMount(async () => {
-    void ladeLayouts();
+    // URL-Parameter ZUERST lesen - bevor asynchrone Ladevorgaenge und die
+    // URL-Spiegel-Effekte laufen und die Query normalisieren koennten.
+    const profilUrl = profilAusUrl();
+    const ausUrl = ortAusUrl();
+    await ladeLayouts();
+    // Profil-Deep-Link (?profil=<id>) hat Vorrang vor dem Standard-Layout.
+    if (profilUrl && layoutState.liste.find((l) => l.id === profilUrl)) setzeAktiv(profilUrl);
     await ladeOrte();
     // Ort-Wahl: Deep-Link aus der URL (?ort=) hat Vorrang, dann der zuletzt
     // betrachtete Ort, sonst der Start-Ort.
-    const ausUrl = ortAusUrl();
     const gemerkt = lies<string>("ort.aktiv", "");
     const s =
       (ausUrl && orteState.liste.find((o) => o.slug === ausUrl)) ||
       (gemerkt && orteState.liste.find((o) => o.slug === gemerkt)) ||
       startOrt();
-    if (s) {
-      void ladeWetter(s.slug);
-      initUrl(s.slug); // URL auf den tatsaechlichen Startzustand normalisieren
-    }
+    if (s) void ladeWetter(s.slug);
+    // URL auf den tatsaechlichen Startzustand normalisieren (Ort + aktives Profil).
+    initUrl(s?.slug ?? "", layoutState.aktivId ?? "");
     // Beim allerersten Start den Rettungsring einmalig zeigen.
     if (!lies<boolean>("willkommen.gesehen", false)) {
       ui.willkommen = true;
@@ -49,6 +53,11 @@
   // Aktiven Ort in der URL spiegeln, sobald er sich aendert (teilbarer Deep-Link).
   $effect(() => {
     if (wetter.slug) setzeOrtInUrl(wetter.slug);
+  });
+
+  // Aktives Profil (Layout) in der URL spiegeln.
+  $effect(() => {
+    if (layoutState.aktivId) setzeProfilInUrl(layoutState.aktivId);
   });
 
   // Fensterlogik: Oeffnet sich ein zentriertes Modal, tritt das schwebende
