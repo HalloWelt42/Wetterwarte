@@ -1316,7 +1316,9 @@ textarea,
   top: var(--a2);
   left: calc(var(--a2) + 40px);
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
+  max-width: calc(100% - 52px - var(--a2));
   z-index: 3;
 }
 .mini-ebenen button {
@@ -1967,6 +1969,7 @@ textarea,
   border: 1px solid var(--rand);
   border-radius: var(--r2);
   background: var(--flaeche);
+  color: var(--text); /* Button erbt sonst die schwarze Standardfarbe - im Dunkelmodus unlesbar */
   cursor: grab;
   transition: border-color var(--schnell), background var(--schnell);
 }
@@ -3319,4 +3322,41 @@ button.nav-eintrag {
 @media (max-width: 720px) {
   .wk-aktionen { justify-content: stretch; }
   .wk-aktionen .knopf { flex: 1; justify-content: center; }
+}
+
+/* ============================================================ Profil-Icon-Wahl (Layout-Verwaltung) */
+.icon-palette {
+  margin-top: var(--a2);
+  padding: var(--a2);
+  border: 1px solid var(--rand);
+  border-radius: var(--r2);
+  background: var(--flaeche-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+  gap: 4px;
+  max-height: 128px;
+  overflow-y: auto;
+}
+.icon-wahl {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r1);
+  border: 1px solid transparent;
+  background: var(--flaeche);
+  color: var(--text-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: background var(--schnell), color var(--schnell), border-color var(--schnell);
+}
+.icon-wahl:hover {
+  color: var(--text);
+  border-color: var(--akzent);
+}
+.icon-wahl.aktiv {
+  background: var(--akzent);
+  color: var(--akzent-text);
+  border-color: var(--akzent);
 }

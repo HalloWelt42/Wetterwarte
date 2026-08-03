@@ -14,7 +14,7 @@ from .routers import archiv, aufzeichnung, dienste, health, kachel, kompat, layo
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    await init_db()  # legt Tabellen an + zieht neue Spalten nach (u.a. layout.icon)
     await migriere_tile_ids()  # einmalig: kollidierende Kachel-IDs -> eindeutige UUIDs
     aufgabe = asyncio.create_task(recorder.schleife())
     yield

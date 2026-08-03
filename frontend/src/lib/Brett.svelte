@@ -67,6 +67,9 @@
     const id = layoutState.aktivId;
     if (!grid || !id) return;
     const pos = grid.save(false) as { id: string; x: number; y: number; w: number; h: number }[];
+    // Schutz: ein leeres Brett niemals ueber ein befuelltes Layout speichern
+    // (schuetzt vor transienten Zustaenden, z.B. beim Neuaufbau).
+    if (pos.length === 0 && kacheln.length === 0) return;
     const daten = pos.map((p) => {
       const k = kacheln.find((x) => x.id === p.id);
       return { ...p, typ: k?.typ, conf: k?.conf ?? {} };

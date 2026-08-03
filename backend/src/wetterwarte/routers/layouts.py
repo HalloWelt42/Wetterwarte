@@ -16,6 +16,7 @@ class LayoutEingabe(BaseModel):
     name: str | None = None
     daten: list | None = None
     ist_standard: bool | None = None
+    icon: str | None = None
 
 
 @router.get("")
@@ -26,7 +27,7 @@ async def liste(session: AsyncSession = Depends(get_session)) -> dict:
 
 @router.post("")
 async def anlegen(eingabe: LayoutEingabe, session: AsyncSession = Depends(get_session)) -> dict:
-    layout = Layout(name=eingabe.name or "Neues Layout", daten=eingabe.daten or [])
+    layout = Layout(name=eingabe.name or "Neues Layout", daten=eingabe.daten or [], icon=eingabe.icon or "")
     session.add(layout)
     await session.commit()
     await session.refresh(layout)
@@ -42,6 +43,8 @@ async def speichern(layout_id: str, eingabe: LayoutEingabe, session: AsyncSessio
         layout.name = eingabe.name
     if eingabe.daten is not None:
         layout.daten = eingabe.daten
+    if eingabe.icon is not None:
+        layout.icon = eingabe.icon
     if eingabe.ist_standard is not None:
         if eingabe.ist_standard:
             # Es gibt genau ein Standard-Layout: die anderen Flags loeschen.

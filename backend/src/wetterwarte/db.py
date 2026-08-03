@@ -40,8 +40,10 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
         # Leichte Migration: neue Spalten auf bestehenden Tabellen nachziehen
-        # (create_all legt nur fehlende Tabellen an, keine Spalten).
+        # (create_all legt nur fehlende Tabellen an, keine Spalten). Muss hier
+        # laufen, da direkt darunter schon Layout/Ort abgefragt werden.
         await conn.exec_driver_sql("ALTER TABLE ort ADD COLUMN IF NOT EXISTS zeitzone VARCHAR DEFAULT ''")
+        await conn.exec_driver_sql("ALTER TABLE layout ADD COLUMN IF NOT EXISTS icon VARCHAR NOT NULL DEFAULT ''")
 
     async with SessionLocal() as session:
         vorhanden = (await session.execute(select(Layout))).scalars().first()

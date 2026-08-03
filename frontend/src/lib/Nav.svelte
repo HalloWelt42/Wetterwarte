@@ -120,7 +120,7 @@
   <div class="nav-titel nur-mobil" style="margin-top: var(--a3)">Layouts</div>
   {#each layoutState.liste as l (l.id)}
     <button class="nav-eintrag nur-mobil" class:aktiv={route.ansicht === "dashboard" && layoutState.aktivId === l.id} onclick={() => waehleLayout(l.id)}>
-      <i class="fa-solid {layoutIcons[l.name] ?? 'fa-table-cells-large'}"></i> <span class="haupt">{l.name}</span>
+      <i class="fa-solid {l.icon || layoutIcons[l.name] || 'fa-table-cells-large'}"></i> <span class="haupt">{l.name}</span>
     </button>
   {/each}
 

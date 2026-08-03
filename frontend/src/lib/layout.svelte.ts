@@ -6,6 +6,7 @@ export interface Layout {
   id: string;
   name: string;
   ist_standard: boolean;
+  icon?: string; // frei gewaehltes Profil-Icon (fa-Klasse); leer = Standard nach Name
   daten: { id: string; typ?: string; x: number; y: number; w: number; h: number }[];
 }
 
@@ -42,6 +43,38 @@ export async function erstelleLayout(name = "Neues Layout"): Promise<Layout | nu
   }
 }
 
+// Kuratierter Pool an Profil-Icons (Font Awesome, themenrelevant).
+export const PROFIL_ICONS: string[] = [
+  "fa-house", "fa-house-chimney", "fa-building", "fa-city", "fa-warehouse",
+  "fa-seedling", "fa-tree", "fa-leaf", "fa-mountain-sun", "fa-campground",
+  "fa-suitcase-rolling", "fa-plane", "fa-car", "fa-sailboat", "fa-bicycle", "fa-person-hiking",
+  "fa-triangle-exclamation", "fa-bolt", "fa-cloud-showers-heavy", "fa-umbrella", "fa-snowflake", "fa-wind",
+  "fa-sun", "fa-cloud", "fa-temperature-half", "fa-water",
+  "fa-briefcase", "fa-heart", "fa-star", "fa-location-dot", "fa-map-location-dot", "fa-table-cells-large",
+];
+
+// Name-basierte Standard-Icons (Fallback, wenn kein eigenes Icon gewaehlt wurde).
+const ICON_NACH_NAME: Record<string, string> = {
+  Zuhause: "fa-house",
+  Garten: "fa-seedling",
+  Reise: "fa-suitcase-rolling",
+  Unwetter: "fa-triangle-exclamation",
+};
+
+export function profilIcon(l: Layout): string {
+  return l.icon || ICON_NACH_NAME[l.name] || "fa-table-cells-large";
+}
+
+export async function setzeIcon(id: string, icon: string): Promise<void> {
+  const l = layoutState.liste.find((x) => x.id === id);
+  if (l) l.icon = icon; // sofort im UI spiegeln
+  try {
+    await sende(`/layouts/${id}`, "PUT", { icon });
+  } catch {
+    // still ignorieren
+  }
+}
+
 export async function benenneLayout(id: string, name: string): Promise<void> {
   const sauber = name.trim();
   if (!sauber) return;
@@ -60,7 +93,7 @@ export async function dupliziereLayout(id: string): Promise<void> {
   // gleiche IDs koppeln (sonst wandern Groesse/Einstellungen zwischen beiden).
   const daten = quelle.daten.map((k) => ({ ...k, id: `${k.typ}-${crypto.randomUUID()}` }));
   try {
-    await sende("/layouts", "POST", { name: `${quelle.name} Kopie`, daten });
+    await sende("/layouts", "POST", { name: `${quelle.name} Kopie`, daten, icon: quelle.icon ?? "" });
     await ladeLayouts();
   } catch {
     // still ignorieren

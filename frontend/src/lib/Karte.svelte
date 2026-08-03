@@ -72,6 +72,7 @@
       if (gitterTimer) clearInterval(gitterTimer);
       ortMarker?.remove();
       map?.remove();
+      map = undefined; // verhindert Zugriffe auf die entfernte Karte in noch laufenden Callbacks
     };
   });
 
@@ -175,6 +176,7 @@
     if (!map) return;
     try {
       const d = (await (await fetch("/api/v1/wetter/warnkarte")).json()).data as GeoJSON.FeatureCollection;
+      if (!map) return; // Karte kann waehrend des Ladens entfernt worden sein
       (map.getSource("warnungen") as maplibregl.GeoJSONSource | undefined)?.setData(d);
       warnAnzahl = d.features?.length ?? 0;
     } catch {
@@ -303,6 +305,7 @@
         wind: GeoJSON.FeatureCollection;
         temp: TempGitter;
       };
+      if (!map) return; // Karte kann waehrend des Ladens entfernt worden sein
       (map.getSource("wind") as maplibregl.GeoJSONSource | undefined)?.setData(d.wind);
       tempGitter = d.temp;
       tempVersion++;
@@ -414,6 +417,7 @@
           properties: { min: Math.max(0, (jetzt - s.t) / 60000) },
         })),
       };
+      if (!map) return; // Karte kann waehrend des Ladens entfernt worden sein
       (map.getSource("blitze") as maplibregl.GeoJSONSource | undefined)?.setData(fc);
       blitzAnzahl = strikes.length;
     } catch {

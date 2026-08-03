@@ -2,19 +2,10 @@
   import { meteocon } from "./icons";
   import { thema, themaUmschalten } from "./thema.svelte";
   import { ui } from "./ui.svelte";
-  import { layoutState, setzeAktiv } from "./layout.svelte";
+  import { layoutState, setzeAktiv, profilIcon } from "./layout.svelte";
   import { hilfe } from "./hilfeStore.svelte";
   import KopfSuche from "./KopfSuche.svelte";
 
-  const iconMap: Record<string, string> = {
-    Zuhause: "fa-house",
-    Garten: "fa-seedling",
-    Reise: "fa-suitcase-rolling",
-    Unwetter: "fa-triangle-exclamation",
-  };
-  function iconFuer(name: string): string {
-    return iconMap[name] ?? "fa-table-cells-large";
-  }
 </script>
 
 <header class="kopf">
@@ -24,7 +15,7 @@
   <div class="layout-tabs">
     {#each layoutState.liste as l}
       <button class:aktiv={layoutState.aktivId === l.id} onclick={() => setzeAktiv(l.id)}>
-        <i class="fa-solid {iconFuer(l.name)}"></i>
+        <i class="fa-solid {profilIcon(l)}"></i>
         {l.name}
       </button>
     {/each}

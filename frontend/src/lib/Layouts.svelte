@@ -9,12 +9,21 @@
     loescheLayout,
     setzeStandard,
     setzeAufProfil,
+    setzeIcon,
+    profilIcon,
+    PROFIL_ICONS,
     type Layout,
   } from "./layout.svelte";
 
   let bearbeiteId = $state<string | null>(null);
   let bearbeiteName = $state("");
   let loeschId = $state<string | null>(null);
+  let iconWahlId = $state<string | null>(null);
+
+  async function waehleIcon(id: string, icon: string): Promise<void> {
+    await setzeIcon(id, icon);
+    iconWahlId = null;
+  }
 
   function starteBearbeiten(l: Layout): void {
     bearbeiteId = l.id;
@@ -67,18 +76,25 @@
               {#each l.daten as d}<span style="grid-column: {(d.x ?? 0) + 1} / span {d.w}; grid-row: {(d.y ?? 0) + 1} / span {d.h}"></span>{/each}
             </button>
             <div class="reihe" style="justify-content: space-between; gap: var(--a2)">
+              <button
+                class="icon-knopf"
+                style="width: 30px; height: 30px; flex-shrink: 0"
+                title="Profil-Icon waehlen"
+                aria-label="Profil-Icon waehlen"
+                onclick={() => (iconWahlId = iconWahlId === l.id ? null : l.id)}
+              ><i class="fa-solid {profilIcon(l)}"></i></button>
               {#if bearbeiteId === l.id}
                 <!-- svelte-ignore a11y_autofocus -->
                 <input
                   class="feld"
-                  style="height: 28px; padding: 2px 6px"
+                  style="height: 28px; padding: 2px 6px; flex: 1"
                   bind:value={bearbeiteName}
                   onkeydown={taste}
                   onblur={speichereName}
                   autofocus
                 />
               {:else}
-                <b>{l.name}</b>
+                <b style="flex: 1; min-width: 0">{l.name}</b>
               {/if}
               {#if l.ist_standard}
                 <span class="pille gut">Standard</span>
@@ -101,6 +117,19 @@
                 {#if loeschId === l.id}<span class="klein-txt">Sicher?</span>{:else}<i class="fa-solid fa-trash"></i>{/if}
               </button>
             </div>
+            {#if iconWahlId === l.id}
+              <div class="icon-palette">
+                {#each PROFIL_ICONS as ic}
+                  <button
+                    class="icon-wahl"
+                    class:aktiv={profilIcon(l) === ic}
+                    title={ic}
+                    aria-label="Icon {ic}"
+                    onclick={() => waehleIcon(l.id, ic)}
+                  ><i class="fa-solid {ic}"></i></button>
+                {/each}
+              </div>
+            {/if}
           </div>
         {/each}
         <button class="layout-neu" onclick={neu}>
