@@ -23,6 +23,15 @@
   import { stil } from "./lib/stil.svelte";
   import { hilfe } from "./lib/hilfeStore.svelte";
   import { lies, schreib } from "./lib/speicher";
+  import { fassung, fassungVerfolgen, neuLadenAufhalten, ruhig } from "./lib/fassung.svelte";
+
+  onMount(() => fassungVerfolgen());
+  // Offener Dialog oder laufende Ortssuche: eine neue Fassung wartet bis danach.
+  onMount(() =>
+    neuLadenAufhalten(
+      () => ui.katalog || ui.layouts || ui.ortssuche || ui.einstellungen || ui.dienste || ui.demoOrte || ui.spende || ui.willkommen,
+    ),
+  );
 
   onMount(async () => {
     // URL-Parameter ZUERST lesen - bevor asynchrone Ladevorgaenge und die
@@ -95,6 +104,17 @@
     <Dashboard />
   {/if}
 </div>
+
+{#if fassung.neu}
+  <div class="fassung-band" role="status">
+    <i class="fa-solid fa-rotate"></i>
+    <span>
+      <strong>Neue Fassung {fassung.neu} ist da.</strong>
+      {ruhig() ? "Beim nächsten Wechsel von Ansicht, Ort oder Profil lädt die Wetterwarte sie von selbst." : "Sie lädt beim nächsten Wechsel von selbst, sobald kein Dialog mehr offen ist und das Radar steht."}
+    </span>
+    <button class="knopf primaer klein" onclick={() => location.reload()}><i class="fa-solid fa-rotate"></i> Jetzt neu laden</button>
+  </div>
+{/if}
 
 {#if ui.katalog}<Katalog />{/if}
 <Hilfe />

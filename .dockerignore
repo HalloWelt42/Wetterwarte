@@ -1,0 +1,16 @@
+# Baukontext beider Abbilder ist das Projektwurzelverzeichnis (docker-compose.prod.yml), damit version.json als
+# einzige Quelle der Fassung mitkommt. Hinein dürfen nur die Quellen und version.json, ohne Pakete, Bau und
+# Laufzeitreste vom Host.
+*
+!version.json
+!frontend
+!backend
+frontend/node_modules
+frontend/dist
+frontend/.svelte-kit
+backend/.venv
+backend/.kachelcache
+backend/.pytest_cache
+**/__pycache__
+**/*.pyc
+**/.DS_Store

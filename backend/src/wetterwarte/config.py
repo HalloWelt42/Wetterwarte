@@ -1,11 +1,27 @@
 """Konfiguration ueber Umgebungsvariablen (pydantic-settings)."""
 
+import json
+import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Backend-Wurzel (.../backend) - fuer projektinterne Standard-Pfade (unabh. vom cwd).
 _BACKEND = Path(__file__).resolve().parents[2]
+
+# Einzige Quelle der Fassung ist version.json im Projektwurzelverzeichnis; die Oberfläche baut sie beim Bau ein.
+# Im Container liegt das Paket in site-packages; dort nennt WETTERWARTE_VERSION_DATEI die mitgebaute Datei
+# (backend/Dockerfile).
+_VERSIONSDATEI = Path(os.environ.get("WETTERWARTE_VERSION_DATEI") or _BACKEND.parent / "version.json")
+
+
+def aktuelle_version() -> str:
+    """version.json frisch lesen (für /health: die Oberfläche vergleicht ihre eingebaute Fassung damit)."""
+    try:
+        version = json.loads(_VERSIONSDATEI.read_text(encoding="utf-8")).get("version")
+        return version if isinstance(version, str) else "0.0.0"
+    except (OSError, ValueError):
+        return "0.0.0"
 
 
 class Settings(BaseSettings):
@@ -19,7 +35,8 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://wetterwarte:wetterwarte@localhost:6152/wetterwarte"
     redis_url: str = "redis://localhost:6153/0"
     app_secret: str = "entwicklung"
-    version: str = "0.46.1"
+    # Fassung des laufenden Prozesses (aus version.json, siehe oben)
+    version: str = aktuelle_version()
 
     # Basis-URL fuer Open-Meteo. Vorerst der oeffentliche Dienst (nutzt fuer
     # Deutschland die DWD-ICON-Modelle); spaeter der lokal gespiegelte Dienst.

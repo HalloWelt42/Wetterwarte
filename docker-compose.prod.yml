@@ -1,6 +1,8 @@
 # Produktions-Setup: alles als Container, ein Compose steuert die ganze App.
 # Nur das Frontend ist nach aussen offen; Backend/DB/Redis bleiben im internen
 # Netz. Daten liegen als Bind-Mount unter ${DATA_DIR} (auf dem Pi: /mnt/data).
+# Gebaut wird aus dem Projektwurzelverzeichnis, damit version.json (einzige Quelle der Fassung) in beide Abbilder
+# kommt; was in den Baukontext darf, steht in .dockerignore.
 name: wetterwarte-prod
 
 services:
@@ -27,7 +29,9 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-wetterwarte}:${POSTGRES_PASSWORD:-wetterwarte}@postgres:5432/${POSTGRES_DB:-wetterwarte}
       REDIS_URL: redis://redis:6379/0
@@ -47,7 +51,9 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     ports:
       - "${WEB_PORT:-8060}:80"
     depends_on:

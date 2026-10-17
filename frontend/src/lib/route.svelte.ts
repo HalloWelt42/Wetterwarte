@@ -6,6 +6,11 @@
 // /?ansicht=karte&ort=hamburg&profil=<id>. Bewusst KEINE Pfad-Segmente: /api,
 // /karte und /kachel sind bereits Proxy-Pfade - ein Client-Pfad /karte wuerde
 // kollidieren. Der Wurzelpfad wird immer als App ausgeliefert.
+//
+// Jeder Wechsel von Ansicht, Ort oder Profil ist der ruhige Moment für eine neue Fassung: die Adresse steht dann
+// schon, und das Neuladen landet genau dort (lib/fassung.svelte.ts).
+import { vielleichtNeuLaden } from "./fassung.svelte";
+
 export type Ansicht = "dashboard" | "karte" | "aufzeichnung" | "archiv";
 
 const ANSICHTEN: Ansicht[] = ["dashboard", "karte", "aufzeichnung", "archiv"];
@@ -42,18 +47,21 @@ export function gehe(ansicht: Ansicht): void {
   if (route.ansicht === ansicht) return;
   route.ansicht = ansicht;
   if (typeof history !== "undefined") history.pushState({ ansicht }, "", baueUrl(ansicht, ortAusUrl(), profilAusUrl()));
+  vielleichtNeuLaden("ortswechsel");
 }
 
 // Aktiven Ort in der URL spiegeln, ohne die Ansicht zu wechseln (ersetzt den Eintrag).
 export function setzeOrtInUrl(ort: string): void {
   if (typeof history === "undefined" || ortAusUrl() === ort) return;
   history.replaceState({ ansicht: route.ansicht }, "", baueUrl(route.ansicht, ort, profilAusUrl()));
+  vielleichtNeuLaden("ortswechsel");
 }
 
 // Aktives Profil (Layout-ID) in der URL spiegeln (ersetzt den Eintrag).
 export function setzeProfilInUrl(profil: string): void {
   if (typeof history === "undefined" || profilAusUrl() === profil) return;
   history.replaceState({ ansicht: route.ansicht }, "", baueUrl(route.ansicht, ortAusUrl(), profil));
+  vielleichtNeuLaden("ortswechsel");
 }
 
 // Beim ersten Aufruf die URL auf den Startzustand normalisieren (Ort + Profil).
@@ -65,6 +73,7 @@ export function initUrl(ort: string, profil: string): void {
 // Zurueck/Vorwaerts im Browser folgt der Ansicht aus der URL.
 if (typeof window !== "undefined") {
   window.addEventListener("popstate", () => {
+    vielleichtNeuLaden("ortswechsel");
     route.ansicht = ansichtAusUrl();
   });
 }

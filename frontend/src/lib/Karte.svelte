@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
+  import { neuLadenAufhalten } from "./fassung.svelte";
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
   import { orteState } from "./orte.svelte";
@@ -449,6 +450,8 @@
   let radarSpielt = $state(false);
   let radarLaedt = $state(false);
   let radarStand = $state("");
+  // Während das Radar abgespielt wird, wartet eine neue Fassung.
+  onMount(() => neuLadenAufhalten(() => radarSpielt));
   let radarGebaut = false;
   let radarTimer: ReturnType<typeof setInterval> | undefined;
   let radarRahmenTimer: ReturnType<typeof setInterval> | undefined;
