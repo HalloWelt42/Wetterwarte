@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 WORKDIR /app
 # Abhängigkeiten exakt nach uv.lock: ein freies "pip install ." zieht bei jedem Bau die
 # neueste Fassung (so kam eine sqlmodel-Fassung, die naive Zeitstempel ablehnt).
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
 COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt \
     && pip install --no-cache-dir --prefix=/install -r requirements.txt
