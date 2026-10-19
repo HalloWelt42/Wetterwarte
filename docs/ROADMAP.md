@@ -114,6 +114,10 @@ bzw. `frontend/src/`.
   Desktop-Layouts mehr, Kachel-IDs ohne `crypto.randomUUID`, Nowcast-Achse richtig, gemeinsamer Kern.
 - Telefonansicht und Telefon-Editor nach [TELEFON.md](TELEFON.md); Kachelzwischenspeicher prüft
   Anbieter und Kachelnummern; Umlaute in drei UI-Texten; `HilfeLink` als Snippet getypt.
+- 0.49.0: Aktive Warnungen nach [WARNUNGEN.md](WARNUNGEN.md): Lage je Ort aus Radar-Nowcast, Modell,
+  amtlichen Warnungen und Blitzen; Mitteilungen aufs Telefon mit Buchführung je Gerät, Nachtruhe und
+  Entwarnung; Tonansagen mit der Zeit-Stimme; sichere Adresse über Caddy. Radarwerte jetzt in mm/h
+  (RADOLAN liefert Höhe je 5 Minuten, Karte und Legende zeigten zwölffach zu wenig).
 
 ## Reihenfolge (offen)
 

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Wetterwarte - Telefon: Meldungen</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/telefon/telefon.css" />
+  </head>
+    <style>
+      /* Zusatzstile Meldungen (umgesetzt in frontend/src/telefon: Warnband, ansagen/Untertitel, blaetter/Lage, blaetter/Meldungen) */
+      .tel .warnband.lage { background: var(--flaeche); }
+      .tel .warnband.lage .stufe-marke { background: var(--flaeche-3); color: var(--text); }
+      .tel .untertitel { position: absolute; left: var(--rand); right: var(--rand); bottom: calc(var(--leiste-h, 56px) + var(--sicher-unten, 0px) + 8px); z-index: 30; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius); box-shadow: 0 6px 24px rgb(0 0 0 / 0.35); }
+      .tel .ut-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.3; }
+      .tel .ut-text b { font-size: var(--s17); }
+      .tel .ut-text span { font-size: var(--s15); color: var(--text-2); }
+      .tel .ut-stopp { color: var(--text-3); font-size: var(--s17); }
+      .tel .lage-karte { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--radius); }
+      .tel .lage-karte + .lage-karte { margin-top: 6px; }
+      .tel .lage-karte.flach { background: var(--flaeche-2); }
+      .tel .lage-karte.flach .stufe-marke { background: var(--flaeche-3); color: var(--text-2); }
+      .tel .lk-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; line-height: 1.3; }
+      .tel .lk-txt b { font-size: var(--s17); }
+      .tel .lk-txt span { font-size: var(--s15); color: var(--text-2); }
+      .tel .lk-txt small { font-size: var(--s13); color: var(--text-3); }
+      .tel .blatt button.zeile, .tel .blatt a.zeile { width: 100%; padding: 6px 14px; text-align: left; color: inherit; text-decoration: none; }
+      .tel .blatt .zeile .haupt b, .tel .blatt .zeile .haupt small { white-space: normal; line-height: 1.25; }
+      .tel .zeile .rechts .fa-check { color: var(--akzent); font-size: var(--s19); }
+      .tel .hinweis-z { display: flex; align-items: flex-start; gap: 10px; margin: 10px 8px 0; font-size: var(--s15); color: var(--text-3); line-height: 1.35; }
+      .tel .hinweis-z i { margin-top: 3px; }
+      .tel .einstellung + .einstellung { margin-top: 18px; }
+      .tel .einst-kopf { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; margin: 0 8px 8px; }
+      .tel .einst-kopf b { font-weight: 700; }
+      .tel .einst-kopf small { font-size: var(--s15); color: var(--text-3); }
+      .tel .einst-unter { margin: 8px 8px 0; font-size: var(--s15); color: var(--text-2); line-height: 1.35; }
+      .tel .ruhezeit { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 12px 8px 0; }
+      .tel .stellrad { display: flex; align-items: center; gap: 8px; }
+      .tel .stellrad span { min-width: 28px; color: var(--text-3); font-size: var(--s15); }
+      .tel .stellrad b { min-width: 64px; text-align: center; }
+    </style>
+  </head>
+  <body class="tel-seite">
+    <div class="buehne">
+      <div class="buehne-spalte" id="ansage">
+        <div class="geraet tel">
+          <div class="statusleiste"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+          <div class="schale">
+            <div class="rollfeld">
+              <header class="kopf">
+                <div class="kopf-zeile">
+                  <a class="kopf-ort" href="/mockups/telefon/orte.html" style="color: inherit; text-decoration: none"><span class="name">Köln</span><i class="fa-solid fa-chevron-down"></i></a>
+                  <span class="kopf-stand"><span class="frische"></span>vor 2 Min</span>
+                </div>
+                <div class="ort-punkte"><span class="an"></span><span></span><span></span><span></span><span></span></div>
+              </header>
+
+              <!-- Lageband: keine amtliche Warnung, aber Regen im Anzug (Tippen öffnet Was kommt) -->
+              <a class="warnband lage stufe-1" href="#was-kommt">
+                <span class="stufe-marke"><i class="fa-solid fa-cloud-rain"></i></span>
+                <div class="wb-txt"><div class="wb-titel">Leichter Regen in 30 Minuten</div><div class="wb-zeit">Was kommt</div></div>
+              </a>
+              <main class="raster">
+                <!-- Jetzt 2x2 -->
+                <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                  <div class="k-kopf"><span>Jetzt</span></div>
+                  <img class="mc mc-ecke" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                  <div class="k-fuss">
+                    <div class="wert riesig t-mild"><b>13°</b></div>
+                    <div class="zustand">Leicht bewölkt</div>
+                    <div class="unter">Gefühlt <b>11°</b> · H <b>15°</b> T <b>7°</b></div>
+                  </div>
+                </a>
+
+                <!-- Regen 1x1 -->
+                <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 2; --y: 0">
+                  <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span></div>
+                  <div class="k-fuss">
+                    <div class="wert halb c-regen"><b>17</b><small>Uhr</small></div>
+                    <div class="unter">ab da <b>70 %</b></div>
+                  </div>
+                </a>
+
+                <!-- Wind 1x1 -->
+                <a class="k" href="/mockups/telefon/detail.html#wind" style="--x: 2; --y: 1">
+                  <div class="k-kopf"><i class="fa-solid fa-wind entbehrlich-gross"></i><span>Wind</span></div>
+                  <div class="mikro-feld fest" data-mikro="kompass" data-grad="225" style="position: absolute; right: 8px; top: 8px; width: 40px; height: 40px"></div>
+                  <div class="k-fuss">
+                    <div class="wert"><b>14</b><small>km/h</small></div>
+                    <div class="unter">Böen <b>31</b><span class="entbehrlich"> · SW</span></div>
+                  </div>
+                </a>
+
+                <!-- Stunden 3x1: 6 Stunden -->
+                <a class="k" href="/mockups/telefon/detail.html#stunden" style="--x: 0; --y: 2; --w: 3; --h: 1">
+                  <div class="k-kopf"><span>Stunden</span><span class="rechts">Regen ab 17 Uhr</span></div>
+                  <div class="spalten">
+                    <div class="sp"><span class="sp-zeit">Jetzt</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein"></span></div>
+                    <div class="sp"><span class="sp-zeit">15</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein"></span></div>
+                    <div class="sp"><span class="sp-zeit">16</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein">20 %</span></div>
+                    <div class="sp"><span class="sp-zeit">17</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein">70 %</span></div>
+                    <div class="sp"><span class="sp-zeit">18</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">11°</span><span class="sp-klein">80 %</span></div>
+                    <div class="sp"><span class="sp-zeit">19</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">10°</span><span class="sp-klein">60 %</span></div>
+                  </div>
+                </a>
+
+              </main>
+            </div>
+            <!-- Untertitel der laufenden Ansage: Tippen beendet sie -->
+            <button class="untertitel stufe-1"><span class="stufe-marke"><i class="fa-solid fa-volume-high"></i></span><span class="ut-text"><b>Leichter Regen in 30 Minuten</b><span>Es wird in deiner Region in 30 Minuten leicht regnen.</span></span><span class="ut-stopp"><i class="fa-solid fa-stop"></i></span></button>
+            <nav class="leiste">
+              <a href="/mockups/telefon/karte.html"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+              <a class="an" href="/mockups/telefon/wetter.html" aria-current="page"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+              <a href="/mockups/telefon/gesundheit.html"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+              <a href="/mockups/telefon/mehr.html"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+            </nav>
+          </div>
+          <div class="wischleiste"></div>
+        </div>
+        <div class="geraet-unter">Wetterseite mit <b>Lageband</b> und laufender <b>Ansage</b> (Untertitel).</div>
+      </div>
+      <div class="buehne-spalte" id="was-kommt">
+        <div class="geraet tel">
+          <div class="statusleiste"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+          <div class="schale">
+            <div class="rollfeld" inert>
+              <header class="kopf">
+                <div class="kopf-zeile">
+                  <a class="kopf-ort" href="/mockups/telefon/orte.html" style="color: inherit; text-decoration: none"><span class="name">Köln</span><i class="fa-solid fa-chevron-down"></i></a>
+                  <span class="kopf-stand"><span class="frische"></span>vor 2 Min</span>
+                </div>
+                <div class="ort-punkte"><span class="an"></span><span></span><span></span><span></span><span></span></div>
+              </header>
+
+              <!-- Lageband: keine amtliche Warnung, aber Regen im Anzug (Tippen öffnet Was kommt) -->
+              <a class="warnband lage stufe-1" href="#was-kommt">
+                <span class="stufe-marke"><i class="fa-solid fa-cloud-rain"></i></span>
+                <div class="wb-txt"><div class="wb-titel">Leichter Regen in 30 Minuten</div><div class="wb-zeit">Was kommt</div></div>
+              </a>
+              <main class="raster">
+                <!-- Jetzt 2x2 -->
+                <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                  <div class="k-kopf"><span>Jetzt</span></div>
+                  <img class="mc mc-ecke" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                  <div class="k-fuss">
+                    <div class="wert riesig t-mild"><b>13°</b></div>
+                    <div class="zustand">Leicht bewölkt</div>
+                    <div class="unter">Gefühlt <b>11°</b> · H <b>15°</b> T <b>7°</b></div>
+                  </div>
+                </a>
+
+                <!-- Regen 1x1 -->
+                <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 2; --y: 0">
+                  <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span></div>
+                  <div class="k-fuss">
+                    <div class="wert halb c-regen"><b>17</b><small>Uhr</small></div>
+                    <div class="unter">ab da <b>70 %</b></div>
+                  </div>
+                </a>
+
+                <!-- Wind 1x1 -->
+                <a class="k" href="/mockups/telefon/detail.html#wind" style="--x: 2; --y: 1">
+                  <div class="k-kopf"><i class="fa-solid fa-wind entbehrlich-gross"></i><span>Wind</span></div>
+                  <div class="mikro-feld fest" data-mikro="kompass" data-grad="225" style="position: absolute; right: 8px; top: 8px; width: 40px; height: 40px"></div>
+                  <div class="k-fuss">
+                    <div class="wert"><b>14</b><small>km/h</small></div>
+                    <div class="unter">Böen <b>31</b><span class="entbehrlich"> · SW</span></div>
+                  </div>
+                </a>
+
+                <!-- Stunden 3x1: 6 Stunden -->
+                <a class="k" href="/mockups/telefon/detail.html#stunden" style="--x: 0; --y: 2; --w: 3; --h: 1">
+                  <div class="k-kopf"><span>Stunden</span><span class="rechts">Regen ab 17 Uhr</span></div>
+                  <div class="spalten">
+                    <div class="sp"><span class="sp-zeit">Jetzt</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein"></span></div>
+                    <div class="sp"><span class="sp-zeit">15</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein"></span></div>
+                    <div class="sp"><span class="sp-zeit">16</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein">20 %</span></div>
+                    <div class="sp"><span class="sp-zeit">17</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein">70 %</span></div>
+                    <div class="sp"><span class="sp-zeit">18</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">11°</span><span class="sp-klein">80 %</span></div>
+                    <div class="sp"><span class="sp-zeit">19</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">10°</span><span class="sp-klein">60 %</span></div>
+                  </div>
+                </a>
+
+              </main>
+            </div>
+            <nav class="leiste">
+              <a href="/mockups/telefon/karte.html"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+              <a class="an" href="/mockups/telefon/wetter.html" aria-current="page"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+              <a href="/mockups/telefon/gesundheit.html"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+              <a href="/mockups/telefon/mehr.html"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+            </nav>
+            <a class="abdunkeln" href="/mockups/telefon/wetter.html" aria-label="Blatt schließen"></a>
+            <section class="blatt">
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Was kommt<small>Köln</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <h3>Kommt in den nächsten Stunden</h3>
+                  <article class="lage-karte stufe-1"><span class="stufe-marke"><i class="fa-solid fa-cloud-rain"></i></span><div class="lk-txt"><b>Leichter Regen in 30 Minuten</b><span>Es wird in deiner Region in 30 Minuten leicht regnen.</span><small>ab 14:50 Uhr · Regenradar</small></div></article>
+                  <article class="lage-karte stufe-3"><span class="stufe-marke"><i class="fa-solid fa-wind"></i></span><div class="lk-txt"><b>Schwere Sturmböen in 5 Stunden</b><span>Achtung. Es wird in deiner Region in 5 Stunden schwere Sturmböen geben. Spitzenböen bis 95 Kilometer pro Stunde.</span><small>ab 19:00 Uhr · Vorhersage</small></div></article>
+                  <article class="lage-karte stufe-2"><span class="stufe-marke"><i class="fa-solid fa-cloud-bolt"></i></span><div class="lk-txt"><b>Gewitter in 3 Stunden</b><span>Es wird in deiner Region in 3 Stunden gewittern.</span><small>ab 17:00 Uhr · Vorhersage</small></div></article>
+                </div>
+                <div class="abschnitt">
+                  <h3>Zuletzt gemeldet</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-bell"></i></span><span class="haupt"><b>Leichter Regen in einer Stunde</b><small>13:52 Uhr</small></span></div>
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-volume-high"></i></span><span class="haupt"><b>Leichter Regen in 30 Minuten</b><small>14:19 Uhr</small></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <div class="zeilen"><a class="zeile" href="#meldungen"><span class="sym"><i class="fa-solid fa-bell"></i></span><span class="haupt"><b>Meldungen einstellen</b><small>Mitteilungen aufs Telefon und Tonansagen</small></span><span class="rechts"><i class="fa-solid fa-chevron-right"></i></span></a></div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="wischleiste"></div>
+        </div>
+        <div class="geraet-unter">Blatt <b>Was kommt</b>, Ziel jeder Mitteilung.</div>
+      </div>
+      <div class="buehne-spalte" id="meldungen">
+        <div class="geraet tel">
+          <div class="statusleiste"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+          <div class="schale">
+            <div class="rollfeld" inert><header class="kopf"><div class="kopf-zeile"><h1 style="margin:0;padding-left:6px;font-size:var(--s26)">Mehr</h1></div></header></div>
+            <nav class="leiste">
+              <a href="/mockups/telefon/karte.html"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+              <a href="/mockups/telefon/wetter.html"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+              <a href="/mockups/telefon/gesundheit.html"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+              <a class="an" href="/mockups/telefon/mehr.html" aria-current="page"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+            </nav>
+            <a class="abdunkeln" href="/mockups/telefon/wetter.html" aria-label="Blatt schließen"></a>
+            <section class="blatt voll">
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Meldungen<small>für dieses Gerät</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <section class="abschnitt">
+                  <h3>Mitteilungen aufs Telefon</h3>
+                  <div class="zeilen">
+                    <button class="zeile"><span class="sym"><i class="fa-solid fa-bell"></i></span><span class="haupt"><b>Mitteilungen</b><small>Kommen auch bei geschlossener App</small></span><span class="schalter an"></span></button>
+                    <button class="zeile"><span class="sym"><i class="fa-solid fa-paper-plane"></i></span><span class="haupt"><b>Probemitteilung senden</b></span></button>
+                  </div>
+                </section>
+                <section class="abschnitt">
+                  <h3>Für diese Orte</h3>
+                  <div class="zeilen">
+                    <button class="zeile an"><span class="sym"><i class="fa-solid fa-location-dot"></i></span><span class="haupt"><b>Köln</b><small>Nordrhein-Westfalen</small></span><span class="rechts"><i class="fa-solid fa-check"></i></span></button>
+                    <button class="zeile"><span class="sym"><i class="fa-solid fa-location-dot"></i></span><span class="haupt"><b>Hamburg</b><small>Freie und Hansestadt Hamburg</small></span></button>
+                  </div>
+                </section>
+                <section class="abschnitt">
+                  <h3>Tonansagen</h3>
+                  <div class="zeilen">
+                    <button class="zeile"><span class="sym"><i class="fa-solid fa-volume-high"></i></span><span class="haupt"><b>Ansagen bei offener App</b><small>Spricht neue Meldungen für den gezeigten Ort</small></span><span class="schalter an"></span></button>
+                    <button class="zeile"><span class="sym"><i class="fa-solid fa-play"></i></span><span class="haupt"><b>Probeansage</b></span></button>
+                  </div>
+                </section>
+                <section class="abschnitt">
+                  <h3>Was gemeldet wird</h3>
+                  <div class="zeilen">
+                    <button class="zeile an"><span class="sym"><i class="fa-solid fa-triangle-exclamation"></i></span><span class="haupt"><b>Amtliche Warnungen</b><small>Warnungen des Deutschen Wetterdienstes, sobald sie erscheinen</small></span><span class="rechts"><i class="fa-solid fa-check"></i></span></button>
+                    <button class="zeile an"><span class="sym"><i class="fa-solid fa-cloud-rain"></i></span><span class="haupt"><b>Regen und Schnee</b><small>Vorher gestaffelt bis 15 Minuten vor Beginn, aus Radar und Vorhersage</small></span><span class="rechts"><i class="fa-solid fa-check"></i></span></button>
+                    <button class="zeile an"><span class="sym"><i class="fa-solid fa-cloud-bolt"></i></span><span class="haupt"><b>Gewitter</b><small>Vorhergesagte Gewitter und Blitze in der Nähe</small></span><span class="rechts"><i class="fa-solid fa-check"></i></span></button>
+                    <button class="zeile an"><span class="sym"><i class="fa-solid fa-wind"></i></span><span class="haupt"><b>Sturm</b><small>Böen ab der eingestellten Stärke</small></span><span class="rechts"><i class="fa-solid fa-check"></i></span></button>
+                  </div>
+                </section>
+                <section class="abschnitt">
+                  <div class="einstellung"><div class="einst-kopf"><b>Regen und Schnee</b><small>ab welcher Stärke</small></div><div class="segmente" aria-label="Regen und Schnee ab"><button class="an">Alles</button><button>Ab mäßig</button><button>Nur stark</button></div></div>
+                  <div class="einstellung"><div class="einst-kopf"><b>Sturm</b><small>Böen ab km/h</small></div><div class="segmente" aria-label="Sturm ab"><button class="an">65</button><button>75</button><button>89</button></div></div>
+                  <div class="einstellung"><div class="einst-kopf"><b>Vorlauf</b><small>erste Meldung, Stunden vorher</small></div><div class="segmente" aria-label="Vorlauf"><button>1</button><button>2</button><button class="an">3</button><button>6</button></div><div class="einst-unter">Regen und Schnee meldet die Wetterwarte danach bei jeder neuen Stufe, zuletzt 15 Minuten vorher.</div></div>
+                </section>
+                <section class="abschnitt">
+                  <div class="einstellung">
+                    <div class="einst-kopf"><b>Nachtruhe</b><small>nur Mitteilungen</small></div>
+                    <div class="segmente" aria-label="Nachtruhe"><button>Aus</button><button class="an">An</button></div>
+                    <div class="ruhezeit">
+                      <div class="stellrad"><span>von</span><button class="knopf-rund flaeche" aria-label="Beginn früher"><i class="fa-solid fa-minus"></i></button><b>22 Uhr</b><button class="knopf-rund flaeche" aria-label="Beginn später"><i class="fa-solid fa-plus"></i></button></div>
+                      <div class="stellrad"><span>bis</span><button class="knopf-rund flaeche" aria-label="Ende früher"><i class="fa-solid fa-minus"></i></button><b>7 Uhr</b><button class="knopf-rund flaeche" aria-label="Ende später"><i class="fa-solid fa-plus"></i></button></div>
+                    </div>
+                    <div class="einst-unter">In dieser Zeit kommen nur Unwetter ab Stufe 3, in der Ortszeit des gemeldeten Orts.</div>
+                  </div>
+                </section>
+              </div>
+            </section>
+          </div>
+          <div class="wischleiste"></div>
+        </div>
+        <div class="geraet-unter">Blatt <b>Meldungen</b> unter Mehr.</div>
+      </div>
+      <div class="notiz">
+        <h1>Meldungen</h1>
+        <p>Aktive Warnungen nach <code>docs/WARNUNGEN.md</code>: die Wetterwarte meldet von sich aus, was kommt, als Mitteilung aufs Telefon und als Ansage mit der Zeit-Stimme, solange die App offen ist.</p>
+        <h2>Drei Orte</h2>
+        <ul>
+          <li><b>Lageband</b> auf der Wetterseite, wenn keine amtliche Warnung gilt: das nächste Ereignis, ruhig bis Stufe 2, ab Stufe 3 in Warnfarbe.</li>
+          <li><b>Was kommt</b>: alle kommenden Ereignisse mit Text, Beginn und Quelle, zuletzt Gemeldetes. Ziel jeder Mitteilung.</li>
+          <li><b>Meldungen</b> (Mehr): Mitteilungen mit Probe, Orte, Tonansagen, Arten, Stärke, Vorlauf, Nachtruhe.</li>
+        </ul>
+        <h2>Regeln</h2>
+        <ul>
+          <li>Text der Mitteilung und Ansage sind Wort für Wort gleich; der Untertitel zeigt, was gesprochen wird.</li>
+          <li>Regen kommt gestaffelt: 6, 3, 2, 1 Stunden, 30 und 15 Minuten vorher, je nach Vorlauf des Geräts; bleibt er aus, kommt eine Entwarnung.</li>
+          <li>Nachts nur Unwetter ab Stufe 3; Zeiten je Gerät.</li>
+          <li>Ohne HTTPS oder auf dem iPhone außerhalb der App vom Home-Bildschirm steht ein Hinweis statt eines toten Schalters.</li>
+        </ul>
+      </div>
+    </div>
+    <script src="/mockups/telefon/mikro.js"></script>
+    <script src="/mockups/telefon/entwurf.js"></script>
+  </body>
+</html>

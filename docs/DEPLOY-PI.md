@@ -40,6 +40,21 @@ sudo systemctl enable --now wetterwarte
 
 Die App ist dann unter `http://192.168.178.49:<WEB_PORT>` erreichbar.
 
+## Sichere Adresse (HTTPS) für Mitteilungen
+
+Mitteilungen aufs Telefon (Web Push) und der Service Worker brauchen HTTPS. Vor dem Frontend steht dafür
+ein Caddy (`vorne` in `docker-compose.prod.yml`, `deploy/Caddyfile`) auf `HTTPS_PORT` (8062) mit dem
+Blattzertifikat der Hausstelle, wie bei Kiste, Kellerwolke und Transkription. Die Adresse auf 8061 bleibt.
+
+```bash
+./wetter zertifikat   # vom Mac: mit mkcert ausstellen und nach /home/pi/wetterwarte/zertifikate legen
+./wetter deploy       # danach startet auch der Dienst vorne
+```
+
+`./wetter deploy` lässt den Ordner `zertifikate` beim Abgleich stehen. Das Telefon muss der Hausstelle
+vertrauen (einmalig eingerichtet). Dann `https://192.168.178.49:8062/telefon` öffnen, Teilen, Zum
+Home-Bildschirm, aus dem neuen Symbol starten und unter Mehr, Warnungen aufs Telefon einschalten.
+
 ## Steuerung
 
 ```bash

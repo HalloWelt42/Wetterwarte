@@ -58,8 +58,9 @@ class Settings(BaseSettings):
     # Verzeichnis fuer den Offline-Kachel-Cache (themengetrennt je Anbieter). Dev: fest
     # im Backend-Ordner; Prod: Bind-Mount auf die externe SSD (/cache -> /mnt/data/...).
     kachel_cache_dir: str = str(_BACKEND / ".kachelcache")
-    # Kontakt im VAPID-Anspruch (sub) für Web Push: mailto: oder https:, die Push-Dienste verlangen eine Angabe.
-    push_kontakt: str = "https://github.com/HalloWelt42/Wetterwarte"
+    # Kontakt im VAPID-Anspruch (sub) für Web Push: mailto:name@host oder https://host ohne Pfad (so prüft es
+    # py_vapid); die Push-Dienste verlangen eine Angabe, nutzen sie aber nur für Rückfragen.
+    push_kontakt: str = "https://wetterwarte.local"
     # Sichere Adresse der App (HTTPS vor dem Frontend, docs/WARNUNGEN.md); die Oberfläche verweist dorthin, wenn
     # sie ohne HTTPS geöffnet wurde, denn nur dort gibt es Mitteilungen. Leer: keine bekannt.
     sichere_adresse: str = ""

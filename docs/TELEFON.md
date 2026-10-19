@@ -130,9 +130,26 @@ frontend/
     Kachel.svelte       Hülle: Lage, Tippen, Laden, Ausfall, Altersmarke
     katalog.ts          Komponente, Detailblatt und Datenbereiche je Typ
     kacheln/  blaetter/  mikro/  ansichten/ (Karte, Orte, Mehr)
+    meldungen/          Gerät beim Server (konto.svelte.ts) und Web Push (push.ts), siehe WARNUNGEN.md
+    ansagen/            Tonansagen: Spieler (Web Audio), Abholen im Takt, Untertitel, klaenge/*.mp3
     telefon.css         Gestaltungssystem; jede Regel unter .tel, damit der Editor sie einbinden kann
   src/lib/telefoneditor/  Editor am Desktop (Rasterlogik raster.ts, Zustand editor.svelte.ts)
 ```
+
+## Meldungen und Was kommt
+
+Aktive Warnungen ([WARNUNGEN.md](WARNUNGEN.md)) haben am Telefon drei Orte:
+
+- **Lageband** auf der Wetterseite: ohne amtliche Warnung steht dort das nächste Ereignis der Lage
+  ("Leichter Regen in 30 Minuten"), ruhig bis Stufe 2, ab Stufe 3 in Warnfarbe. Tippen öffnet "Was kommt".
+- **Blatt "Was kommt"** (`?blatt=lage`): alle kommenden Ereignisse mit Text, Beginn und Quelle, laufende
+  darunter, zuletzt Gemeldetes. Hierher führt das Antippen einer Mitteilung; amtliche Warnungen öffnen das
+  Blatt Warnungen.
+- **Blatt "Meldungen"** (Mehr, `?blatt=meldungen`): Mitteilungen ein und aus mit Probe, Orte, Tonansagen
+  mit Probeansage, Arten, Stärke, Vorlauf und Nachtruhe. Ohne HTTPS oder auf dem iPhone außerhalb der App
+  vom Home-Bildschirm erklärt das Blatt, was fehlt, statt einen toten Schalter zu zeigen.
+
+Während eine Ansage läuft, steht ihr Text als Untertitel über der Reiterleiste; Tippen beendet sie.
 
 ## Editor am Desktop
 

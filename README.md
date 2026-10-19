@@ -17,6 +17,13 @@ große PostgreSQL zeichnet ausgewählte Stationen und Orte langfristig auf.
 - **Große Karte**: Basiskarten (hell, dunkel, Satellit) mit umschaltbaren Ebenen - eigenes
   DWD-RADOLAN-Regenradar (gemessen plus Nowcast bis +2 h, wahlweise Live oder Animation),
   amtliche Warnungen, Temperatur-Farbfeld, Windpfeile und Live-Blitze.
+- **Telefonansicht**: eigenes Raster mit verdichteten Kacheln (1x1 bis 3x3), Wischseiten Karte,
+  Wetter und Gesundheit, Nachtbetrieb nach Sonnenuntergang am Ort; das Layout je Profil wird am
+  Rechner eingerichtet ([docs/TELEFON.md](docs/TELEFON.md)).
+- **Aktive Warnungen**: amtliche Warnungen, Regen und Schnee, Gewitter und Sturm melden sich von
+  selbst, als Mitteilung aufs Telefon (auch bei geschlossener App) und als gesprochene Ansage bei
+  offener App. Regen kommt gestaffelt von mehreren Stunden bis 15 Minuten vorher, aus Radar-Nowcast
+  und Vorhersage; Orte, Stärke, Vorlauf und Nachtruhe je Gerät ([docs/WARNUNGEN.md](docs/WARNUNGEN.md)).
 - **Orte**: weltweite Ortssuche, Demo-Orte (Extremwetter und bekannte Orte) zum Ausprobieren,
   Reihenfolge per Drag-and-Drop.
 - **Langzeit-Archiv**: ausgewählte Orte und Variablen werden in PostgreSQL aufgezeichnet;

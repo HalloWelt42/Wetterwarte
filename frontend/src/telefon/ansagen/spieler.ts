@@ -60,7 +60,7 @@ function gong(stufe: number, ab: number): number {
     ton.type = "sine";
     ton.frequency.value = frequenz;
     huelle.gain.setValueAtTime(0, t);
-    huelle.gain.linearRampToValueAtTime(0.22, t + 0.015);
+    huelle.gain.linearRampToValueAtTime(0.1, t + 0.015); // leise: der Gong kündigt an, die Stimme trägt
     huelle.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
     ton.connect(huelle).connect(lautstaerke!);
     ton.start(t);
