@@ -117,7 +117,10 @@ bzw. `frontend/src/`.
 - 0.49.0: Aktive Warnungen nach [WARNUNGEN.md](WARNUNGEN.md): Lage je Ort aus Radar-Nowcast, Modell,
   amtlichen Warnungen und Blitzen; Mitteilungen aufs Telefon mit Buchführung je Gerät, Nachtruhe und
   Entwarnung; Tonansagen mit der Zeit-Stimme; sichere Adresse über Caddy. Radarwerte jetzt in mm/h
-  (RADOLAN liefert Höhe je 5 Minuten, Karte und Legende zeigten zwölffach zu wenig).
+  (RADOLAN liefert Höhe je 5 Minuten, Karte und Legende zeigten zwölffach zu wenig). Desktop-Kachel
+  Regen-Nowcast aus derselben Quelle wie Telefon und Meldungen (Radar vor Modell). Ohne WebGL zeigen die
+  Karten einen Hinweis, statt die Desktop-Ansicht mitzureißen. Einheiten in Telefonkacheln ausgeschrieben.
+  README-Bild aus der echten App mit Demo-Orten (`tools/readme-bild.mjs`, `mockups/praesentation.html`).
 
 ## Reihenfolge (offen)
 

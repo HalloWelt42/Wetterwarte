@@ -9,15 +9,18 @@
   const n = $derived(balken.length);
   let hoverI = $state<number | null>(null);
 
-  // Zeitversatz eines Balkens: je Balken eine Viertelstunde ab jetzt.
-  const versatz = (i: number) => i * 15;
+  // Zeitversatz eines Balkens: je Balken ein Schritt ab jetzt (Radar 5, Modell 15 Minuten).
+  const schritt = $derived(nowcast?.schritt_min ?? 15);
+  const versatz = (i: number) => i * schritt;
+  // Achse: jetzt und jede volle Stunde der Spanne
+  const stunden = $derived(Math.max(1, Math.round((n * schritt) / 60)));
   // Tooltip-Position in Prozent, an den Raendern eingeklemmt (nicht abschneiden).
   const tipLinks = $derived(hoverI === null ? 50 : Math.min(85, Math.max(15, ((hoverI + 0.5) / n) * 100)));
 </script>
 
 <div class="nowcast-text">{nowcast?.text ?? "Für diesen Ort gibt es keine Kurzfristvorhersage."}</div>
 {#if balken.length}
-<div class="nowcast-balken" role="group" aria-label="Regenintensität der nächsten 3 Stunden" onpointerleave={() => (hoverI = null)}>
+<div class="nowcast-balken" role="group" aria-label="Regenintensität der nächsten {stunden === 1 ? 'Stunde' : `${stunden} Stunden`}" onpointerleave={() => (hoverI = null)}>
   {#each balken as h, i}
     <span
       class="nb"
@@ -30,10 +33,10 @@
   {/each}
   {#if hoverI !== null}
     <div class="nowcast-tip" style="left: {tipLinks}%">
-      <b>{hoverI === 0 ? "jetzt" : `+${versatz(hoverI)} Min`}</b>
+      <b>{hoverI === 0 ? "jetzt" : `+${versatz(hoverI)} Minuten`}</b>
       <span class="dimm">{balken[hoverI]}%</span>
     </div>
   {/if}
 </div>
-<div class="nowcast-achse"><span>jetzt</span><span>+1 h</span><span>+2 h</span><span>+3 h</span></div>
+<div class="nowcast-achse"><span>jetzt</span>{#each Array.from({ length: stunden }, (_, i) => i + 1) as h (h)}<span>+{h} h</span>{/each}</div>
 {/if}

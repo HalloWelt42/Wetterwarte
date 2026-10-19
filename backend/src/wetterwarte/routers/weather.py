@@ -34,8 +34,12 @@ async def _ort(ort: str):
     return o
 
 
-def _darstellung_basis(o, roh: dict | None) -> dict | None:
-    return openmeteo.darstellung(roh, o.name, o.region, o.lat, o.lon) if roh else None
+async def _darstellung_basis(o, roh: dict | None) -> dict | None:
+    """Desktop-Form der Vorhersage; den Kurzfrist-Regen rechnet kompakt.regen_kurzfrist (Radar vor Modell)."""
+    if not roh:
+        return None
+    nowcast = await wetterdienst.nowcast(o)
+    return {**openmeteo.darstellung(roh, o.name, o.region, o.lat, o.lon), "nowcast": kompakt.regen_kachel(kompakt.regen_kurzfrist(roh, nowcast.wert))}
 
 
 def _darstellung_warn(o, roh: list | None) -> list | None:
@@ -52,7 +56,7 @@ async def complete(ort: str) -> dict:
     if b.wert is None:
         raise HTTPException(status_code=502, detail="Wetterquelle nicht erreichbar")
     antwort = wrap({
-        **_darstellung_basis(o, b.wert),
+        **(await _darstellung_basis(o, b.wert) or {}),
         "luft": luft.wert,
         "warnungen": _darstellung_warn(o, warn.wert),
         "blitze": blitz.wert,
@@ -82,7 +86,7 @@ async def basis(ort: str) -> dict:
     """Aktuell, stuendlich, taeglich, Sonne."""
     o = await _ort(ort)
     e = await wetterdienst.basis(o)
-    return wrap(_darstellung_basis(o, e.wert), ergebnis=e)
+    return wrap(await _darstellung_basis(o, e.wert), ergebnis=e)
 
 
 @router.get("/warnungen/{ort}")

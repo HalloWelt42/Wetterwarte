@@ -184,6 +184,32 @@ def _regen_radar(nowcast: dict) -> Regen | None:
     return _regen_aus(werte, RADAR_SCHRITT_MIN, "radar") if len(werte) >= RADAR_MINDESTENS else None
 
 
+def regen_kurzfrist(roh: dict | None, nowcast: dict | None) -> Regen | None:
+    """Regen der nächsten rund zwei Stunden, Radar vor Modell. Eine Wahrheit für Telefon, Desktop-Kachel und die
+    Lage (lage.py liest dieselben Quellen in derselben Reihenfolge)."""
+    return (_regen_radar(nowcast) if nowcast else None) or (_regen_modell(roh) if roh else None)
+
+
+def regen_kachel(r: Regen | None) -> dict | None:
+    """Form der Desktop-Kachel Regen-Nowcast: Satz, Balken (Anteil am Höchstwert), Schrittweite, Quelle."""
+    if r is None:
+        return None
+    hoechst = max(r.werte, default=0.0)
+    stunden = round(len(r.werte) * r.schritt_min / 60)
+    if r.beginn_min == 0:
+        text = "Regen jetzt"
+    elif r.beginn_min is not None:
+        text = f"Regen in {r.beginn_min} Minuten"
+    else:
+        text = "Kein Regen in der nächsten Stunde" if stunden <= 1 else f"Kein Regen in den nächsten {stunden} Stunden"
+    return {
+        "text": text,
+        "balken": [round(w / hoechst * 100) if hoechst > 0 else 3 for w in r.werte],
+        "schritt_min": r.schritt_min,
+        "quelle": r.quelle,
+    }
+
+
 def _blitze(roh: dict) -> Blitze:
     jetzt_ms = jetzt().timestamp() * 1000
     alle = roh.get("einschlaege") or []
@@ -249,7 +275,7 @@ def baue(
         jetzt_wert = _jetzt(roh, tz, h, i)
         stunden, idx = _stunden(h, tz, i)
         tage = _tage(roh["daily"], tz, h)
-    regen = (_regen_radar(nowcast.wert) if nowcast.wert else None) or (_regen_modell(roh) if roh else None)
+    regen = regen_kurzfrist(roh, nowcast.wert)
     return Kompakt(
         ort=KOrt(slug=o.slug, name=o.name, region=o.region, lat=o.lat, lon=o.lon, zeitzone=tz),
         zeit=jetzt(),

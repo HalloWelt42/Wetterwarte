@@ -185,22 +185,6 @@ def darstellung(d: dict, name: str, region: str, lat: float, lon: float) -> dict
             "druck": round(druck_h[i]) if druck_h and druck_h[i] is not None else None,
         })
 
-    mm = d.get("minutely_15") or {}
-    nowcast = None
-    if mm.get("time"):
-        i15 = viertel_index(mm["time"], c["time"])
-        werte = [w or 0 for w in mm["precipitation"][i15 : i15 + 12]]
-        maxw = max(werte) if werte else 0
-        balken = [round(w / maxw * 100) if maxw > 0 else 3 for w in werte]
-        minuten = next((i * 15 for i, w in enumerate(werte) if w >= 0.1), None)
-        if minuten == 0:
-            text = "Regen jetzt"
-        elif minuten:
-            text = f"Regen in {minuten} Minuten"
-        else:
-            text = "Kein Regen in den nächsten 3 Stunden"
-        nowcast = {"text": text, "balken": balken}
-
     dl = d["daily"]
     hoch = [round(x) for x in dl["temperature_2m_max"]]
     tief = [round(x) for x in dl["temperature_2m_min"]]
@@ -233,7 +217,6 @@ def darstellung(d: dict, name: str, region: str, lat: float, lon: float) -> dict
         "stunden": stunden,
         "tage": tage,
         "sonne": sonne,
-        "nowcast": nowcast,
     }
 
 

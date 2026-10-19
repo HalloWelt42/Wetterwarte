@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Präsentation - Geräte</title>
+<link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css">
+<link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css">
+<link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css">
+<link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+<!--
+  README-Bild: Notebook (zwei Drittel), davor versetzt das Telefon, oben rechts die Mitteilung, die es eben
+  bekommen hat (sie schwebt neben dem Telefon, damit das Lageband auf dem Bildschirm sichtbar bleibt). Ohne Logos.
+  Bildschirminhalte sind Aufnahmen der echten App mit den Demo-Orten (tools/readme-bild.mjs legt sie nach
+  mockups/praesentation/), keine persönlichen Orte. ?grund=dunkel: auf dunklem Grund, sonst freigestellt.
+  Gerendert mit 2400 x 1400 Punkten nach .github/bilder/geraete.png.
+-->
+<style>
+  html, body { margin: 0; width: 2400px; height: 1400px; overflow: hidden; background: transparent; font-family: "Barlow", system-ui, sans-serif; }
+  body.dunkel { background: radial-gradient(1400px 900px at 45% 40%, #1a2633 0%, #0d141b 55%, #080c10 100%); }
+  .buehne { position: relative; width: 2400px; height: 1400px; }
+  /* Weicher Schatten auf dem Boden unter beiden Geräten */
+  .boden { position: absolute; left: 140px; top: 1110px; width: 2000px; height: 120px; border-radius: 50%;
+           background: radial-gradient(closest-side, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0)); filter: blur(6px); }
+
+  /* Notebook */
+  .notebook { position: absolute; left: 70px; top: 70px; width: 1820px; }
+  .deckel { position: relative; margin: 0 auto; width: 1572px; padding: 4px; border-radius: 34px 34px 14px 14px;
+            background: linear-gradient(160deg, #d4d8dd, #8f959d 45%, #c3c8ce);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.35), 0 12px 24px rgba(0, 0, 0, 0.25); }
+  .deckel-innen { position: relative; padding: 20px 20px 22px; border-radius: 30px 30px 10px 10px; background: #0a0c0f; }
+  .kamera { position: absolute; top: 7px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #3a4a5a, #050607); }
+  .notebook .bild { width: 1524px; height: 952px; overflow: hidden; border-radius: 6px; background: #eef2f6; }
+  .notebook .bild img { display: block; width: 1524px; height: 952px; }
+  .unterteil { position: relative; width: 1820px; height: 30px; margin-top: -2px; border-radius: 3px 3px 26px 26px / 3px 3px 16px 16px;
+               background: linear-gradient(180deg, #eef0f3 0%, #c7ccd2 35%, #9aa0a8 75%, #6c727a 100%);
+               box-shadow: 0 30px 50px rgba(0, 0, 0, 0.35); }
+  .mulde { position: absolute; top: 0; left: 50%; width: 260px; height: 12px; margin-left: -130px; border-radius: 0 0 12px 12px;
+           background: linear-gradient(180deg, #8e949c, #b7bcc2); }
+
+  /* Telefon */
+  .handy { position: absolute; left: 1640px; top: 250px; width: 410px; padding: 14px; border-radius: 66px;
+           background: linear-gradient(150deg, #a8adb4, #5d636b 40%, #8f959c 70%, #4a4f56);
+           box-shadow: 0 50px 90px rgba(0, 0, 0, 0.45), 0 14px 28px rgba(0, 0, 0, 0.3); }
+  .handy-innen { position: relative; border-radius: 54px; background: #000; overflow: hidden; }
+  .handy .bild { position: relative; width: 382px; height: 873px; overflow: hidden; border-radius: 52px; background: #0b0e12; }
+  .handy .bild img { position: absolute; top: 47px; left: 0; width: 382px; }
+  .statusleiste { position: absolute; left: 0; right: 0; top: 0; height: 47px; display: flex; align-items: center; justify-content: space-between;
+                  padding: 6px 30px 0 40px; color: #fff; font-weight: 600; font-size: 17px; z-index: 2; background: #0b0e12; }
+  .statusleiste .rechts { display: flex; gap: 6px; font-size: 14px; }
+  .insel { position: absolute; top: 12px; left: 50%; width: 118px; height: 34px; margin-left: -59px; border-radius: 20px; background: #000; z-index: 3; }
+  .knopf-seite { position: absolute; width: 5px; border-radius: 3px; background: linear-gradient(90deg, #6d737b, #a3a8af); }
+
+  /* Mitteilung, die das Telefon eben bekommen hat: schwebt über seiner oberen rechten Ecke */
+  .mitteilung { position: absolute; left: 1840px; top: 150px; width: 500px; z-index: 4; display: flex; gap: 16px; align-items: flex-start;
+                padding: 18px 20px 20px; border-radius: 30px; color: #f3f5f7; background: #26292e;
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45), 0 8px 18px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+  .mitteilung img { width: 54px; height: 54px; border-radius: 13px; flex: none; }
+  .mitteilung .txt { flex: 1; min-width: 0; line-height: 1.25; }
+  .mitteilung .kopf { display: flex; justify-content: space-between; font-size: 16px; letter-spacing: 0.04em; color: #aab3bc; text-transform: uppercase; }
+  .mitteilung b { display: block; margin-top: 4px; font-size: 22px; }
+  .mitteilung span.text { display: block; margin-top: 3px; font-size: 20px; color: #d5dbe1; }
+</style>
+</head>
+<body>
+<div class="buehne">
+  <span class="boden"></span>
+  <div class="notebook">
+    <div class="deckel"><div class="deckel-innen">
+      <span class="kamera"></span>
+      <div class="bild"><img src="praesentation/desktop.png" alt=""></div>
+    </div></div>
+    <div class="unterteil"><span class="mulde"></span></div>
+  </div>
+
+  <div class="handy">
+    <span class="knopf-seite" style="left:-4px; top:170px; height:34px"></span>
+    <span class="knopf-seite" style="left:-4px; top:230px; height:64px"></span>
+    <span class="knopf-seite" style="left:-4px; top:306px; height:64px"></span>
+    <span class="knopf-seite" style="right:-4px; top:250px; height:100px"></span>
+    <div class="handy-innen">
+      <div class="bild">
+        <div class="statusleiste"><span data-uhr>14:20</span><span class="rechts"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+        <span class="insel"></span>
+        <img src="praesentation/telefon.png" alt="">
+      </div>
+    </div>
+  </div>
+  <div class="mitteilung">
+    <img src="/frontend/public/icon-192.png" alt="">
+    <div class="txt">
+      <div class="kopf"><span>Wetterwarte</span><span>jetzt</span></div>
+      <b data-titel>Köln: Leichter Regen in 30 Minuten</b>
+      <span class="text" data-text>Es wird in deiner Region in 30 Minuten leicht regnen.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const p = new URLSearchParams(location.search);
+  if (p.get('grund') === 'dunkel') document.body.classList.add('dunkel');
+  // Uhrzeit, Titel und Text der Mitteilung kann das Aufnahmeskript setzen (gleiche Lage wie auf dem Telefon)
+  for (const name of ['uhr', 'titel', 'text']) if (p.get(name)) document.querySelector(`[data-${name}]`).textContent = p.get(name);
+</script>
+</body>
+</html>

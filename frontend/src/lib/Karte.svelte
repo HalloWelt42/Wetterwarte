@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
+  import { karteAnlegen, OHNE_WEBGL } from "../kern/webgl";
   import { neuLadenAufhalten } from "../kern/fassung.svelte";
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
@@ -9,6 +10,7 @@
 
   let kartenEl: HTMLDivElement;
   let map: maplibregl.Map | undefined;
+  let ohneKarte = $state(false); // kein WebGL: Hinweis statt Karte (kern/webgl.ts)
   let ortMarker: maplibregl.Marker | undefined;
 
   // Overlay-Namen fuer das Ebenen-Panel. Der DWD-Nowcast (Niederschlagsvorhersage
@@ -30,7 +32,7 @@
   }
 
   onMount(() => {
-    map = new maplibregl.Map({
+    map = karteAnlegen(() => new maplibregl.Map({
       container: kartenEl,
       style: {
         version: 8,
@@ -47,7 +49,11 @@
       center: aktiverOrt(),
       zoom: 7,
       attributionControl: false,
-    });
+    })) ?? undefined;
+    if (!map) {
+      ohneKarte = true;
+      return;
+    }
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     // Pinnnadel am aktiven Ort (Heimat).
     ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);
@@ -745,6 +751,7 @@
 <section class="inhalt">
   <div style="flex: 1; position: relative; margin: var(--a4); min-height: 0;">
     <div bind:this={kartenEl} style="position: absolute; inset: 0; border-radius: var(--r2); overflow: hidden;"></div>
+    {#if ohneKarte}<div class="karte-ohne"><i class="fa-solid fa-map"></i><span>{OHNE_WEBGL}</span></div>{/if}
 
     <!-- Ebenen-Panel -->
     <div class="panel" style="position: absolute; left: var(--a4); top: var(--a4); width: 236px; z-index: 2; box-shadow: var(--schatten-2);">

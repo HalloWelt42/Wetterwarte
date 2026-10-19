@@ -5,7 +5,7 @@ Kern ist eine komplett kachelbasierte Oberfläche: Kacheltypen werden per Drag-a
 angeordnet und in der Größe gezogen. Außer den reinen Wetterdaten läuft alles lokal; eine
 große PostgreSQL zeichnet ausgewählte Stationen und Orte langfristig auf.
 
-![Wetterwarte - kachelbasiertes Dashboard](docs/screenshot.png)
+![Wetterwarte auf Rechner und Telefon: Dashboard, Telefonansicht und eine Mitteilung, die Regen in 30 Minuten ankündigt](.github/bilder/geraete.png)
 
 ## Funktionen
 

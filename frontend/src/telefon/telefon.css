@@ -807,3 +807,7 @@
 
 /* Stand der Daten am Ende eines Blatts */
 .tel .blatt-inhalt p.stand-zeile { margin: 14px 8px 0; line-height: 1.35; font-size: var(--s13); font-weight: 600; color: var(--text-3); }
+
+/* Karte ohne WebGL (kern/webgl.ts): Hinweis an Stelle der Karte */
+.tel .karte-ohne{ position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; color: var(--text-2); font-size: var(--s15); background: var(--flaeche); }
+.tel .karte-ohne i{ font-size: var(--s26); color: var(--text-3); }

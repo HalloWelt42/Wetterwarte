@@ -66,6 +66,8 @@ export interface Warnung {
 export interface Nowcast {
   text: string;
   balken: number[];
+  schritt_min: number; // 5 aus dem Radar, 15 aus dem Modell
+  quelle: "radar" | "modell";
 }
 
 export interface Luft {

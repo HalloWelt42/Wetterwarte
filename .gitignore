@@ -19,6 +19,9 @@ frontend/dist/
 # Zertifikate der sicheren Adresse (./wetter zertifikat legt sie nur auf den Pi)
 zertifikate/
 
+# Zwischenbilder des README-Bilds (tools/readme-bild.mjs erzeugt sie neu)
+mockups/praesentation/
+
 # Laufzeit des Mockup-Viewers
 .run/
 

@@ -66,7 +66,7 @@
   <div class="k-fuss">
     <div class="vor entbehrlich">nächster</div>
     <div class="wert {farbe(naechster.km)}"><b>{km(naechster.km)}</b><small>km</small></div>
-    <div class="unter"><b>{anzahl}</b> in 30 Min</div>
+    <div class="unter"><b>{anzahl}</b> in 30 Minuten</div>
   </div>
 {:else if f === "2x1"}
   <KKopf titel="Blitze" symbol={SYMBOL} rechts={zuletzt} />

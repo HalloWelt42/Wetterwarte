@@ -5,6 +5,7 @@
   // unabhaengig. Zentriert auf den Ort dieser Kachel; Aufklappen -> grosse Ansicht.
   import { onMount } from "svelte";
   import maplibregl from "maplibre-gl";
+  import { karteAnlegen, OHNE_WEBGL } from "../kern/webgl";
   import { wetter } from "./wetter.svelte";
   import { orteState } from "../kern/orte.svelte";
   import { gehe } from "./route.svelte";
@@ -51,6 +52,7 @@
 
   let kartenEl: HTMLDivElement;
   let map: maplibregl.Map | undefined;
+  let ohneKarte = $state(false); // kein WebGL: Hinweis statt Karte (kern/webgl.ts)
   let ortMarker: maplibregl.Marker | undefined;
   let blitzTimer: ReturnType<typeof setInterval> | undefined;
   let warnTimer: ReturnType<typeof setInterval> | undefined;
@@ -96,7 +98,7 @@
   }
 
   onMount(() => {
-    map = new maplibregl.Map({
+    map = karteAnlegen(() => new maplibregl.Map({
       container: kartenEl,
       style: {
         version: 8,
@@ -106,7 +108,11 @@
       center: aktiverOrt(),
       zoom: 6,
       attributionControl: false,
-    });
+    })) ?? undefined;
+    if (!map) {
+      ohneKarte = true;
+      return;
+    }
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);
     map.on("load", () => {
@@ -290,6 +296,7 @@
 
 <div class="mini-karte">
   <div bind:this={kartenEl} class="mini-karte-flaeche"></div>
+  {#if ohneKarte}<div class="karte-ohne"><i class="fa-solid fa-map"></i><span>{OHNE_WEBGL}</span></div>{/if}
   <!-- Icon-Schalter je Kachel-Instanz (unabhaengig von anderen Karten/Profilen). -->
   <div class="mini-ebenen">
     <button class="basis-knopf" title="Basiskarte: {basisName} (wechseln)" aria-label="Basiskarte wechseln" onclick={naechsteBasis}>

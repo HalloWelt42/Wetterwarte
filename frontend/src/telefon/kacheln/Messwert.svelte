@@ -64,7 +64,7 @@
     <div class="klein">{@render verlaufFeld()}</div>
   {/if}
 {:else}
-  <KKopf titel={m.titel} symbol={m.symbol} rechts={f === "2x1" ? "24 h" : "48 h"} />
+  <KKopf titel={m.titel} symbol={m.symbol} rechts={f === "2x1" ? "24 Stunden" : "48 Stunden"} />
   <div class="k-reihe">
     <div class="k-block wertblock">
       {@render dicke("halb")}

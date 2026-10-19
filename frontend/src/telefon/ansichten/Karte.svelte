@@ -6,6 +6,7 @@
   // hier nicht die Seite (nur die Reiterleiste). Beim Verlassen baut sich alles ab: Takte, Abrufe, Karte.
   import { onMount, tick, untrack } from "svelte";
   import type { Map as KartenBibliothek, Marker } from "maplibre-gl";
+  import { karteAnlegen, OHNE_WEBGL } from "../../kern/webgl";
   import { orteState } from "../../kern/orte.svelte";
   import { neuLadenAufhalten } from "../../kern/fassung.svelte";
   import { uhr } from "../../kern/uhr.svelte";
@@ -28,6 +29,7 @@
   let wurzel: HTMLDivElement;
   let flaeche: HTMLDivElement;
   let map: KartenBibliothek | undefined;
+  let ohneKarte = $state(false); // kein WebGL: Hinweis statt Karte (kern/webgl.ts)
   let marker: Marker | undefined;
   let grundDunkel: boolean | undefined; // welche Kacheln die Grundkarte gerade lädt (dunkel oder hell)
   let bereit = $state(false); // Stil geladen, Quellen und Ebenen angelegt
@@ -71,12 +73,13 @@
   async function baue(abgebaut: () => boolean): Promise<void> {
     const [{ default: bibliothek }] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
     if (abgebaut()) return;
-    grundDunkel = kartenWahl.dunkel;
-    const m = new bibliothek.Map({
+    const dunkel = kartenWahl.dunkel;
+    grundDunkel = dunkel;
+    const m = karteAnlegen(() => new bibliothek.Map({
       container: flaeche,
       style: {
         version: 8,
-        sources: { grund: { type: "raster", tiles: grundKacheln(grundDunkel), tileSize: 256 } },
+        sources: { grund: { type: "raster", tiles: grundKacheln(dunkel), tileSize: 256 } },
         layers: [{ id: "grund", type: "raster", source: "grund" }],
       },
       center: lon !== undefined && lat !== undefined ? [lon, lat] : MITTE_DEUTSCHLAND,
@@ -87,7 +90,11 @@
       dragRotate: false,
       pitchWithRotate: false,
       touchPitch: false,
-    });
+    }));
+    if (!m) {
+      ohneKarte = true;
+      return;
+    }
     m.touchZoomRotate.disableRotation();
     map = m;
     const punkt = document.createElement("div");
@@ -271,6 +278,7 @@
 
 <div class="karte-solo" bind:this={wurzel}>
   <div class="karte-flaeche" bind:this={flaeche}></div>
+  {#if ohneKarte}<div class="karte-ohne"><i class="fa-solid fa-map"></i><span>{OHNE_WEBGL}</span></div>{/if}
   <!-- Nachtbetrieb: färbt die Karte über die Textfarbe rot (multiply statt CSS-filter, der leere Kacheln erzeugt) -->
   {#if nacht}<div class="nachtfarbe" aria-hidden="true"></div>{/if}
 
