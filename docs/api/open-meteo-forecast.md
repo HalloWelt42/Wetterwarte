@@ -31,7 +31,7 @@ Die Antwort enthält zu jedem angeforderten Block ein Zeit-Array (`time`) und je
 | `hourly` | nein | - | Namen von Stundenvariablen | Fordert stündliche Verlaeufe an. |
 | `daily` | nein | - | Namen von Tagesvariablen | Fordert Tageskennwerte an. Benoetigt sinnvollerweise eine gesetzte `timezone`. |
 | `minutely_15` | nein | - | Namen geeigneter Variablen | Werte im 15-Minuten-Raster (regional begrenzt). |
-| `timezone` | nein | `GMT` | IANA-Kölnonenname oder `auto` | Wandelt Zeitstempel in die lokale Zeit. `auto` waehlt die Kölnone anhand der Koordinaten. |
+| `timezone` | nein | `GMT` | IANA-Zeitzonenname oder `auto` | Wandelt Zeitstempel in die lokale Zeit. `auto` wählt die Zeitzone anhand der Koordinaten. |
 | `forecast_days` | nein | 7 | 0 bis 16 | Laenge der Vorhersage in Tagen. |
 | `past_days` | nein | 0 | 0 bis 92 | Fuegt vergangene Tage vor dem heutigen Tag hinzu. |
 | `wind_speed_unit` | nein | `kmh` | `kmh`, `ms`, `mph`, `kn` | Einheit für Windgeschwindigkeit und Boeen. |
@@ -42,7 +42,7 @@ Die Antwort enthält zu jedem angeforderten Block ein Zeit-Array (`time`) und je
 | `elevation` | nein | automatisch | Zahl oder `nan` | Ueberschreibt die Hoehenlage. `nan` schaltet die Hoehenkorrektur ab. |
 | `cell_selection` | nein | `land` | `land`, `sea`, `nearest` | Strategie zur Wahl der Gitterzelle. |
 
-Hinweis zur Kölnone: Ohne gesetzte `timezone` liefert die API alle Zeiten in UTC (GMT). Für korrekte Tagesgrenzen (Hoch/Tief, Sonnenauf- und -untergang) sollte immer eine Kölnone angegeben werden. Die Wetterwarte setzt fest `Europe/Berlin`.
+Hinweis zur Zeitzone: Ohne gesetzte `timezone` liefert die API alle Zeiten in UTC (GMT). Für korrekte Tagesgrenzen (Hoch/Tief, Sonnenauf- und -untergang) sollte immer eine Zeitzone angegeben werden. Die Wetterwarte setzt `auto`, damit jeder Ort in seiner eigenen Zeitzone rechnet.
 
 ## Wichtige Variablen
 

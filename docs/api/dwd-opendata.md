@@ -371,7 +371,7 @@ Aufruf analog zu 4b (gleicher WFS, anderer `typeName`).
 - Warnungen ändern sich laufend; die `LATEST`-CAP-Datei und der WFS spiegeln jederzeit den aktuellen Stand. Ein Abruf im Minutentakt reicht in der Regel.
 - CAP-`STAT` enthält immer alle gültigen Warnungen (kein Zusammensetzen aus mehreren Dateien nötig); `DIFF` nur für Systeme, die inkrementell mitschreiben.
 - Warnzellen (`WARNCELLID`) sind die verbindliche räumliche Einheit.
-- Zeitangaben in CAP/WFS sind UTC (mit Kölnonenkennung im Zeitstempel).
+- Zeitangaben in CAP/WFS sind UTC (mit Zeitzonenkennung im Zeitstempel).
 
 ---
 
@@ -468,4 +468,4 @@ Die Wetterwarte bezieht ihre Deutschland-spezifischen Inhalte direkt aus diesen 
 - Niederschlagsradar: als Kartenlayer über den WMS bzw. für Werte je Ort aus den RADOLAN-Produkten (`rw` für die stündliche Summe, `rv`/`wn` für den Kurzfrist-Nowcast).
 - Pollenflug: aus der einen Datei `s31fg.json`, Zuordnung des Ortes zu einer der 27 Regionen/Teilregionen.
 
-Betriebshinweise: Alle Abrufe brauchen keinen Login. Aufrufe im sinnvollen Takt planen (Warnungen minütlich, Radar alle 5 bis 10 Minuten, MOSMIX stündlich bzw. alle 6 Stunden, Pollen einmal täglich anhand von `next_update`). Zeitstempel aus opendata/GeoServer sind UTC (Ausnahme: Pollen-Datei in deutscher Ortszeit) und müssen für die Anzeige in die lokale Kölnone umgerechnet werden. Bei Anzeige der Daten die Quelle nennen: "Datenbasis: Deutscher Wetterdienst".
+Betriebshinweise: Alle Abrufe brauchen keinen Login. Aufrufe im sinnvollen Takt planen (Warnungen minütlich, Radar alle 5 bis 10 Minuten, MOSMIX stündlich bzw. alle 6 Stunden, Pollen einmal täglich anhand von `next_update`). Zeitstempel aus opendata/GeoServer sind UTC (Ausnahme: Pollen-Datei in deutscher Ortszeit) und müssen für die Anzeige in die lokale Zeitzone umgerechnet werden. Bei Anzeige der Daten die Quelle nennen: "Datenbasis: Deutscher Wetterdienst".

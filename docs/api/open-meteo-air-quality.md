@@ -63,7 +63,7 @@ Hinweis: Pollendaten sind nur für Europa verfügbar und werden nur für die kom
 
 ## Zeit- und Steuerparameter
 
-- `timezone` - Kölnone der Zeitstempel, z. B. `Europe/Berlin`. Standard ist `GMT`. Mit `auto` wählt die API die Kölnone anhand der Koordinaten.
+- `timezone` - Zeitzone der Zeitstempel, z. B. `Europe/Berlin`. Standard ist `GMT`. Mit `auto` wählt die API die Zeitzone anhand der Koordinaten.
 - `timeformat` - `iso8601` (Standard, z. B. `2026-07-30T02:00`) oder `unixtime` (Sekunden seit 1970).
 - `forecast_days` - Anzahl der Vorhersagetage, 0 bis 7 (Standard 5). Pollen decken davon nur die ersten vier Tage ab.
 - `past_days` - Anzahl vergangener Tage im Stundenverlauf, 0 bis 92 (Standard 0).

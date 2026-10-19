@@ -1,73 +1,113 @@
-# Wetterwarte - Fahrplan (Bestandsaufnahme)
+# Wetterwarte - Fahrplan
 
-Priorisierte Bestandsaufnahme: tote Mockup-UI, Redundanzen, Architektur, fehlende Bereiche. Aufwand S/M/L.
+Stand: Projektsichtung vom 19.10.2026, Fassung 0.46.4. Die frühere Bestandsaufnahme ist weitgehend
+abgearbeitet (Radar, Overlays, Layout-Verwaltung, Aufzeichnung, Hilfe, Deep-Links) und hier ersetzt.
+Die Telefonansicht steht in [TELEFON.md](TELEFON.md). Pfade relativ zu `backend/src/wetterwarte/`
+bzw. `frontend/src/`.
 
-## Sofort aufraeumen (Redundanzen + toter Code)
+## Sofort: Wahrheit der Daten und Schutz
 
-- **Tote Kopf-Ortssuche entfernen oder anbinden** (hoch, S) - Das grosse Suchfeld im Kopf hat kein Binding und dupliziert die einzig funktionierende Ortssuche im Overlay; entweder an `ui.ortssuche=true` binden oder ersatzlos raus. Dateien: `frontend/src/lib/Kopf.svelte`, `frontend/src/lib/Ortssuche.svelte`, `frontend/src/lib/Nav.svelte`, `frontend/src/app.css` (182-197).
-- **Totes 12-Spalten-Grid entsorgen** (mittel, M) - `.brett`/`.w2-.w12`/`.h1-.h5` werden an kein Element mehr vergeben, da gridstack die Groessen ueber `gs-w/gs-h` steuert. Dateien: `frontend/src/app.css` (620-644, 2012-2017), `frontend/src/lib/Brett.svelte` (170).
-- **Mockup-Restklassen aus app.css raeumen** (mittel, M) - Rund 40 nirgends referenzierte Selektoren (`.handy*`, `.mock-leiste`, `.galerie*`, `.nutzer-chip`, `.tchart` u.a.) als toter Ballast aus der Mockup-Aera. Dateien: `frontend/src/app.css` (138-150, 243-266, 405-420, 927, 1075-1088, 1771-1955, 2021-2068).
-- **Archiv-Chart-Geometrie eindampfen** (mittel, S) - Das `chart`-Derived berechnet SVG-Pfade `linie`/`flaeche`/`x()`/`y()`, die im Template nie ausgegeben werden (rendert `LinienChart`); nur `lo/hi/mittel` bleiben noetig. Dateien: `frontend/src/lib/Archiv.svelte` (42-56), `frontend/src/lib/LinienChart.svelte`.
-- **Ungenutzten `orte`-Export streichen** (niedrig, S) - `platzhalter.ts` exportiert fuenf Demo-Orte, die niemand importiert. Dateien: `frontend/src/lib/platzhalter.ts` (6-12).
-- **Orts-Query zentralisieren** (niedrig, S) - Router `liste()` dupliziert exakt `ortsdienst.alle()`, statt es aufzurufen; Sortierlogik gehoert an eine Stelle. Dateien: `backend/src/wetterwarte/routers/orte.py` (47-49), `backend/src/wetterwarte/ortsdienst.py` (13-16).
-- **Docstring-Widerspruch beim Orte-Seed aufloesen** (niedrig, S) - Modul-Docstring behauptet "keine verdrahteten Orte", doch fuenf Orte werden beim Erststart geseedet; Docstring praezisieren oder Seed entfernen. Dateien: `backend/src/wetterwarte/routers/orte.py` (3-5), `backend/src/wetterwarte/orte.py`, `backend/src/wetterwarte/db.py`.
-- **Envelope/Meta-Modelle klaeren** (niedrig, S) - `schemas/envelope.py` definiert getypte Modelle, die kein Router nutzt (alle bauen den Umschlag per `wrap()`); als `response_model` einsetzen oder loeschen. Dateien: `backend/src/wetterwarte/schemas/envelope.py`, `backend/src/wetterwarte/routers/weather.py`.
-- **Magischen `koeln`-Default ersetzen** (niedrig, S) - Koeln steht als fester Default in Archiv-Router, `wetter.svelte.ts` und `App.svelte`; aus dem Start-Ort ableiten (`startOrt()` existiert). Dateien: `backend/src/wetterwarte/routers/archiv.py`, `frontend/src/lib/wetter.svelte.ts`, `frontend/src/App.svelte`.
+- **Platzhalterdaten aus dem Produktivpfad** - Kacheln fallen auf erfundene Werte zurück, solange
+  nichts geladen ist oder die Quelle ausfällt (`Aktuell`, `Stunden`, `Tage`, `Wind`, `Uv`, `Barometer`,
+  `Verlauf`, `Luftqualitaet`, `Nowcast` über `?? platzhalter`). Die Warnkachel zeigt bis zum Laden eine
+  erfundene Warnung "Markantes Gewitter, Stufe 3" (`lib/platzhalter.ts:56`). `datenquelle.svelte.ts:47`
+  schluckt Fehler, bei totem Backend bleiben Scheindaten dauerhaft stehen. Lösung: Quellen bekommen
+  Zustand `laedt/ok/alt/fehlt` und Stand, jede Kachel einen ehrlichen Zustand.
+- **Warnungen: Ausfall sieht aus wie "keine Warnungen"** - `routers/weather.py:104` gibt bei Fehler
+  eine leere Liste. Sicherheitsrelevant. Lösung: Status je Bereich, Oberfläche zeigt "Warnlage unbekannt".
+- **Warnzeiten falsch** - Bright Sky wird ohne `tz` abgefragt und liefert UTC, die Anzeige schneidet
+  die Uhrzeit aus dem Text (`providers/warnungen.py:10-22`). Lösung: `tz` = Zeitzone des Orts.
+- **gridstack am Telefon kann Desktop-Layouts überschreiben** - unter 768 px schreibt gridstack
+  1-Spalten-Werte, nach Hinzufügen oder Entfernen speichert `Brett.svelte` sie per PUT
+  (`lib/Brett.svelte:43-64, 123-131`). Im Quelltext nachvollzogen, am Gerät noch nicht. Lösung bis zur
+  Telefonansicht: im 1-Spalten-Modus statisch und ohne Speichern.
+- **Unsichtbarer Entfernen-Knopf ohne Rückfrage** - Kachelwerkzeuge sind bis `:hover` durchsichtig,
+  am Touchgerät aber antippbar (`app.css:945`, `lib/Kachel.svelte:54`).
+- **Offene Schreibrouten im Netz** - keine Anmeldung, der Backend-Port 8060 ist im LAN offen
+  (`docker-compose.prod.yml:43-45`), `/api/docs` ebenso. Jeder im Netz kann Orte und Layouts löschen,
+  den Füll-Bot starten oder die Radar-Aufbewahrung beliebig hoch setzen (Platte). Lösung: Port nur für
+  die Kompat-Schicht, Schreibrouten nur über die Oberfläche, Grenzen serverseitig.
 
-## Tote Mockup-UI real umsetzen (nach Bereich)
+## Hoch: Zeitstempel und Datenqualität
 
-- **Layout-Verwaltung an die API haengen** (hoch, L) - `Layouts.svelte` zeigt ein hartkodiertes Array und die Knoepfe Umbenennen/Duplizieren/Loeschen/Neu haben keine Handler, obwohl POST/PUT/DELETE im Backend fertig sind. Dateien: `frontend/src/lib/Layouts.svelte`, `backend/src/wetterwarte/routers/layouts.py`, `frontend/src/lib/layout.svelte.ts`.
-- **Aufzeichnungs-Manager funktional machen** (hoch, L) - Vier fest eingetragene Stationen, nur lokaler State, keine Persistenz und kein Recording-Router; die Auswahl muss ans Backend, das `recorder.schleife()` bereits laeuft. Dateien: `frontend/src/lib/Aufzeichnung.svelte`, `backend/src/wetterwarte/main.py`, `backend/src/wetterwarte/recorder.py`.
-- **Fehlende Kacheltypen umsetzen** (hoch, L) - Rund 13 der 27 im Katalog gezeichneten Typen fehlen in Registry und Renderer (Mini-Kachel, Orte-Vergleich, Wetterbericht/LLM, Komfort, Niederschlag/Schnee, Sicht/Nebel, Rekorde, Heatmap, Schwellenwert-Alarm, Datenquellen/Status u.a.). Dateien: `frontend/src/lib/kacheln/registry.ts`, `frontend/src/lib/kacheln/KachelKoerper.svelte`, `mockups/katalog.html`. (Sinnvoll erst nach der Modularisierung, siehe Architektur.)
-- **Mini-i-Hilfeknoepfe an den Kacheln nachruesten** (hoch, S) - Der Kachelkopf hat nur Einstellungen und Entfernen; die in `Hilfe.svelte` beworbenen i-Symbole mit Tiefenlink fehlen komplett. Dateien: `frontend/src/lib/Kachel.svelte`, `frontend/src/lib/Hilfe.svelte`.
-- **Pro-Kachel-Einstellungen vervollstaendigen** (mittel, M) - Es fehlen vor allem der Ort-pro-Kachel-Selektor sowie Intervall, Groesse und Icon-Stil; alle Kacheln haengen am globalen aktiven Ort. Dateien: `frontend/src/lib/KachelEinstellungen.svelte`, `frontend/src/lib/kacheln/registry.ts`, `mockups/kachel-einstellungen.html`.
-- **Archiv-Panels Klima-Abweichung und Jahres-Heatmap bauen** (mittel, M) - Zwei der drei Mockup-Panels fehlen; Backend liefert nur `/archiv/verlauf`, keine Rekord-/Anomalie-/Heatmap-Endpunkte. Dateien: `frontend/src/lib/Archiv.svelte`, `backend/src/wetterwarte/routers/archiv.py`, `mockups/archiv.html`.
-- **Tote Suchfelder verdrahten oder entfernen** (mittel, M) - Kacheltyp-Suche im Katalog und Stationssuche in der Aufzeichnung tun nichts (Kopf-Suche siehe oben); filterbar machen oder streichen. Dateien: `frontend/src/lib/Katalog.svelte`, `frontend/src/lib/Aufzeichnung.svelte`.
+- **Zeitstempel durchgehend mit Zeitzone** - Alle Spalten sind `TIMESTAMP` ohne Zone, drei Zeitbasen
+  gemischt: Nachtrag in Berliner Ortszeit (`providers/openmeteo.py:82`), Live-Werte per `datetime.now()`
+  in Containerzeit, also UTC (`recorder.py:88`), Radar-Archiv mit veraltetem `utcnow`
+  (`radar_archiv.py:46,67`). Archivabschnitte sind dadurch 1 bis 2 h versetzt, Mac und Pi rechnen
+  verschieden. Der Ausfall der Klimadaten (500 bei `/klima`, `/messjahre`) war ein Folgefehler: eine
+  neuere sqlmodel-Fassung lehnt naive Zeitstempel ab. Abgefangen durch Bau nach `uv.lock` (0.46.3),
+  die Ursache bleibt. Lösung: `zeit.py` mit `jetzt()` in UTC, Felder `DateTime(timezone=True)`,
+  Migration `ALTER ... TYPE timestamptz USING zeit AT TIME ZONE 'UTC'`, Nachtragszeilen aus Berliner
+  Zeit umrechnen, Prognosewerte aus dem Nachtrag löschen (`forecast_days=1` liefert auch kommende
+  Stunden), Tages- und Monatsgrenzen je Ortszeitzone, API immer ISO 8601 mit Offset. Vorher an einer
+  Kopie der Datenbank zählen.
+- **Migrationen mit Alembic** - heute `create_all` plus handgeschriebene `ALTER` bei jedem Start
+  (`db.py:40-46`). Typwechsel, Indizes und Eindeutigkeit gehen so nicht. Alembic steht schon in den
+  Abhängigkeiten.
+- **Radar-Rendern blockiert den Server** - Dekodieren und Zeichnen laufen synchron im Event-Loop
+  (`routers/radar.py:119-147`), gemessen 270 ms je Bild am Mac, je neuem Vorhersagelauf 24 Bilder. Auf
+  dem Pi stehen dann alle Anfragen. Lösung: `asyncio.to_thread` oder eigener Prozess.
+- **Fehler protokollieren** - im ganzen Backend kein Logging, breite `except Exception` ohne Spur
+  (`cache.py`, `routers/weather.py`, `recorder.py`, `warnpolygone.py`). Grundlage für Status je Bereich.
+- **Recorder entkoppeln** - ein einziges `try` für Schreiben, Aggregat und Radar-Schnappschuss
+  (`recorder.py:99-144`): scheitert das Aggregat, fehlt auch das Radar. Während der Klima-Ausfälle ist
+  vermutlich eine Lücke in der Aufzeichnung entstanden (prüfen). Dazu: Eindeutigkeit auf
+  (ort, variable, zeit), ungerundete Werte speichern (heute UI-gerundet über `openmeteo.py:122-138`).
 
-## Grosse Bereiche (Karten/Radar, Gestaltung/Hilfe)
+## Mittel
 
-### Karten und Radar
+- **Verbundindex und Vollscans** - `messwert` wächst um rund 470 000 Zeilen je Ort und Jahr, hat drei
+  Einzelindizes statt (ort, variable, zeit). `/messjahre` aggregiert bei jedem Aufruf den ganzen Ort neu
+  (`routers/weather.py:220`), `/aufzeichnung` zählt die ganze Tabelle. `/archiv/verlauf` roh schneidet
+  mit `ORDER BY zeit LIMIT 3000` die neuesten Werte ab (`routers/archiv.py:61`).
+- **Ort löschen kaskadieren** - Messwerte, Aggregate und Klima bleiben verwaist, ein neuer Ort mit
+  gleichem Kürzel erbt sie (`routers/orte.py:68-74`).
+- **Daten je Kachel nur, was sie braucht** - jede Kachel abonniert alle fünf Bereiche
+  (`lib/ortdaten.svelte.ts:39-45`); die Registry soll `bereiche` je Typ nennen.
+- **Abrufe in Effekten mit Abbruch** - Klima, Jahresmesswerte, Archiv und Kopfsuche ohne
+  AbortController, Wettläufe bei Orts- oder Jahreswechsel.
+- **Beim Zurückkehren alles Veraltete nachladen** - heute nur Warnungen und Blitze
+  (`lib/wetter.svelte.ts:99-103`).
+- **Blitz-WebSocket neu verbinden** - wird geschlossen, aber nie neu aufgebaut, der Schalter bleibt an
+  (`lib/Karte.svelte:709`).
+- **MiniKarte** - Radar wird vor `load` angelegt und erscheint erst nach 5 Minuten (`lib/MiniKarte.svelte:241-267`),
+  bis zu 20 000 Blitze bei jeder Kartenbewegung.
+- **Eine Wahrheit je Sache** - Kachelzuordnung doppelt (`KachelKoerper.svelte` und `registry.ts`),
+  Hilfethemen je Typ getrennt (`Kachel.svelte:25-36`), Takt doppelt (`FrischeRing.svelte:7`,
+  `datenquelle.svelte.ts:14`), zwei Kartenmodelle (`karteEinst` und `conf` je Kachel). Tote Optionen:
+  Feldarten `zahl`/`schalter`, `blitzeLimit`.
+- **Gemeinsamer HTTP-Client mit Gesamtfrist** - je Abruf ein neuer Client, `/complete` kann bis
+  45 s dauern. Kompat-Schicht ruft Open-Meteo ohne Cache und mit fester Zeitzone Berlin (`routers/kompat.py`).
+- **Kachelcache begrenzen** - Anbieter nicht gegen die Liste geprüft, keine Plattengrenze
+  (`kachel_cache.py`).
 
-- **Dashboard-Karten-Kachel auf echtes MapLibre umstellen** (hoch, M) - Der `karte`-Zweig rendert hartkodierte `.radar-blob`-Divs und ein gemaltes Standbild statt einer Karte; muss denselben Renderer wie die Vollansicht nutzen. Dateien: `frontend/src/lib/kacheln/KachelKoerper.svelte` (167-179), `frontend/src/app.css` (915-957), `frontend/src/lib/Karte.svelte`.
-- **RADOLAN-Radar als Provider/Endpoint/Layer bauen** (hoch, L) - Es gibt keinerlei Radar-Implementierung; die Attributionen "DWD RADOLAN" sind aktuell unwahr. Dateien: `backend/src/wetterwarte/providers/`, `backend/src/wetterwarte/routers/weather.py`, `frontend/src/lib/Karte.svelte`.
-- **Overlay-Schalter an die Map anbinden** (hoch, L) - Radar/Nowcast/Wind/Temperatur/Warnungen/Blitze toggeln nur ein Boolean, das niemand liest; `map.addLayer/removeLayer` per `$effect` fehlt. Dateien: `frontend/src/lib/Karte.svelte` (7-14, 63-74).
-- **Radar-Zeitleiste zum Frame-Loop machen** (hoch, L) - Play-Knopf ohne Handler, Scrubber fest bei `left:66%`, keine Zeitschritte; taeuscht eine Animation nur vor. Dateien: `frontend/src/lib/Karte.svelte` (77-92). (Haengt am RADOLAN-Backend.)
-- **Warn-Polygone durchreichen und zeichnen** (mittel, M) - Provider verwirft die Geometrie und liefert nur Stufe/Titel/Zeit; ohne Polygon kein Warn-Layer. Dateien: `backend/src/wetterwarte/providers/warnungen.py`, `frontend/src/lib/Karte.svelte`.
-- **Blitz-Marker ermoeglichen** (mittel, S) - Rohdaten enthalten lat/lon, doch der Provider reduziert jeden Strike auf Zeit/Distanz-Text; Koordinaten durchreichen. Dateien: `backend/src/wetterwarte/providers/blitze.py`, `frontend/src/lib/Karte.svelte`.
-- **Karte an aktiven Ort koppeln plus Geolocate/Popup** (mittel, S) - Center steht fest auf `[12.14, 51.05]` (liegt bei Leipzig, nicht Koeln), Ortswechsel bewegen nichts, "Mein Standort" und Klick-Popup fehlen. Dateien: `frontend/src/lib/Karte.svelte` (41), `frontend/src/lib/orte.svelte.ts`.
-- **Basiskarten-Umschalter Dunkel/Satellit anbinden** (mittel, M) - Die Buttons setzen nur State, es gibt nur die eine Colorful-Rasterquelle, `setStyle` fehlt. Dateien: `frontend/src/lib/Karte.svelte` (6, 58-62).
-- **Welt-Tile-Proxy und Zoom-Grenze nutzen** (niedrig, M) - Ausserhalb DE bleibt die Karte grau; der lightningmap-Weltproxy ist ungenutzt, Zoom nicht auf 0-14 begrenzt. Dateien: `frontend/src/lib/Karte.svelte` (29-44).
-- **Wind-Partikel- und Temperatur-Flaechen-Overlay** (niedrig, L) - Neuentwicklung inkl. ICON-Gitterdatenquelle. Dateien: `frontend/src/lib/Karte.svelte` (19-20).
+## Gestaltung und Bedienung
 
-### Gestaltung und Hilfe
+- **Schrift zu klein** - Grundschrift 14,5 px, 99 Angaben unter 15 px, Diagramme mit 7 bis 10 px
+  (`app.css`, `LinienChart.svelte`, `Klima.svelte`, `Wind.svelte`). Ziel: Skala als Variablen,
+  Grundschrift 17 px, klein 15 px, Marken 13 px, Schriftstufen in den Einstellungen.
+- **Erklärungen nur per Überfahren** - `lib/tipp.ts` hört nur auf Maus und Fokus, Diagrammblasen
+  blitzen am Touchgerät nur auf. Das Telefon bekommt eigene Antipp-Erklärungen (siehe TELEFON.md).
+- **PWA-Kopf** - `theme-color` fest weiß auch im dunklen Thema, im Manifest fehlen `id`, `scope`,
+  `lang`, keine Sicherheitsbereiche, `100vh` statt `100dvh`. Wird mit der Telefonansicht gelöst.
+- **Umlaute in UI-Texten** - "ausser" (`KachelEinstellungen.svelte:130`), "waehlen"
+  (`Layouts.svelte:82-83`), "Grosse Karte oeffnen" (`MiniKarte.svelte:304`).
+- **Kleinkram** - `svelte-check` meldet einen Fehler (`HilfeLink.svelte`: `children` als Funktion statt
+  Snippet), Untertitel "48 Stunden" bei höchstens 18, Nowcast-Text "3 Stunden" bei 90 Minuten Achse,
+  Breakpoint 720 neben 768, tote Mockup-CSS in `app.css`, `/health` doppelt abgefragt, LAN-Adressen als
+  Rückfall in `vite.config.ts`.
 
-- **Kachel-Zustaende Laden/Skelett/Leer/Fehler mit Retry** (hoch, L) - Die CSS-Klassen `.sk`/`@keyframes schimmer`/`.kw-fehler` existieren, werden aber in keiner Komponente verwendet; Fehler werden still verschluckt. Dateien: `frontend/src/lib/wetter.svelte.ts` (46-65), `frontend/src/lib/kacheln/KachelKoerper.svelte`, `frontend/src/app.css` (1736-1768). (Deckt sich mit dem Architektur-Punkt zu Platzhaltern.)
-- **Handy-Navigation herstellen** (hoch, L) - Ab 720px werden Nav und Layout-Tabs ausgeblendet, ohne Ersatz; der im Mockup vorgesehene Hamburger/Drawer fehlt, sodass auf dem Handy nur das Dashboard erreichbar ist. Dateien: `frontend/src/lib/Kopf.svelte`, `frontend/src/app.css` (1993-2019), `mockups/handy.html`.
-- **Hilfe durchsuchbar und verschiebbar machen** (hoch, M) - Das Suchfeld hat kein Binding/keinen Filter, und trotz `cursor:move` fehlt jede Drag-Logik; beide Kernattribute der Vorgabe fehlen. Dateien: `frontend/src/lib/Hilfe.svelte`, `frontend/src/app.css` (1826-1833).
-- **Umlaut-Verstoesse in UI-Texten fixen** (hoch, S) - "Suche laeuft ...", "Archiv wird noch befuellt ...", "Hoechster Tageswert" verletzen die Umlaut-Regel. Dateien: `frontend/src/lib/Ortssuche.svelte` (60), `frontend/src/lib/Archiv.svelte` (99, 113).
-- **Ist-Zustand persistieren** (mittel, M) - Theme, Atmosphaere und aktives Layout leben nur im RAM; kein localStorage, keine Beachtung der System-Praeferenz beim ersten Laden. Dateien: `frontend/src/lib/thema.svelte.ts`, `frontend/src/lib/stil.svelte.ts`, `frontend/src/lib/layout.svelte.ts`.
-- **Katalog um Drag und Vorschau erweitern** (mittel, L) - Nur Klick-Hinzufuegen, generischer Untertitel "Kachel hinzufuegen", kein Drag und keine Kurzbeschreibung. Dateien: `frontend/src/lib/Katalog.svelte`.
-- **Atmosphaere an Tageszeit koppeln** (niedrig, M) - `.atmo.sonnenuntergang` ist toter Verlauf, weil `stimmungFuer()` ihn nie erzeugt und nur das Wetter-Icon statt des Sonnenstands auswertet. Dateien: `frontend/src/App.svelte` (28-35), `frontend/src/app.css` (1866-1886).
-- **Tastatur/ESC und Fokus-Management ergaenzen** (niedrig, M) - Kein Modal schliesst per Escape, kein Fokus-Trap, keine Fokus-Rueckgabe. Dateien: `frontend/src/lib/KachelEinstellungen.svelte`, `frontend/src/lib/Katalog.svelte`, `frontend/src/lib/Hilfe.svelte`.
-- **Tooltips vereinheitlichen** (niedrig, S) - Native `title`-Attribute (Kachel, Kopf, Nav, Layouts) auf das vorhandene `use:tipp`-System umstellen. Dateien: `frontend/src/lib/Kachel.svelte`, `frontend/src/lib/Kopf.svelte`, `frontend/src/lib/tipp.ts`.
+## Erledigt in dieser Runde
 
-## Architektur und Tests (sauber, modular, testbar halten)
+- 0.46.3: Backend-Abbild baut exakt nach `uv.lock` (Ursache des Klima-Ausfalls auf dem Pi).
+- 0.46.4: Alten Service Worker der Vorgänger-App abgeräumt, Schale und Dateien ohne Prüfsumme nie
+  zwischengespeichert, fehlende Dateien liefern 404 statt der Startseite, uv-Abbild fest.
+- API-Doku: Ersetzungsfehler "Kölnone" statt "Zeitzone" repariert.
 
-- **KachelKoerper in pro-Typ-Komponenten zerlegen** (hoch, L) - 15 Typen in einer `{#if}`-Kette mit gemeinsamer Rechenlogik; ein Feld `komponente` in `KachelDef` plus `<svelte:component>` macht die geplanten 28 Typen skalierbar und ist Voraussetzung fuer den Katalog-Ausbau. Dateien: `frontend/src/lib/kacheln/KachelKoerper.svelte`, `frontend/src/lib/kacheln/registry.ts`, `frontend/src/lib/Kachel.svelte`.
-- **Platzhalter aus dem Produktivpfad ziehen** (hoch, M) - `wetter.aktuell ?? aktuell` zeigt bei Backend-Ausfall erfundene Koeln-Daten als echt; `wetter.geladen` plus Ladestatus-Enum sollen echte Leer/Fehler-Zustaende rendern, Fixtures nur im Vorschau-Pfad. Dateien: `frontend/src/lib/kacheln/KachelKoerper.svelte`, `frontend/src/lib/platzhalter.ts`, `frontend/src/lib/wetter.svelte.ts`. (Gemeinsam mit dem Zustands-Punkt oben umsetzen.)
-- **Testfundament schaffen** (hoch, M) - Kein einziger Test; pytest+respx fuer die Provider-Normalisierung, vitest+@testing-library/svelte fuer Chart-Geometrie/Mondphase/Sonnenbogen. Dateien: `backend/pyproject.toml`, `frontend/package.json`, `backend/src/wetterwarte/providers/openmeteo.py`, `providers/pollen_dwd.py`.
-- **Fachwerte auf eine Quelle der Wahrheit** (mittel, M) - Pollenarten/Schadstoffe/Schwellen und die AQI-Bewertung liegen doppelt in Backend und Frontend und divergieren bereits (`<=40 gut` vs. `<=60 warn`); Labels/Schwellen backend-autoritativ liefern. Dateien: `frontend/src/lib/kacheln/registry.ts`, `backend/src/wetterwarte/providers/pollen_dwd.py`, `providers/luftqualitaet.py`, `frontend/src/lib/kacheln/KachelKoerper.svelte`.
-- **Brett.svelte entflechten** (mittel, M) - Grid-Lifecycle, Persistenz, Store-Bruecken und Migration in einer Datei; `addWidget/removeWidget` statt `destroy`+`init` bei jeder Mutation, gridstack in eine eigene Komponente kapseln. Dateien: `frontend/src/lib/Brett.svelte`, `frontend/src/lib/kachelAktion.svelte.ts`, `frontend/src/lib/kachelConf.svelte.ts`.
-- **Verschluckte Exceptions protokollieren** (mittel, M) - Breite `except Exception: return None` ohne Logging machen dauerhafte Provider-Ausfaelle unsichtbar; je Provider `logging.warning` plus letzter Erfolg/Fehler als Basis fuer die geplante Status-Kachel. Dateien: `backend/src/wetterwarte/routers/weather.py`, `recorder.py`, `cache.py`.
-- **Wiederholte Inline-Styles in Komponenten fassen** (niedrig, S) - Vier identische Kennzahl-Karten und lange Panel-Styles gehoeren in eine `Kennzahl.svelte` bzw. CSS-Klassen. Dateien: `frontend/src/lib/Archiv.svelte`, `frontend/src/lib/Karte.svelte`.
+## Reihenfolge
 
-## Empfohlene Reihenfolge
-
-1. **Sofort-Aufraeumen komplett** - tote Kopf-Suche, Grid-Reste, app.css-Ballast, Archiv-Geometrie und die kleinen Backend-Dubletten; billige Punkte, die die Codebasis vor dem Umbau entschlacken.
-2. **Umlaut-Fixes** - drei Strings, hoechste Regel-Prioritaet, in Minuten erledigt.
-3. **Modularisierung KachelKoerper plus echte Kachel-Zustaende** - pro-Typ-Komponenten und Laden/Leer/Fehler/Retry statt stiller Platzhalter; Fundament fuer alles Weitere, macht die Logik zugleich testbar.
-4. **Testfundament einziehen** - direkt nach der Modularisierung, solange die Helfer frisch extrahiert sind.
-5. **Fehlende Kacheltypen und Pro-Kachel-Ort/Intervall** - auf der neuen Registry-Struktur den Katalog fuellen.
-6. **Layout-Verwaltung und Aufzeichnungs-Manager an die API** - die beiden groessten Attrappen mit teils schon vorhandenem Backend.
-7. **Karten-Block** - erst echte Dashboard-Karte und Ortskopplung, dann RADOLAN-Backend, darauf Overlays/Zeitleiste/Marker/Polygone.
-8. **Gestaltungs- und Hilfe-Politur** - Handy-Navigation, durchsuchbare/verschiebbare Hilfe, Mini-i-Knoepfe, Persistenz und a11y zum Abschluss.
+1. Sofort-Punkte (Platzhalter, Warnstatus, Warnzeiten, Schutz der Layouts, Schreibrouten).
+2. Zeitstempel-Umbau mit Alembic-Grundstand und Datenbereinigung, Radar-Rendern auslagern, Logging.
+3. Telefonansicht nach [TELEFON.md](TELEFON.md), darin enthalten `kern/`, Endpunkt `kompakt`,
+   Schriftskala.
+4. Mittel-Punkte, danach Gestaltung am Desktop (Schrift, Erklärungen).

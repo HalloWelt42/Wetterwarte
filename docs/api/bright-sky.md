@@ -19,7 +19,7 @@ Diese Parameter kommen bei mehreren Endpunkten vor und haben überall dieselbe B
 - `wmo_station_id` - internationale Stationskennung der Weltorganisation für Meteorologie.
 - `source_id` - interne Quellen-ID von Bright Sky (aus dem `sources`-Block einer Antwort).
 - `max_dist` - maximaler Suchradius in Metern rund um `lat`/`lon`, Standard `50000` (50 km).
-- `tz` - Kölnone der Zeitstempel als Name aus der Kölnonendatenbank, z. B. `Europe/Berlin`. Ohne Angabe werden die Zeitstempel in UTC (mit Offset `+00:00`) geliefert.
+- `tz` - Zeitzone der Zeitstempel als Name aus der Zeitzonendatenbank, z. B. `Europe/Berlin`. Ohne Angabe werden die Zeitstempel in UTC (mit Offset `+00:00`) geliefert.
 - `units` - Einheitensystem, `dwd` (Standard, praxisübliche Einheiten) oder `si` (SI-Einheiten). Betrifft die Wetter-Endpunkte, nicht `/alerts`.
 
 Zeitstempel sind durchgängig im Format ISO 8601 (z. B. `2026-07-30T09:00:00+00:00`).
@@ -34,7 +34,7 @@ Liefert die aktuell gültigen und angekündigten Warnungen des DWD für einen Or
 |---|---|---|
 | `lat`, `lon` | einer von beiden Wegen | Koordinate, für die die zuständige Warnzelle bestimmt wird |
 | `warn_cell_id` | einer von beiden Wegen | direkte Angabe der amtlichen Warnzellen-ID (Gemeindekennung), falls schon bekannt |
-| `tz` | nein | Kölnone der Zeitstempel, z. B. `Europe/Berlin` |
+| `tz` | nein | Zeitzone der Zeitstempel, z. B. `Europe/Berlin` |
 
 Es muss entweder `lat` und `lon` oder `warn_cell_id` angegeben werden. Ohne Warnung liefert die API ein leeres Array `"alerts": []` bei ansonsten gefüllter Antwort.
 
