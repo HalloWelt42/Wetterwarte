@@ -124,6 +124,9 @@ bzw. `frontend/src/`.
 - 0.49.1: Eigenes App-Symbol (`frontend/public/symbol.svg`, kräftiger Himmel statt blasser Wolke auf Grau);
   alle Symbole für Startbildschirm und Manifest deckend und randlos (iOS 18 nimmt die Manifest-Symbole und zeigt
   durchsichtige nicht), erzeugt mit `tools/symbole.py` nach der Vorlage des Appkerns.
+- 0.49.2: Seiten melden nur PNG-Symbole (wie die Kiste). Mit favicon.ico `sizes="any"` und SVG-Symbol zeigte das
+  iPhone beim Hinzufügen zum Home-Bildschirm nur den Anfangsbuchstaben (auch die Transkription). Caddy ohne
+  HTTP/3, das er auf dem falschen Port ankündigte.
 
 ## Reihenfolge (offen)
 

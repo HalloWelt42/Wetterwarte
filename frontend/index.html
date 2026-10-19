@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Wetterwarte" />
-    <!-- Symbole für alle Geräte, abgeleitet aus dem Wetter-Symbol der Kopfleiste (tools/symbole.py): ico für alte
-         Browser, PNG für Safari und Android, SVG für moderne Browser, apple-touch-icon und Manifest für den Startbildschirm -->
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Symbole aus frontend/public/symbol.svg (tools/symbole.py), nur als PNG gemeldet wie bei der Kiste: Ein Symbol mit
+         sizes="any" (favicon.ico, höchstens 48 Pixel) oder als SVG nimmt das iPhone beim Hinzufügen zum Home-Bildschirm
+         als besten Kandidaten und zeigt dann nur den Anfangsbuchstaben. Alte Browser holen /favicon.ico von selbst. -->
     <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <title>Wetterwarte</title>
     <script>
       // Telefone bekommen die eigene Telefonansicht (docs/TELEFON.md). Die Wahl in der Ansicht

@@ -4,7 +4,6 @@
 
 Einzige Quelle ist symbol.svg: ein Rechteck über die ganze Fläche als Grund, danach das Motiv. Erzeugt in
 frontend/public:
-  favicon.svg                                   Kopie der Quelle für moderne Browser
   favicon.ico                                   16, 32 und 48 in einer Datei
   favicon-32.png                                wie die Quelle, mit durchsichtigen Ecken (Tab im Browser)
   icon-192.png, icon-512.png                    Grund randlos und deckend (purpose any; iOS 18 nimmt für den
@@ -13,6 +12,9 @@ frontend/public:
                                                 das Gerät selbst)
   icon-maskable-192.png, icon-maskable-512.png  Grund randlos, Motiv in der sicheren Zone (purpose maskable)
   apple-touch-icon.png                          180, Grund randlos und deckend
+
+Kein SVG-Symbol: Seiten melden nur PNG (siehe frontend/telefon.html), weil das iPhone ein SVG- oder
+"sizes=any"-Symbol beim Hinzufügen zum Home-Bildschirm vorzieht und dann nur den Anfangsbuchstaben zeigt.
 
 Die Bilder liegen im Repo und werden nie zur Laufzeit erzeugt. Nach einer Änderung an symbol.svg neu erzeugen:
   python3 tools/symbole.py
@@ -23,7 +25,6 @@ Bilder erzeugt.
 from __future__ import annotations
 
 import io
-import shutil
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -70,7 +71,6 @@ def deckend(svg: bytes, groesse: int) -> Image.Image:
 
 def main() -> None:
     quelle = QUELLE.read_bytes()
-    shutil.copyfile(QUELLE, OEFFENTLICH / "favicon.svg")
 
     ico = [rastern(quelle, g) for g in (48, 32, 16)]
     ico[0].save(OEFFENTLICH / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)], append_images=ico[1:])

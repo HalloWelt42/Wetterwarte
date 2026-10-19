@@ -6,6 +6,10 @@
 	admin off
 	auto_https off
 	default_sni {$WETTERWARTE_HAUPTADRESSE}
+	# Ohne HTTP/3: sonst kündigt Caddy es mit Alt-Svc auf Port 443 an, außen liegt die App aber auf HTTPS_PORT
+	servers {
+		protocols h1 h2
+	}
 }
 
 :443 {

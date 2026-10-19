@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Wetterwarte" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Symbole aus frontend/public/symbol.svg (tools/symbole.py), nur als PNG gemeldet wie bei der Kiste: Ein Symbol mit
+         sizes="any" (favicon.ico, höchstens 48 Pixel) oder als SVG nimmt das iPhone beim Hinzufügen zum Home-Bildschirm
+         als besten Kandidaten und zeigt dann nur den Anfangsbuchstaben. Alte Browser holen /favicon.ico von selbst. -->
     <link rel="manifest" href="/telefon.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <title>Wetterwarte</title>
   </head>
   <body>
