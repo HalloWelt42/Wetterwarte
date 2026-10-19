@@ -117,7 +117,9 @@ def pruefen() -> bool:
 
 
 def _normal(text: str) -> str:
-    return " ".join(re.sub(r"[^a-zäöü0-9 ]", " ", text.lower().replace("ß", "ss")).split())
+    """Kleinschreibung, ohne Satzzeichen; die Erkennung schreibt "km" für gesprochenes "Kilometer"."""
+    klein = re.sub(r"\bkm\b", "kilometer", text.lower().replace("ß", "ss"))
+    return " ".join(re.sub(r"[^a-zäöü0-9 ]", " ", klein).split())
 
 
 def _hoeren(datei: Path) -> str:
