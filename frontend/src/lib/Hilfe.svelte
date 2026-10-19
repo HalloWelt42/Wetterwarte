@@ -155,7 +155,7 @@
 
     {#if !hilfe.minimized}
       <div class="hp-leiste">
-        <select class="hp-thema" value={hilfe.topicKey} onchange={(e) => hilfe.select(e.currentTarget.value)}>
+        <select name="hilfe-thema" class="hp-thema" value={hilfe.topicKey} onchange={(e) => hilfe.select(e.currentTarget.value)}>
           {#each gruppen as g}
             <optgroup label={g.kategorie}>
               {#each g.themen as t}<option value={t.key}>{t.title}</option>{/each}
@@ -169,7 +169,7 @@
           </div>
           <div class="hp-suche">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input
+            <input name="hilfe-suche"
               placeholder={hilfe.scope === "global" ? "In allen Themen suchen ..." : "Im Thema suchen ..."}
               value={hilfe.query}
               oninput={(e) => hilfe.setQuery(e.currentTarget.value)}

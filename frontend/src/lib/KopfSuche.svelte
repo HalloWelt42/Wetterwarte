@@ -60,7 +60,7 @@
 <div class="kopf-suche-wrap">
   <div class="kopf-suche">
     <i class="fa-solid fa-magnifying-glass"></i>
-    <input
+    <input name="ort-suche"
       type="text"
       placeholder="Ort suchen ..."
       bind:value={begriff}

@@ -1,6 +1,6 @@
 // Rauchtest: jede Ansicht der App im echten Aufbau öffnen und alles einsammeln, was schiefgeht: Ausnahmen,
-// Konsolenfehler und -warnungen, Meldungen des Browsers (etwa Sicherheitsrichtlinien) und jede Anfrage mit
-// Status ab 400 oder ohne Antwort. Nur lesend und stumm (Ansagen bleiben aus, keine Mitteilungen).
+// Konsolenfehler und -warnungen, Meldungen des Browsers (etwa Sicherheitsrichtlinien), die "Issues" der
+// Entwicklerwerkzeuge (etwa Eingabefelder ohne id und name) und jede Anfrage mit Status ab 400 oder ohne Antwort. Nur lesend und stumm (Ansagen bleiben aus, keine Mitteilungen).
 //
 //   node tools/rauchtest.mjs --app http://localhost:6181        Probelauf des Produktionsaufbaus vor dem Ausrollen
 //   node tools/rauchtest.mjs --app http://192.168.178.49:8061   Betrieb nach dem Ausrollen
@@ -72,12 +72,17 @@ async function pruefe(name, pfad, ansicht, port) {
         befunde.add(`Browser ${p.entry.level}: ${p.entry.text.slice(0, 200)}`);
       }
       if (m.method === "Network.responseReceived" && p.response.status >= 400) befunde.add(`HTTP ${p.response.status}: ${p.response.url}`);
+      if (m.method === "Audits.issueAdded") {
+        const d = p.issue.details ?? {};
+        const art = d.genericIssueDetails?.errorType ?? Object.keys(d)[0] ?? "";
+        befunde.add(`Issue ${p.issue.code}: ${art}`);
+      }
       if (m.method === "Network.loadingFailed" && !p.canceled && p.errorText !== "net::ERR_ABORTED") {
         befunde.add(`Anfrage gescheitert (${p.errorText}): ${anfragen.get(p.requestId) ?? p.requestId}`);
       }
     });
     const cdp = (method, params = {}) => new Promise((r) => { const id = ++n; offen.set(id, r); ws.send(JSON.stringify({ id, method, params })); });
-    await Promise.all([cdp("Page.enable"), cdp("Runtime.enable"), cdp("Log.enable"), cdp("Network.enable")]);
+    await Promise.all([cdp("Page.enable"), cdp("Runtime.enable"), cdp("Log.enable"), cdp("Network.enable"), cdp("Audits.enable")]);
     await cdp("Emulation.setDeviceMetricsOverride", ansicht);
     if (ansicht.mobile) await cdp("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
     // Begrüßung und Weiche zur Telefonansicht vorab erledigen, damit jede Ansicht nur einmal lädt

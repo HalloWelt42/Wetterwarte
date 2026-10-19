@@ -135,9 +135,9 @@
       </div>
       <div class="sp-zooms">
         <label class="sp-zoom">Deutschland bis Zoom <b class="tnum">{zoomDe}</b>
-          <input type="range" min="5" max="9" bind:value={zoomDe} disabled={bot?.laufend} /></label>
+          <input name="zoom-deutschland" type="range" min="5" max="9" bind:value={zoomDe} disabled={bot?.laufend} /></label>
         <label class="sp-zoom">Wohnort bis Zoom <b class="tnum">{zoomHeim}</b>
-          <input type="range" min={zoomDe} max="13" bind:value={zoomHeim} disabled={bot?.laufend} /></label>
+          <input name="zoom-heimat" type="range" min={zoomDe} max="13" bind:value={zoomHeim} disabled={bot?.laufend} /></label>
       </div>
 
       {#if bot?.laufend}

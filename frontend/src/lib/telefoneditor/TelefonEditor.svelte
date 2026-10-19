@@ -150,7 +150,7 @@
       </div>
       <label class="te-feld">
         <span>Vorschau</span>
-        <select value={ort} onchange={(e) => (vorschauOrt = e.currentTarget.value)}>
+        <select name="vorschau-ort" value={ort} onchange={(e) => (vorschauOrt = e.currentTarget.value)}>
           {#each orteState.liste as o (o.slug)}<option value={o.slug}>{o.name}</option>{/each}
         </select>
       </label>
@@ -170,7 +170,7 @@
 
     <div class="te-spalten">
       <aside class="te-katalog" aria-label="Kacheln">
-        <input class="te-suche" type="search" placeholder="Kachel suchen" bind:value={suche} />
+        <input name="kachel-suche" class="te-suche" type="search" placeholder="Kachel suchen" bind:value={suche} />
         {#each familien as f (f.schluessel)}
           <h3>{f.titel}</h3>
           {#each f.typen as [typ, d] (typ)}

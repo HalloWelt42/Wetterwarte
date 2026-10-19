@@ -52,7 +52,7 @@
     <div class="feld-such">
       <i class="fa-solid fa-magnifying-glass"></i>
       <!-- svelte-ignore a11y_autofocus -->
-      <input type="text" placeholder="Stadt oder Ort eingeben ..." bind:value={begriff} oninput={eingabe} autofocus />
+      <input name="ort-suche" type="text" placeholder="Stadt oder Ort eingeben ..." bind:value={begriff} oninput={eingabe} autofocus />
     </div>
   </div>
   <div style="flex: 1; overflow-y: auto; padding: 0 var(--a4) var(--a4)">

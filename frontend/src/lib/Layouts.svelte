@@ -94,7 +94,7 @@
               ><i class="fa-solid {profilIcon(l)}"></i></button>
               {#if bearbeiteId === l.id}
                 <!-- svelte-ignore a11y_autofocus -->
-                <input
+                <input name="profil-name"
                   class="feld"
                   style="height: 28px; padding: 2px 6px; flex: 1"
                   bind:value={bearbeiteName}

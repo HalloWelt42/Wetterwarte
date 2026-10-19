@@ -819,7 +819,7 @@
           <button class="radar-play" onclick={radarAbspielen} aria-label={radarSpielt ? "Pause" : "Abspielen"}>
             <i class="fa-solid {radarSpielt ? 'fa-pause' : 'fa-play'}"></i>
           </button>
-          <input
+          <input name="radar-zeit"
             class="radar-schieber"
             type="range"
             min="0"

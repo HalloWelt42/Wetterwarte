@@ -94,7 +94,7 @@
     </p>
 
     <div class="reihe" style="gap: var(--a3); flex-wrap: wrap; margin-bottom: var(--a4)">
-      <select class="feld" style="width: auto; min-width: 230px" bind:value={station}>
+      <select name="station" class="feld" style="width: auto; min-width: 230px" bind:value={station}>
         {#each orteState.liste as s}<option value={s.slug}>{s.name}</option>{/each}
       </select>
       <span class="segment">

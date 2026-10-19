@@ -97,7 +97,7 @@
 <div class="such-zeile">
   <label class="suchfeld" class:aktiv={!!suche}>
     <i class="fa-solid fa-magnifying-glass"></i>
-    <input bind:this={eingabe} bind:value={suche} type="text" enterkeyhint="search" autocomplete="off" placeholder="Ort suchen" aria-label="Ort suchen" />
+    <input name="ort-suche" bind:this={eingabe} bind:value={suche} type="text" enterkeyhint="search" autocomplete="off" placeholder="Ort suchen" aria-label="Ort suchen" />
     {#if suche}
       <button class="leeren" aria-label="Eingabe leeren" onclick={() => ((suche = ""), eingabe.focus())}><i class="fa-solid fa-circle-xmark"></i></button>
     {/if}
