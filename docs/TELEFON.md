@@ -41,7 +41,9 @@ Entwürfe: `mockups/telefon/` (Galerie `mockups/index.html`, Abschnitt Telefon).
 | Mehr | Profil wählen, Schriftstufe, Nachtbetrieb, alle Kachelformen ansehen, zur Desktop-Ansicht, Fassung und Quellen. |
 
 **Nachtbetrieb:** Standard ist "Nach Sonnenuntergang": zwischen Sonnenuntergang und -aufgang am
-gewählten Ort. Wählbar außerdem "Aus" und "An".
+gewählten Ort. Wählbar außerdem "Aus" und "An". Der Mond- bzw. Sonnenknopf im Kopf (und auf der Karte)
+schaltet jederzeit von Hand um; bei Zeitsteuerung gilt das bis zum nächsten Sonnenauf- oder -untergang,
+danach übernimmt wieder die Automatik (Hinweis unter Mehr).
 
 Nach dem Ausrollen lädt die Ansicht von selbst neu wie am Desktop (`kern/fassung.svelte.ts`). Die App-
 Schale wird nie zwischengespeichert, nur Daten. Ohne Verbindung zeigt sie den letzten Stand je Ort aus

@@ -4,7 +4,7 @@
   import { orteState } from "../kern/orte.svelte";
   import { uhr } from "../kern/uhr.svelte";
   import { vorZeit } from "../kern/zeit";
-  import { ansicht, oeffne, waehleOrt } from "./ansicht.svelte";
+  import { ansicht, nachtAktiv, nachtUmschalten, oeffne, waehleOrt } from "./ansicht.svelte";
   import { nachbarOrt } from "./orte.svelte";
   import { TAKT_MS, standVon } from "./wetter.svelte";
   import { wischen } from "./wischen";
@@ -24,6 +24,9 @@
       <span class="name">{ort?.name ?? "Wetterwarte"}</span><i class="fa-solid fa-chevron-down"></i>
     </button>
     <span class="kopf-stand {frische}"><span class="frische"></span>{text}</span>
+    <button class="knopf-rund" onclick={nachtUmschalten} aria-label={nachtAktiv() ? "Nachtbetrieb aus" : "Nachtbetrieb an"} aria-pressed={nachtAktiv()}>
+      <i class="fa-solid {nachtAktiv() ? 'fa-sun' : 'fa-moon'}"></i>
+    </button>
   </div>
   {#if orteState.liste.length > 1}
     <div class="ort-punkte" aria-hidden="true">

@@ -3,7 +3,7 @@
 import { lies, schreib } from "../kern/speicher";
 import { uhr } from "../kern/uhr.svelte";
 import type { TelefonKachel } from "../kern/gemeinsam";
-import { geraet } from "./geraet.svelte";
+import { geraet, setzeNacht, setzeUebersteuerung } from "./geraet.svelte";
 import { profile } from "./profil.svelte";
 import { standVon } from "./wetter.svelte";
 
@@ -61,12 +61,41 @@ export function adresseSpiegeln(): void {
   if (ziel !== `${location.pathname}${location.search}`) history.replaceState(null, "", ziel);
 }
 
-/** Nachtbetrieb aktiv: an, oder automatisch zwischen Sonnenuntergang und -aufgang am Ort. */
+/** Nach der Sonne am gewählten Ort: Nacht zwischen Untergang und Aufgang, und der nächste Wechsel. */
+function sonnenlage(jetzt: number): { nacht: boolean; wechsel: number } | null {
+  const tage = standVon(ansicht.ort).daten?.tage;
+  const heute = tage?.[0];
+  if (!heute?.sonnenaufgang || !heute.sonnenuntergang) return null;
+  const auf = new Date(heute.sonnenaufgang).getTime();
+  const unter = new Date(heute.sonnenuntergang).getTime();
+  if (jetzt < auf) return { nacht: true, wechsel: auf };
+  if (jetzt < unter) return { nacht: false, wechsel: unter };
+  const morgen = tage?.[1]?.sonnenaufgang;
+  return { nacht: true, wechsel: morgen ? new Date(morgen).getTime() : jetzt + 12 * 3_600_000 };
+}
+
+/** Nachtbetrieb aktiv: fest an oder aus, sonst nach der Sonne am Ort. Eine Umschaltung von Hand
+ *  gilt bis zum nächsten Sonnenauf- oder -untergang, danach wieder die Zeitsteuerung. */
 export function nachtAktiv(): boolean {
   if (geraet.nacht === "an") return true;
   if (geraet.nacht === "aus") return false;
-  const heute = standVon(ansicht.ort).daten?.tage[0];
-  if (!heute?.sonnenaufgang || !heute.sonnenuntergang) return false;
   const jetzt = uhr.jetzt.getTime();
-  return jetzt < new Date(heute.sonnenaufgang).getTime() || jetzt > new Date(heute.sonnenuntergang).getTime();
+  const u = geraet.uebersteuerung;
+  if (u && jetzt < u.bis) return u.nacht;
+  return sonnenlage(jetzt)?.nacht ?? false;
+}
+
+/** Nachtbetrieb von Hand umschalten (Knopf im Kopf). Bei Zeitsteuerung bis zum nächsten Wechsel,
+ *  sonst wird die feste Wahl getauscht. */
+export function nachtUmschalten(): void {
+  const jetzt = Date.now();
+  const neu = !nachtAktiv();
+  if (geraet.nacht !== "auto") {
+    setzeNacht(neu ? "an" : "aus");
+    return;
+  }
+  const lage = sonnenlage(jetzt);
+  // Stimmt die Wahl wieder mit der Sonne überein, braucht es keine Übersteuerung mehr.
+  if (lage && lage.nacht === neu) setzeUebersteuerung(null);
+  else setzeUebersteuerung({ nacht: neu, bis: lage?.wechsel ?? jetzt + 12 * 3_600_000 });
 }

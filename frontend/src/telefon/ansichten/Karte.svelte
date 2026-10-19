@@ -10,7 +10,7 @@
   import { neuLadenAufhalten } from "../../kern/fassung.svelte";
   import { uhr } from "../../kern/uhr.svelte";
   import { uhrzeit } from "../../kern/zeit";
-  import { ansicht, nachtAktiv, oeffne } from "../ansicht.svelte";
+  import { ansicht, nachtAktiv, nachtUmschalten, oeffne } from "../ansicht.svelte";
   import { Abspieler, type Rahmen } from "./karte/abspieler.svelte";
   import { EBENEN_VON, faerbe, grundKacheln, legeEbenenAn, leseFarben, radarBild, setzeDaten, setzeDetail, setzeGrund, zeige, type Ecken } from "./karte/ebenen";
   import { SCHALTER, kartenWahl, schalte } from "./karte/wahl.svelte";
@@ -282,6 +282,9 @@
   <div class="karte-knoepfe">
     <button class="rund schwebe mein-ort" aria-label="Mein Ort" onclick={zumOrt} disabled={lon === undefined}>
       <i class="fa-solid fa-location-crosshairs"></i>
+    </button>
+    <button class="rund schwebe" aria-label={nacht ? "Nachtbetrieb aus" : "Nachtbetrieb an"} aria-pressed={nacht} onclick={nachtUmschalten}>
+      <i class="fa-solid {nacht ? 'fa-sun' : 'fa-moon'}"></i>
     </button>
     {#each SCHALTER as s (s.ebene)}
       <button class="rund schwebe" class:an={kartenWahl[s.ebene]} aria-pressed={kartenWahl[s.ebene]} aria-label={s.titel} onclick={() => schalte(s.ebene)}>

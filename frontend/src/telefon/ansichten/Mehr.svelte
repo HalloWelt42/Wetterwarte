@@ -6,6 +6,7 @@
   import { orteState } from "../../kern/orte.svelte";
   import { OBERFLAECHE_FASSUNG } from "../../kern/fassung.svelte";
   import { uhrzeit } from "../../kern/zeit";
+  import { uhr } from "../../kern/uhr.svelte";
   import { ansicht, oeffne } from "../ansicht.svelte";
   import { geraet, setzeNacht, setzeStufe, zurDesktopAnsicht, type Nachtwahl, type Stufe } from "../geraet.svelte";
   import { profile, waehleProfil } from "../profil.svelte";
@@ -25,10 +26,10 @@
   // Sonnenauf- und -untergang am gewählten Ort, nach denen sich "Nach Sonnenuntergang" richtet
   const ort = $derived(orteState.liste.find((o) => o.slug === ansicht.ort));
   const daten = $derived(standVon(ansicht.ort).daten);
+  const zone = $derived(daten?.ort.zeitzone ?? ort?.zeitzone ?? "");
   const sonne = $derived.by(() => {
     const t = daten?.tage[0];
     if (!t?.sonnenaufgang || !t.sonnenuntergang) return "";
-    const zone = daten!.ort.zeitzone;
     return `, in ${ort?.name ?? daten!.ort.name} heute ${uhrzeit(t.sonnenaufgang, zone)} und ${uhrzeit(t.sonnenuntergang, zone)} Uhr`;
   });
 </script>
@@ -75,6 +76,11 @@
           {/each}
         </div>
         {#if geraet.nacht === "auto"}<div class="einst-unter">Richtet sich nach Sonnenauf- und -untergang am gewählten Ort{sonne}.</div>{/if}
+        {#if geraet.nacht === "auto" && geraet.uebersteuerung && geraet.uebersteuerung.bis > uhr.jetzt.getTime()}
+          <div class="einst-unter">
+            Von Hand {geraet.uebersteuerung.nacht ? "eingeschaltet" : "ausgeschaltet"} bis {uhrzeit(new Date(geraet.uebersteuerung.bis), zone)} Uhr, danach wieder nach der Sonne.
+          </div>
+        {/if}
       </div>
     </section>
 

@@ -5,9 +5,17 @@ import { lies, schreib } from "../kern/speicher";
 export type Stufe = "normal" | "gross" | "sehr-gross";
 export type Nachtwahl = "aus" | "auto" | "an";
 
-export const geraet = $state<{ stufe: Stufe; nacht: Nachtwahl }>({
+/** Von Hand umgeschaltet, während die Zeitsteuerung läuft: gilt bis zum nächsten Sonnenauf- oder
+ *  -untergang (Zeitpunkt in ms), danach übernimmt wieder die Automatik. */
+export interface Uebersteuerung {
+  nacht: boolean;
+  bis: number;
+}
+
+export const geraet = $state<{ stufe: Stufe; nacht: Nachtwahl; uebersteuerung: Uebersteuerung | null }>({
   stufe: lies<Stufe>("telefon.stufe", "normal"),
   nacht: lies<Nachtwahl>("telefon.nacht", "auto"), // Standard: nach Sonnenauf- und -untergang am gewählten Ort
+  uebersteuerung: lies<Uebersteuerung | null>("telefon.nacht.uebersteuerung", null),
 });
 
 export function setzeStufe(stufe: Stufe): void {
@@ -18,6 +26,12 @@ export function setzeStufe(stufe: Stufe): void {
 export function setzeNacht(nacht: Nachtwahl): void {
   geraet.nacht = nacht;
   schreib("telefon.nacht", nacht);
+  setzeUebersteuerung(null);
+}
+
+export function setzeUebersteuerung(u: Uebersteuerung | null): void {
+  geraet.uebersteuerung = u;
+  schreib("telefon.nacht.uebersteuerung", u);
 }
 
 /** Zur Desktop-Ansicht wechseln und die Wahl für dieses Gerät merken (index.html liest sie). */
