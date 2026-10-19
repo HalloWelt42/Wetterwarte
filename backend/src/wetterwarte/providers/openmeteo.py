@@ -5,11 +5,12 @@ oeffentliche Dienst; spaeter zeigt sie auf den lokal gespiegelten Dienst - die
 Form der Antwort bleibt gleich.
 """
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 import httpx
 
 from ..config import settings
+from ..zeit import jetzt
 
 _WOCHENTAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 _RICHTUNGEN = ["N", "NO", "O", "SO", "S", "SW", "W", "NW"]
@@ -63,59 +64,114 @@ def _zustand(code: int, tag: bool) -> tuple[str, str]:
     return ("cloudy", "Wechselnd bewölkt")
 
 
-def _jetzt_index(zeiten: list[str], jetzt: str) -> int:
-    marke = jetzt[:13]
+def jetzt_index(zeiten: list[str], aktuell: str) -> int:
+    """Index der Stunde (oder Viertelstunde), in die der aktuelle Zeitpunkt fällt."""
+    marke = aktuell[:13]
     for i, t in enumerate(zeiten):
         if t[:13] == marke:
             return i
     return 0
 
 
-async def historie(lat: float, lon: float, tage: int = 30) -> list[tuple[str, float]]:
-    """Stuendliche Temperatur der letzten `tage` Tage (fuer die Erst-Befuellung des Archivs)."""
+def viertel_index(zeiten: list[str], aktuell: str) -> int:
+    """Index der laufenden Viertelstunde: letzter Zeitpunkt, der nicht nach `aktuell` liegt."""
+    index = 0
+    for i, t in enumerate(zeiten):
+        if t <= aktuell:
+            index = i
+    return index
+
+
+async def historie(lat: float, lon: float, tage: int = 30) -> list[tuple[datetime, float]]:
+    """Stündliche Temperatur der letzten `tage` Tage (für die Erst-Befüllung des Archivs).
+
+    Zeiten in UTC; nur Vergangenes, denn die Antwort enthält auch die kommenden Stunden des
+    laufenden Tags, und das sind Vorhersagen, keine Messwerte."""
     params = {
         "latitude": lat,
         "longitude": lon,
         "hourly": "temperature_2m",
         "past_days": tage,
         "forecast_days": 1,
-        "timezone": "Europe/Berlin",
+        "timezone": "GMT",
     }
     async with httpx.AsyncClient(timeout=30) as client:
         antwort = await client.get(f"{settings.open_meteo_base}/forecast", params=params)
         antwort.raise_for_status()
         h = antwort.json()["hourly"]
-    return [(t, w) for t, w in zip(h["time"], h["temperature_2m"], strict=False) if w is not None]
+    grenze = jetzt()
+    reihe = []
+    for t, w in zip(h["time"], h["temperature_2m"], strict=False):
+        zeit = datetime.fromisoformat(t).replace(tzinfo=UTC)
+        if w is not None and zeit <= grenze:
+            reihe.append((zeit, float(w)))
+    return reihe
 
 
-async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
+# Alles, was Desktop, Telefon und Aufzeichnung brauchen, in einem Abruf. Die Zeiten kommen in
+# der Ortszeit des Orts (timezone=auto) ohne Versatz; die Zeitzone steht in "timezone".
+_STUNDEN = (
+    "temperature_2m,apparent_temperature,weather_code,precipitation_probability,precipitation,visibility,"
+    "pressure_msl,is_day,wind_speed_10m,wind_gusts_10m,wind_direction_10m,uv_index,relative_humidity_2m,dew_point_2m,cloud_cover"
+)
+_TAGE = (
+    "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,"
+    "sunrise,sunset,daylight_duration,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max"
+)
+
+
+async def hole(lat: float, lon: float) -> dict:
+    """Rohantwort von Open-Meteo (JSON) für einen Ort: aktuell, Stunden (6 h zurück bis 72 h voraus),
+    7 Tage, 15-Minuten-Niederschlag für die nächsten 4 Stunden."""
     params = {
         "latitude": lat,
         "longitude": lon,
         "current": (
             "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,"
-            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,cloud_cover,dew_point_2m,uv_index,is_day"
+            "wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,cloud_cover,dew_point_2m,uv_index,is_day,"
+            "precipitation"
         ),
-        "hourly": "temperature_2m,weather_code,precipitation_probability,visibility,pressure_msl,is_day",
+        "hourly": _STUNDEN,
         "minutely_15": "precipitation",
-        "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
-        # auto = Zeiten (Sonne, Stunden, aktuell) in der LOKALEN Zeitzone des Ortes,
-        # nicht in Berliner Zeit - sonst stimmen Sonnenzeiten fuer ferne Orte nicht.
+        "forecast_minutely_15": 16,
+        "daily": _TAGE,
+        # auto = Zeiten in der LOKALEN Zeitzone des Ortes, sonst stimmen Sonnenzeiten fuer ferne Orte nicht.
         "timezone": "auto",
         "forecast_days": 7,
+        "past_hours": 6,
+        "forecast_hours": 72,  # Stunden: 6 zurück, 72 voraus (ohne Angabe wären es 16 Tage)
         "wind_speed_unit": "kmh",
     }
     async with httpx.AsyncClient(timeout=15) as client:
         antwort = await client.get(f"{settings.open_meteo_base}/forecast", params=params)
         antwort.raise_for_status()
-        d = antwort.json()
+        return antwort.json()
 
+
+def messwerte(d: dict) -> dict[str, float]:
+    """Aktuelle Werte ungerundet, so wie die Aufzeichnung sie speichert."""
+    c = d["current"]
+    return {
+        "temperatur": float(c["temperature_2m"]),
+        "feuchte": float(c["relative_humidity_2m"]),
+        "wind": float(c["wind_speed_10m"]),
+        "druck": float(c["pressure_msl"]),
+    }
+
+
+async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
+    """Anzeigeform für den Desktop und die Kompat-Schicht, direkt von der Quelle."""
+    return darstellung(await hole(lat, lon), name, region, lat, lon)
+
+
+def darstellung(d: dict, name: str, region: str, lat: float, lon: float) -> dict:
+    """Rohantwort in die Anzeigeform der Desktop-Kacheln bringen."""
     c = d["current"]
     tag = bool(c["is_day"])
     icon, text = _zustand(int(c["weather_code"]), tag)
 
     h = d["hourly"]
-    idx = _jetzt_index(h["time"], c["time"])
+    idx = jetzt_index(h["time"], c["time"])
     sicht_m = h["visibility"][idx] if h.get("visibility") else None
 
     aktuell = {
@@ -154,7 +210,7 @@ async def komplett(lat: float, lon: float, name: str, region: str) -> dict:
     mm = d.get("minutely_15") or {}
     nowcast = None
     if mm.get("time"):
-        i15 = _jetzt_index(mm["time"], c["time"])
+        i15 = viertel_index(mm["time"], c["time"])
         werte = [w or 0 for w in mm["precipitation"][i15 : i15 + 12]]
         maxw = max(werte) if werte else 0
         balken = [round(w / maxw * 100) if maxw > 0 else 3 for w in werte]

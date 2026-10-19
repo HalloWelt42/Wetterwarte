@@ -21,41 +21,27 @@ async def dispose_engine() -> None:
 
 
 async def init_db() -> None:
-    """Tabellen anlegen und bei leerer Datenbank Standard-Layouts anlegen.
+    """Schema per Migration auf den neuesten Stand bringen, bei leerer Datenbank Standard-Layouts
+    und Beispiel-Orte anlegen."""
+    from sqlmodel import select
 
-    Fuer den Anfang genuegt create_all; spaeter uebernehmen Alembic-Migrationen.
-    """
-    from sqlmodel import SQLModel, select
-
-    from .models.aufzeichnung import AufzeichnungOrt  # noqa: F401 - Tabelle registrieren
-    from .models.einstellung import Einstellung  # noqa: F401 - Tabelle registrieren
-    from .models.klima import KlimaNormale  # noqa: F401 - Tabelle registrieren
-    from .models.klima_aggregat import KlimaAggregat  # noqa: F401 - Tabelle registrieren
+    from . import schema
     from .models.layout import Layout
-    from .models.radar_archiv import RadarArchivFrame  # noqa: F401 - Tabelle registrieren
-    from .models.messwert import Messwert  # noqa: F401 - Tabelle registrieren
     from .models.ort import Ort
     from .orte import ORTE
 
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-        # Leichte Migration: neue Spalten auf bestehenden Tabellen nachziehen
-        # (create_all legt nur fehlende Tabellen an, keine Spalten). Muss hier
-        # laufen, da direkt darunter schon Layout/Ort abgefragt werden.
-        await conn.exec_driver_sql("ALTER TABLE ort ADD COLUMN IF NOT EXISTS zeitzone VARCHAR DEFAULT ''")
-        await conn.exec_driver_sql("ALTER TABLE layout ADD COLUMN IF NOT EXISTS icon VARCHAR NOT NULL DEFAULT ''")
+        await conn.run_sync(schema.aktualisiere)
 
     async with SessionLocal() as session:
-        vorhanden = (await session.execute(select(Layout))).scalars().first()
-        if vorhanden is None:
-            for name, standard in [("Zuhause", True), ("Garten", False), ("Reise", False), ("Unwetter", False)]:
-                session.add(Layout(name=name, ist_standard=standard, daten=[]))
-            await session.commit()
-
-        # Beim ersten Start ein paar generische Beispiel-Orte anlegen; danach
-        # pflegt der Nutzer die Liste selbst per Suche (Quelle der Wahrheit: DB).
-        ort_vorhanden = (await session.execute(select(Ort))).scalars().first()
-        if ort_vorhanden is None:
+        # Erster Start = noch kein Profil. Nur dann Standard-Profile und ein paar generische
+        # Beispiel-Orte anlegen; danach pflegt der Nutzer beides selbst (auch eine bewusst
+        # geleerte Ortsliste bleibt leer).
+        if (await session.execute(select(Layout))).scalars().first() is not None:
+            return
+        for name, standard in [("Zuhause", True), ("Garten", False), ("Reise", False), ("Unwetter", False)]:
+            session.add(Layout(name=name, ist_standard=standard, daten=[]))
+        if (await session.execute(select(Ort))).scalars().first() is None:
             for i, (slug, o) in enumerate(ORTE.items()):
                 session.add(
                     Ort(
@@ -69,4 +55,4 @@ async def init_db() -> None:
                         ist_start=(i == 0),
                     )
                 )
-            await session.commit()
+        await session.commit()

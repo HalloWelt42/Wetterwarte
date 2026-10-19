@@ -13,10 +13,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import ortsdienst
+from .. import ortsdienst, wetterdienst
 from ..db import get_session
 from ..models.ort import Ort
-from ..providers import geocoding, luftqualitaet, openmeteo, warnungen
+from ..providers import geocoding, openmeteo
 
 router = APIRouter(tags=["kompat"])
 
@@ -60,7 +60,7 @@ def _loc(o: Ort) -> dict:
         "country": "DE",
         "country_name": o.land or "Deutschland",
         "region": o.region,
-        "timezone": "Europe/Berlin",
+        "timezone": o.zeitzone or "Europe/Berlin",
         "is_favorite": False,
         "is_home": o.ist_start,
         "display_order": o.reihenfolge,
@@ -147,21 +147,27 @@ async def locations_add(eingabe: LocEingabe, session: AsyncSession = Depends(get
     return _loc(ort)
 
 
+async def _basis(o: Ort) -> dict:
+    """Anzeigeform aus dem gemeinsamen, zwischengespeicherten Abruf (wie die Oberfläche)."""
+    e = await wetterdienst.basis(o)
+    if e.wert is None:
+        raise HTTPException(status_code=502, detail="Wetterquelle nicht erreichbar")
+    return openmeteo.darstellung(e.wert, o.name, o.region, o.lat, o.lon)
+
+
 @router.get("/weather/current/{ort_id}")
 async def weather_current(ort_id: str) -> dict:
     o = await _ort(ort_id)
-    basis = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
+    basis = await _basis(o)
     return {"data": _current_data(basis["aktuell"])}
 
 
 @router.get("/weather/complete/{ort_id}")
 async def weather_complete(ort_id: str) -> dict:
     o = await _ort(ort_id)
-    basis = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
-    luft, warn = await asyncio.gather(
-        _sicher(luftqualitaet.hole(o.lat, o.lon)),
-        _sicher(warnungen.hole(o.lat, o.lon)),
-    )
+    basis = await _basis(o)
+    luft_e, warn_e = await asyncio.gather(wetterdienst.luft(o), wetterdienst.warnungen(o))
+    luft, warn = luft_e.wert, warn_e.wert
     sonne = basis.get("sonne", {})
     days = [
         {
@@ -182,7 +188,7 @@ async def weather_complete(ort_id: str) -> dict:
         }
         for s in basis.get("stunden", [])
     ]
-    alerts = [{"headline": w["titel"], "type": w["titel"], "severity": w.get("stufe")} for w in (warn or [])]
+    alerts = [{"headline": w["ereignis"], "type": w["ereignis"], "severity": w.get("stufe")} for w in (warn or [])]
     air_quality = {"aqi": luft["aqi"], "aqi_label": luft["label"]} if luft else None
     return {
         "location": _loc(o),

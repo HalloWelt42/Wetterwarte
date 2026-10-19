@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from .. import telefon as telefon_katalog
 from ..db import get_session
 from ..models.layout import Layout
 from ..schemas.envelope import wrap
@@ -17,6 +18,15 @@ class LayoutEingabe(BaseModel):
     daten: list | None = None
     ist_standard: bool | None = None
     icon: str | None = None
+    telefon: telefon_katalog.TelefonLayout | None = None
+
+
+def _gepruefte(t: telefon_katalog.TelefonLayout) -> dict:
+    try:
+        telefon_katalog.pruefe(t)
+    except ValueError as fehler:
+        raise HTTPException(status_code=422, detail=str(fehler)) from fehler
+    return t.model_dump()
 
 
 @router.get("")
@@ -27,7 +37,8 @@ async def liste(session: AsyncSession = Depends(get_session)) -> dict:
 
 @router.post("")
 async def anlegen(eingabe: LayoutEingabe, session: AsyncSession = Depends(get_session)) -> dict:
-    layout = Layout(name=eingabe.name or "Neues Layout", daten=eingabe.daten or [], icon=eingabe.icon or "")
+    t = _gepruefte(eingabe.telefon) if eingabe.telefon is not None else telefon_katalog.vorlage().model_dump()
+    layout = Layout(name=eingabe.name or "Neues Layout", daten=eingabe.daten or [], icon=eingabe.icon or "", telefon=t)
     session.add(layout)
     await session.commit()
     await session.refresh(layout)
@@ -45,6 +56,8 @@ async def speichern(layout_id: str, eingabe: LayoutEingabe, session: AsyncSessio
         layout.daten = eingabe.daten
     if eingabe.icon is not None:
         layout.icon = eingabe.icon
+    if eingabe.telefon is not None:
+        layout.telefon = _gepruefte(eingabe.telefon)
     if eingabe.ist_standard is not None:
         if eingabe.ist_standard:
             # Es gibt genau ein Standard-Layout: die anderen Flags loeschen.
@@ -55,6 +68,19 @@ async def speichern(layout_id: str, eingabe: LayoutEingabe, session: AsyncSessio
                 a.ist_standard = False
                 session.add(a)
         layout.ist_standard = eingabe.ist_standard
+    session.add(layout)
+    await session.commit()
+    await session.refresh(layout)
+    return wrap(layout.model_dump())
+
+
+@router.post("/{layout_id}/telefon-vorlage")
+async def telefon_vorlage(layout_id: str, session: AsyncSession = Depends(get_session)) -> dict:
+    """Telefon-Layout des Profils auf die Vorlage zurücksetzen."""
+    layout = await session.get(Layout, layout_id)
+    if layout is None:
+        raise HTTPException(status_code=404, detail="Layout nicht gefunden")
+    layout.telefon = telefon_katalog.vorlage().model_dump()
     session.add(layout)
     await session.commit()
     await session.refresh(layout)

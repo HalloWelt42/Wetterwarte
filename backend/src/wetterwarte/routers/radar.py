@@ -5,7 +5,7 @@ hier wird nur ausgeliefert und gecacht. Optional wird das DB-Archiv (historische
 gemessene Frames) vorangestellt, damit der Abspieler weiter zurueckblaettern kann.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import APIRouter, Body, HTTPException, Response
 
@@ -30,10 +30,10 @@ async def rahmen() -> dict:
         if conf["aktiv"] and gemessen:
             bezug = max(datetime.fromisoformat(f["zeit"]) for f in gemessen)
             fruehest = min(datetime.fromisoformat(f["zeit"]) for f in gemessen)
-            arch = await radar_archiv.frames_vor(fruehest.astimezone(timezone.utc).replace(tzinfo=None))
+            arch = await radar_archiv.frames_vor(fruehest)
             vorher = []
             for a in arch:
-                zt = a["zeit"].replace(tzinfo=timezone.utc)
+                zt = a["zeit"]
                 vorher.append(
                     {
                         "id": a["id"],

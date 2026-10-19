@@ -50,3 +50,25 @@ async def migriere_tile_ids() -> None:
             layout.daten = neu  # Neuzuweisung -> SQLAlchemy erkennt die JSON-Aenderung
         await session.commit()
     await _setze_flag("tile_ids_uuid_migriert")
+
+
+async def aggregate_in_ortszeit() -> None:
+    """Monatsaggregate einmal vollständig neu rechnen, nachdem Messwerte Zeitzonen haben und
+    Monate in der Ortszeit zählen (Schema 0002)."""
+    from . import klima_aggregat
+
+    if await _flag_gesetzt("aggregate_ortszeit"):
+        return
+    await klima_aggregat.aktualisiere()
+    await _setze_flag("aggregate_ortszeit")
+
+
+async def telefon_vorlagen() -> None:
+    """Jedes Profil ohne Telefon-Layout bekommt die Vorlage (Schema 0003). Läuft bei jedem Start,
+    trifft aber nur Profile, denen das Layout fehlt."""
+    from . import telefon
+
+    async with SessionLocal() as session:
+        for layout in (await session.execute(select(Layout).where(Layout.telefon.is_(None)))).scalars().all():
+            layout.telefon = telefon.vorlage().model_dump()
+        await session.commit()

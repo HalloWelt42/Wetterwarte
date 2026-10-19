@@ -116,8 +116,9 @@ async def _ry_frames(client: httpx.AsyncClient) -> list[dict]:
     for kompakt in namen:
         fid = f"ry-{kompakt}"
         if fid not in _cache:
-            roh = bz2.decompress(await _hole(client, f"{basis}raa01-ry_10000-{kompakt}-dwd---bin.bz2"))
-            _cache[fid] = _render(_decode(roh, 900, 900), _IDX_900)
+            gepackt = await _hole(client, f"{basis}raa01-ry_10000-{kompakt}-dwd---bin.bz2")
+            # Entpacken, Dekodieren und Zeichnen kosten je Bild Hunderte Millisekunden: nicht im Event-Loop.
+            _cache[fid] = await asyncio.to_thread(_ry_bild, gepackt)
         ergebnis.append({"id": fid, "zeit": _ts(kompakt), "art": "gemessen"})
     return ergebnis
 
@@ -132,7 +133,22 @@ async def _rv_frames(client: httpx.AsyncClient) -> list[dict]:
     neuest = sorted(set(stempel))[-1]
     daten = await _hole(client, f"{basis}DE1200_RV{neuest}.tar.bz2")
     basiszeit = _ts(neuest)
+    stufen = await asyncio.to_thread(_rv_bilder, daten, neuest, set(_cache))
     ergebnis = []
+    for fid, (png, offset) in sorted(stufen.items(), key=lambda e: e[1][1]):
+        if png is not None:
+            _cache[fid] = png
+        ergebnis.append({"id": fid, "zeit": basiszeit + timedelta(minutes=offset), "art": "vorhersage"})
+    return ergebnis
+
+
+def _ry_bild(gepackt: bytes) -> bytes:
+    return _render(_decode(bz2.decompress(gepackt), 900, 900), _IDX_900)
+
+
+def _rv_bilder(daten: bytes, neuest: str, vorhanden: set[str]) -> dict[str, tuple[bytes | None, int]]:
+    """Alle Vorhersagestufen eines RV-Archivs: je Stufe (Bild oder None, wenn schon vorhanden; Offset)."""
+    ergebnis: dict[str, tuple[bytes | None, int]] = {}
     with tarfile.open(fileobj=io.BytesIO(daten), mode="r:bz2") as tar:
         for m in tar.getmembers():
             treffer = re.search(r"_(\d{3})$", m.name)
@@ -142,10 +158,8 @@ async def _rv_frames(client: httpx.AsyncClient) -> list[dict]:
             if offset == 0:
                 continue  # 0 min deckt bereits der gemessene RY-Strang ab
             fid = f"rv-{neuest}-{offset:03d}"
-            if fid not in _cache:
-                roh = tar.extractfile(m).read()
-                _cache[fid] = _render(_decode(roh, 1200, 1100), _IDX_1200)
-            ergebnis.append({"id": fid, "zeit": basiszeit + timedelta(minutes=offset), "art": "vorhersage"})
+            png = None if fid in vorhanden else _render(_decode(tar.extractfile(m).read(), 1200, 1100), _IDX_1200)
+            ergebnis[fid] = (png, offset)
     return ergebnis
 
 

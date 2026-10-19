@@ -3,6 +3,7 @@
 # Laufzeitreste vom Host.
 *
 !version.json
+!telefon-katalog.json
 !frontend
 !backend
 frontend/node_modules

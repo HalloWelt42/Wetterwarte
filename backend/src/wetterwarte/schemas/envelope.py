@@ -1,23 +1,14 @@
-"""Einheitlicher Antwort-Umschlag: { data, meta }."""
+"""Einheitlicher Antwort-Umschlag: { data, meta }.
 
-from typing import Generic, TypeVar
+meta trägt die Fassung des Servers und bei Datenbereichen zusätzlich Status und Stand
+(ok, alt, fehlt), damit die Oberfläche ehrlich zeigen kann, wie verlässlich ein Wert ist."""
 
-from pydantic import BaseModel
-
+from ..bereiche import Ergebnis
 from ..config import settings
 
-T = TypeVar("T")
 
-
-class Meta(BaseModel):
-    version: str = settings.version
-    platzhalter: bool = False
-
-
-class Envelope(BaseModel, Generic[T]):
-    data: T
-    meta: Meta = Meta()
-
-
-def wrap(data: object, *, platzhalter: bool = False) -> dict:
-    return {"data": data, "meta": {"version": settings.version, "platzhalter": platzhalter}}
+def wrap(data: object, *, ergebnis: Ergebnis | None = None) -> dict:
+    meta: dict = {"version": settings.version}
+    if ergebnis is not None:
+        meta.update(ergebnis.meta())
+    return {"data": data, "meta": meta}

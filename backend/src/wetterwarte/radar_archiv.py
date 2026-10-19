@@ -5,7 +5,7 @@ gerendertes PNG und entfernt alles aelter als die Aufbewahrungsdauer. Der Radar-
 Abspieler kann dann ueber das kurze DWD-Live-Fenster hinaus zurueckblaettern.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from sqlalchemy import delete, func, select
 
@@ -13,8 +13,17 @@ from .db import SessionLocal
 from .models.einstellung import Einstellung
 from .models.radar_archiv import RadarArchivFrame
 from .providers import radar
+from .zeit import jetzt
 
 _STD_STUNDEN = 24
+
+
+# Aufbewahrung höchstens zwei Wochen (rund 4000 Bilder, wenige GB); die Oberfläche liest die Grenze mit.
+MAX_STUNDEN = 14 * 24
+
+
+def _klemme(stunden: int) -> int:
+    return max(1, min(MAX_STUNDEN, stunden))
 
 
 async def _lies(schluessel: str, standard: str) -> str:
@@ -29,22 +38,18 @@ async def einstellungen() -> dict:
         stunden = int(await _lies("radar_archiv_stunden", str(_STD_STUNDEN)))
     except ValueError:
         stunden = _STD_STUNDEN
-    return {"aktiv": aktiv, "stunden": max(1, stunden)}
+    return {"aktiv": aktiv, "stunden": _klemme(stunden)}
 
 
 async def setze(aktiv: bool, stunden: int) -> None:
     async with SessionLocal() as session:
-        for k, v in (("radar_archiv_aktiv", "1" if aktiv else "0"), ("radar_archiv_stunden", str(max(1, stunden)))):
+        for k, v in (("radar_archiv_aktiv", "1" if aktiv else "0"), ("radar_archiv_stunden", str(_klemme(stunden)))):
             row = await session.get(Einstellung, k)
             if row is not None:
                 row.wert = v
             else:
                 session.add(Einstellung(schluessel=k, wert=v))
         await session.commit()
-
-
-def _naiv_utc(iso: str) -> datetime:
-    return datetime.fromisoformat(iso).astimezone(timezone.utc).replace(tzinfo=None)
 
 
 async def schnappschuss() -> None:
@@ -63,19 +68,19 @@ async def schnappschuss() -> None:
             png = radar.bild(f["id"])
             if png is None:
                 continue
-            session.add(RadarArchivFrame(frame_id=f["id"], zeit=_naiv_utc(f["zeit"]), png=png))
-        grenze = datetime.utcnow() - timedelta(hours=conf["stunden"])
+            session.add(RadarArchivFrame(frame_id=f["id"], zeit=datetime.fromisoformat(f["zeit"]), png=png))
+        grenze = jetzt() - timedelta(hours=conf["stunden"])
         await session.execute(delete(RadarArchivFrame).where(RadarArchivFrame.zeit < grenze))
         await session.commit()
 
 
-async def frames_vor(zeit_naiv_utc: datetime) -> list[dict]:
+async def frames_vor(zeitpunkt: datetime) -> list[dict]:
     """Archivierte gemessene Frames, die aelter als der uebergebene Zeitpunkt sind."""
     async with SessionLocal() as session:
         rows = (
             await session.execute(
                 select(RadarArchivFrame.frame_id, RadarArchivFrame.zeit)
-                .where(RadarArchivFrame.zeit < zeit_naiv_utc)
+                .where(RadarArchivFrame.zeit < zeitpunkt)
                 .order_by(RadarArchivFrame.zeit)
             )
         ).all()
@@ -98,7 +103,7 @@ async def statistik() -> dict:
         ).scalar() or 0
     return {
         "anzahl": int(anzahl),
-        "aeltest": aeltest.replace(tzinfo=timezone.utc).isoformat() if aeltest else None,
-        "neuest": neuest.replace(tzinfo=timezone.utc).isoformat() if neuest else None,
+        "aeltest": aeltest.isoformat() if aeltest else None,
+        "neuest": neuest.isoformat() if neuest else None,
         "bytes": int(bytes_ges),
     }

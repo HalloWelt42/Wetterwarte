@@ -8,21 +8,23 @@ Diagramm, ohne bei jedem Aufruf die komplette Messwert-Tabelle zu durchrechnen.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import DateTime, UniqueConstraint
 from sqlmodel import Field, SQLModel
+
+from ..zeit import jetzt
 
 
 class KlimaAggregat(SQLModel, table=True):
     __table_args__ = (UniqueConstraint("ort", "variable", "jahr", "monat", name="uq_klima_aggregat"),)
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
-    ort: str = Field(index=True)
-    variable: str = Field(index=True)
-    jahr: int = Field(index=True)
+    ort: str
+    variable: str
+    jahr: int
     monat: int  # 1..12
     mittel: float
     minimum: float
     maximum: float
     summe: float
     anzahl: int
-    stand: datetime = Field(default_factory=datetime.now)
+    stand: datetime = Field(default_factory=jetzt, sa_type=DateTime(timezone=True))

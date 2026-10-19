@@ -1,4 +1,12 @@
-from .layout import Layout  # noqa: F401
-from .messwert import Messwert  # noqa: F401
+"""Alle Tabellen; der Import registriert sie in SQLModel.metadata."""
 
-__all__ = ["Layout", "Messwert"]
+from .aufzeichnung import AufzeichnungOrt
+from .einstellung import Einstellung
+from .klima import KlimaNormale
+from .klima_aggregat import KlimaAggregat
+from .layout import Layout
+from .messwert import Messwert
+from .ort import Ort
+from .radar_archiv import RadarArchivFrame
+
+__all__ = ["AufzeichnungOrt", "Einstellung", "KlimaAggregat", "KlimaNormale", "Layout", "Messwert", "Ort", "RadarArchivFrame"]

@@ -9,16 +9,21 @@ liegt in der Datenbank, nicht im Speicher.
 """
 
 import asyncio
-from datetime import datetime
+import logging
+import time
 
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import select
 
-from . import klima_aggregat, ortsdienst, radar_archiv
+from . import klima_aggregat, ortsdienst, radar_archiv, wetterdienst
 from .db import SessionLocal
 from .models.aufzeichnung import AufzeichnungOrt
 from .models.einstellung import Einstellung
 from .models.messwert import Messwert
-from .providers import luftqualitaet, openmeteo
+from .providers import openmeteo
+from .zeit import jetzt, zone
+
+log = logging.getLogger(__name__)
 
 # Aufzeichnungs-Takt in Minuten: Standard 10, grosszuegig einstellbar. Untere
 # Grenze eng genug fuer feine Einzelwerte, obere Grenze noch statistiktauglich.
@@ -72,76 +77,79 @@ async def _archiv_leer() -> bool:
         return vorhanden is None
 
 
+async def _speichere(zeilen: list[dict]) -> None:
+    """Messwerte schreiben; ein schon vorhandener Wert (gleicher Ort, Größe, Zeit) bleibt."""
+    if not zeilen:
+        return
+    async with SessionLocal() as session:
+        ins = pg_insert(Messwert).values(zeilen).on_conflict_do_nothing(index_elements=["ort", "variable", "zeit"])
+        await session.execute(ins)
+        await session.commit()
+
+
 async def _backfill() -> None:
     for o in await ortsdienst.alle():
         try:
             reihe = await openmeteo.historie(o.lat, o.lon, tage=30)
-        except Exception:
+        except Exception as fehler:
+            log.warning("Nachtrag für %s nicht möglich: %s", o.slug, fehler)
             continue
-        async with SessionLocal() as session:
-            for zeit, wert in reihe:
-                session.add(Messwert(ort=o.slug, zeit=datetime.fromisoformat(zeit), variable="temperatur", wert=float(wert)))
-            await session.commit()
+        await _speichere([{"ort": o.slug, "zeit": zeit, "variable": "temperatur", "wert": wert} for zeit, wert in reihe])
 
 
 async def _schreibe_aktuell() -> None:
-    jetzt = datetime.now()
+    zeitpunkt = jetzt()
     auswahl = await _auswahl()
     for o in await ortsdienst.alle():
         aktiv, variablen = auswahl.get(o.slug, (True, set(STANDARD_VARS)))
         if not aktiv or not variablen:
             continue
         werte: dict[str, float] = {}
-        # Basiswerte (Temperatur, Feuchte, Wind, Druck) aus dem Wetter-Provider.
+        # Basiswerte (Temperatur, Feuchte, Wind, Druck) ungerundet aus dem gemeinsamen Abruf.
         if variablen & BASIS_VARS:
-            try:
-                daten = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
-                werte.update(daten["aktuell"])
-            except Exception:
-                pass
-        # Luftschadstoffe (AQI, PM2.5, PM10, Ozon, NO2) aus der Luftqualitaet.
+            basis = await wetterdienst.basis(o)
+            if basis.status == "ok" and basis.wert:
+                werte.update(openmeteo.messwerte(basis.wert))
+        # Luftschadstoffe (AQI, PM2.5, PM10, Ozon, NO2).
         if variablen & LUFT_VARS:
-            try:
-                luft = await luftqualitaet.hole(o.lat, o.lon)
-                if luft:
-                    werte.update(luft)
-            except Exception:
-                pass
-        async with SessionLocal() as session:
-            for variable in variablen:
-                wert = werte.get(variable)
-                if wert is not None:
-                    try:
-                        session.add(Messwert(ort=o.slug, zeit=jetzt, variable=variable, wert=float(wert)))
-                    except (TypeError, ValueError):
-                        pass
-            await session.commit()
+            luft = await wetterdienst.luft(o)
+            if luft.status == "ok" and luft.wert:
+                werte.update({k: v for k, v in luft.wert.items() if isinstance(v, int | float)})
+        zeilen = []
+        for variable in variablen:
+            wert = werte.get(variable)
+            if isinstance(wert, int | float):
+                zeilen.append({"ort": o.slug, "zeit": zeitpunkt, "variable": variable, "wert": float(wert)})
+        await _speichere(zeilen)
+
+
+async def _schritt(name: str, aufgabe) -> None:
+    """Ein Schritt des Zyklus; scheitert er, laufen die übrigen trotzdem."""
+    try:
+        await aufgabe()
+    except Exception:
+        log.exception("Aufzeichnung: Schritt %s fehlgeschlagen", name)
+
+
+async def _laufende_monate() -> None:
+    """Laufenden Monat verdichten, in der Ortszeit jedes Orts (am Monatswechsel können das zwei sein)."""
+    monate = {(t.year, t.month) for t in (jetzt().astimezone(zone(o.zeitzone)) for o in await ortsdienst.alle())}
+    for monat in sorted(monate):
+        await klima_aggregat.aktualisiere(monat=monat)
 
 
 async def schleife() -> None:
     # Bestandsorte ohne Zeitzone einmalig nachziehen (fuer Uhr/Sonne/Mond je Ort).
-    try:
-        await ortsdienst.backfill_zeitzonen()
-    except Exception:
-        pass
+    await _schritt("Zeitzonen nachziehen", ortsdienst.backfill_zeitzonen)
     if await _archiv_leer():
-        await _backfill()
-        # Nach dem Backfill sofort die Monatsaggregate aufbauen.
-        try:
-            await klima_aggregat.aktualisiere()
-        except Exception:
-            pass
+        await _schritt("Nachtrag", _backfill)
+        await _schritt("Monatsaggregate", klima_aggregat.aktualisiere)
     while True:
-        try:
-            await _schreibe_aktuell()
-            # Frisch geschriebene Werte verdichten - nur den laufenden Monat, damit die
-            # Zyklus-Kosten unabhaengig von der Archivgroesse konstant bleiben (aeltere
-            # Monate aendern sich nicht mehr und wurden bereits frueher aggregiert).
-            monatsanfang = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            await klima_aggregat.aktualisiere(seit=monatsanfang)
-            # Radar-Frames archivieren (nur wenn im UI aktiviert).
-            await radar_archiv.schnappschuss()
-        except Exception:
-            pass
-        # Takt jeden Zyklus frisch lesen: Aenderungen im UI wirken ab dem naechsten Durchlauf.
-        await asyncio.sleep(await intervall_min() * 60)
+        beginn = time.monotonic()
+        await _schritt("Messwerte", _schreibe_aktuell)
+        # Nur den laufenden Monat verdichten, damit die Kosten nicht mit dem Archiv wachsen.
+        await _schritt("Monatsaggregate", _laufende_monate)
+        await _schritt("Radar-Archiv", radar_archiv.schnappschuss)
+        # Takt jeden Zyklus frisch lesen; die Dauer des Zyklus zählt mit, damit der Takt nicht wandert.
+        rest = await intervall_min() * 60 - (time.monotonic() - beginn)
+        await asyncio.sleep(max(5.0, rest))

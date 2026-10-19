@@ -53,6 +53,9 @@ Stunde rot.
 - Der Editor am Desktop schiebt Kacheln nach oben zusammen, es entstehen keine Löcher.
 - Die Größe des dicken Werts richtet sich nach der Kachel (Container-Abfragen `cqi`), nicht nach dem
   Bildschirm. Dadurch sieht dieselbe Kachel auf 375, 390 und 430 Punkten gleich aus.
+- Nie läuft eine Kachel über. Jede Kachel kennt entbehrliche Inhalte (zum Beispiel die letzte
+  Tageszeile oder eine Zusatzzeile), die bei großer Schrift oder kleinen Feldern zuerst wegfallen.
+  Die Kachel misst dafür ihre Höhe selbst.
 
 ## Telefon-Kachelkatalog
 

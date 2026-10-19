@@ -15,3 +15,6 @@ class Layout(SQLModel, table=True):
     icon: str = ""
     # gridstack-Serialisierung: Liste von { id, x, y, w, h }
     daten: list = Field(default_factory=list, sa_column=Column(JSON))
+    # Telefon-Layout dieses Profils: { kacheln: [{ id, typ, x, y, w, h, conf }] } im 3er-Raster.
+    # Leer = Vorlage (siehe telefon.py).
+    telefon: dict | None = Field(default=None, sa_column=Column(JSON, nullable=True))

@@ -1,15 +1,17 @@
 """Archiv-Endpunkte: Langzeitdaten aus der eigenen PostgreSQL."""
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from .. import ortsdienst
 from ..db import get_session
 from ..models.messwert import Messwert
 from ..schemas.envelope import wrap
+from ..zeit import jetzt, zone
 
 router = APIRouter(prefix="/archiv", tags=["archiv"])
 
@@ -45,23 +47,29 @@ async def variablen(ort: str = "", session: AsyncSession = Depends(get_session))
 
 @router.get("/verlauf")
 async def verlauf(
-    ort: str = "koeln",
+    ort: str,
     variable: str = "temperatur",
-    tage: int = 30,
-    aufloesung: str = "tag",  # "roh" (Messpunkte) | "stunde" (Stundenmittel) | "tag" (Tagesmittel)
+    tage: int = Query(30, ge=1, le=3660),
+    aufloesung: str = Query("tag", pattern="^(roh|stunde|tag)$"),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
-    """Verlauf der Variable ueber den Zeitraum in der gewuenschten Aufloesung.
+    """Verlauf der Variable über den Zeitraum in der gewünschten Auflösung.
 
-    "roh" zeigt die tatsaechlich aufgezeichneten Messpunkte (also die eingestellte
-    Aufzeichnungs-Kadenz, z.B. alle 10-20 Minuten); "stunde" und "tag" verdichten."""
-    seit = datetime.now() - timedelta(days=tage)
-    bedingung = (Messwert.ort == ort, Messwert.variable == variable, Messwert.zeit >= seit)
+    "roh" zeigt die tatsächlich aufgezeichneten Messpunkte (die neuesten 3000), "stunde" und
+    "tag" verdichten in der Ortszeit. Zeiten immer als ISO 8601 mit Versatz."""
+    o = await ortsdienst.per_slug(ort.lower())
+    if o is None:
+        raise HTTPException(status_code=404, detail="Ort nicht bekannt")
+    tz = zone(o.zeitzone)
+    seit = jetzt() - timedelta(days=tage)
+    bedingung = (Messwert.ort == o.slug, Messwert.variable == variable, Messwert.zeit >= seit)
     if aufloesung == "roh":
-        stmt = select(Messwert.zeit, Messwert.wert).where(*bedingung).order_by(Messwert.zeit).limit(3000)
-        zeilen = (await session.execute(stmt)).all()
-        return wrap([{"tag": zeit.isoformat(), "wert": round(float(wert), 1)} for zeit, wert in zeilen])
-    bucket = func.date_trunc("hour", Messwert.zeit) if aufloesung == "stunde" else func.date(Messwert.zeit)
+        stmt = select(Messwert.zeit, Messwert.wert).where(*bedingung).order_by(Messwert.zeit.desc()).limit(3000)
+        zeilen = list(reversed((await session.execute(stmt)).all()))
+        return wrap([{"tag": zeit.astimezone(tz).isoformat(), "wert": round(float(wert), 1)} for zeit, wert in zeilen])
+    # In Ortszeit auf Stunde oder Tag kürzen, dann wieder als Zeitpunkt mit Zone.
+    ortszeit = func.timezone(tz.key, Messwert.zeit)
+    bucket = func.timezone(tz.key, func.date_trunc("hour" if aufloesung == "stunde" else "day", ortszeit))
     stmt = (
         select(bucket.label("t"), func.avg(Messwert.wert).label("m"))
         .where(*bedingung)
@@ -69,4 +77,4 @@ async def verlauf(
         .order_by(bucket)
     )
     zeilen = (await session.execute(stmt)).all()
-    return wrap([{"tag": str(bucket_wert), "wert": round(float(mittel), 1)} for bucket_wert, mittel in zeilen])
+    return wrap([{"tag": t.astimezone(tz).isoformat(), "wert": round(float(mittel), 1)} for t, mittel in zeilen])

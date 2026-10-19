@@ -5,7 +5,7 @@ periodisch vom Recorder sowie bei Bedarf beim Abruf aufgefrischt. Der Upsert nut
 die eindeutige Spaltenkombination (Ort, Variable, Jahr, Monat).
 """
 
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import Integer, cast, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -13,6 +13,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from .db import SessionLocal
 from .models.klima_aggregat import KlimaAggregat
 from .models.messwert import Messwert
+from .models.ort import Ort
+from .zeit import STANDARD_ZONE, jetzt
 
 
 # Zeilen je Upsert-Batch. Pro Zeile bindet asyncpg 11 Parameter; das Limit liegt bei
@@ -20,37 +22,52 @@ from .models.messwert import Messwert
 _BATCH = 1000
 
 
-async def aktualisiere(orte: list[str] | None = None, seit: datetime | None = None) -> int:
+async def aktualisiere(orte: list[str] | None = None, monat: tuple[int, int] | None = None) -> int:
     """Monatsaggregate aus der Messwert-Tabelle neu berechnen und upserten.
 
-    Optional auf bestimmte Orte begrenzen (guenstiger Scan beim Abruf eines Ortes)
-    und/oder auf einen Zeitraum ab ``seit`` (z. B. nur laufender Monat im Recorder-Takt,
-    damit die Kosten nicht mit der Archivgroesse wachsen). Liefert die Anzahl der
-    geschriebenen (Ort, Variable, Jahr, Monat)-Zeilen.
-    """
-    jahr_e = cast(func.extract("year", Messwert.zeit), Integer).label("jahr")
-    monat_e = cast(func.extract("month", Messwert.zeit), Integer).label("monat")
-    stmt = select(
-        Messwert.ort,
-        Messwert.variable,
-        jahr_e,
-        monat_e,
-        func.avg(Messwert.wert).label("mittel"),
-        func.min(Messwert.wert).label("minimum"),
-        func.max(Messwert.wert).label("maximum"),
-        func.sum(Messwert.wert).label("summe"),
-        func.count(Messwert.wert).label("anzahl"),
-    ).group_by(Messwert.ort, Messwert.variable, jahr_e, monat_e)
+    Monate zählen in der Zeitzone des jeweiligen Orts. Optional auf bestimmte Orte begrenzen
+    (günstiger Scan beim Abruf eines Ortes) und/oder auf einen einzigen Monat (Jahr, Monat),
+    etwa den laufenden im Recorder-Takt, damit die Kosten nicht mit der Archivgröße wachsen.
+    Es wird nur upgesertet, was vollständig im Filter liegt; ein Teilmonat überschreibt nie
+    einen vollständigen. Liefert die Anzahl der geschriebenen Zeilen."""
+    ortszeit = func.timezone(func.coalesce(func.nullif(Ort.zeitzone, ""), STANDARD_ZONE), Messwert.zeit)
+    jahr_e = cast(func.extract("year", ortszeit), Integer).label("jahr")
+    monat_e = cast(func.extract("month", ortszeit), Integer).label("monat")
+    stmt = (
+        select(
+            Messwert.ort,
+            Messwert.variable,
+            jahr_e,
+            monat_e,
+            func.avg(Messwert.wert).label("mittel"),
+            func.min(Messwert.wert).label("minimum"),
+            func.max(Messwert.wert).label("maximum"),
+            func.sum(Messwert.wert).label("summe"),
+            func.count(Messwert.wert).label("anzahl"),
+        )
+        .join(Ort, Ort.slug == Messwert.ort)
+        .group_by(Messwert.ort, Messwert.variable, jahr_e, monat_e)
+    )
     if orte:
         stmt = stmt.where(Messwert.ort.in_(orte))
-    if seit is not None:
-        stmt = stmt.where(Messwert.zeit >= seit)
+    if monat is not None:
+        j, m = monat
+        beginn = datetime(j, m, 1, tzinfo=UTC)
+        ende = datetime(j + (m == 12), m % 12 + 1, 1, tzinfo=UTC)
+        # Grob über den Index eingrenzen (ein Tag Spielraum je Seite für alle Zeitzonen),
+        # genau über den Ortsmonat.
+        stmt = stmt.where(
+            Messwert.zeit >= beginn - timedelta(days=1),
+            Messwert.zeit < ende + timedelta(days=1),
+            cast(func.extract("year", ortszeit), Integer) == j,
+            cast(func.extract("month", ortszeit), Integer) == m,
+        )
 
     async with SessionLocal() as session:
         zeilen = (await session.execute(stmt)).all()
         if not zeilen:
             return 0
-        stand = datetime.now()
+        stand = jetzt()
         werte = [
             {
                 "ort": r.ort,

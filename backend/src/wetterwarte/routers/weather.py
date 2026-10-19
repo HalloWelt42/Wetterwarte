@@ -10,52 +10,21 @@ jeden Bereich in seinem eigenen Takt ab (siehe wetter.svelte.ts).
 
 import asyncio
 import json
-from collections.abc import Awaitable, Callable
-from datetime import datetime, timedelta
-from typing import TypeVar
+from datetime import timedelta
 
-import httpx
 from fastapi import APIRouter, HTTPException, Response
 
-from .. import cache, klima_aggregat, ortsdienst
+from .. import kompakt, klima_aggregat, ortsdienst, wetterdienst
 from ..db import SessionLocal
 from ..models.klima import KlimaNormale
-from ..providers import blitze, karten_gitter, klima, luftqualitaet, openmeteo, pollen_dwd, warnpolygone, warnungen
+from ..providers import karten_gitter, klima, openmeteo, warnpolygone, warnungen
 from ..schemas.envelope import wrap
+from ..zeit import jetzt, zone
 
 router = APIRouter(prefix="/wetter", tags=["wetter"])
 
 # Kurze Monatsnamen fuer die Diagramm-Beschriftung.
 MONATE_KURZ = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
-
-T = TypeVar("T")
-
-# Cache-Stufen (Sekunden) je nach Zeitkritikalitaet der Quelle.
-TTL_BASIS = 300     # aktuell/stuendlich/taeglich/Sonne - ~5 min
-TTL_WARN = 120      # Warnungen - zeitkritisch, ~2 min
-TTL_BLITZE = 60     # Blitze - zeitkritisch, ~1 min
-TTL_LUFT = 900      # Luftqualitaet - traege, 15 min
-TTL_POLLEN = 3600   # Pollen - sehr traege, 1 h
-
-
-# Ein Lock je Cache-Schluessel: verhindert, dass bei Cache-Miss mehrere gleichzeitige
-# Anfragen denselben Upstream-Abruf parallel ausloesen (Single-Flight / kein Thundering Herd).
-_locks: dict[str, asyncio.Lock] = {}
-
-
-def _lock(schluessel: str) -> asyncio.Lock:
-    sperre = _locks.get(schluessel)
-    if sperre is None:
-        sperre = _locks[schluessel] = asyncio.Lock()
-    return sperre
-
-
-async def _sicher(coro: Awaitable[T]) -> T | None:
-    """Zusatzquelle: bei Fehler None statt Abbruch der ganzen Antwort."""
-    try:
-        return await coro
-    except Exception:
-        return None
 
 
 async def _ort(ort: str):
@@ -65,98 +34,84 @@ async def _ort(ort: str):
     return o
 
 
-async def _basis(o) -> dict:
-    """Aktuell + stuendlich + taeglich + Sonne (eine Open-Meteo-Abfrage), gecacht."""
-    schluessel = f"weather:basis:{o.slug}"
-    gecacht = await cache.hole(schluessel)
-    if gecacht is not None:
-        return gecacht
-    async with _lock(schluessel):
-        gecacht = await cache.hole(schluessel)  # ein paralleler Task hat evtl. schon gefuellt
-        if gecacht is not None:
-            return gecacht
-        try:
-            b = await openmeteo.komplett(o.lat, o.lon, o.name, o.region)
-        except httpx.HTTPError as fehler:
-            raise HTTPException(status_code=502, detail=f"Wetterquelle nicht erreichbar: {fehler}") from fehler
-        await cache.setze(schluessel, b, ttl=TTL_BASIS)
-        return b
+def _darstellung_basis(o, roh: dict | None) -> dict | None:
+    return openmeteo.darstellung(roh, o.name, o.region, o.lat, o.lon) if roh else None
 
 
-async def _gecacht(schluessel: str, ttl: int, quelle: Callable[[], Awaitable[T]], ersatz: T) -> T:
-    """Zusatzbereich mit eigener Cache-Stufe. Bei Fehler den Ersatz liefern und
-    NICHT cachen, damit der naechste Takt es erneut versucht."""
-    gecacht = await cache.hole(schluessel)
-    if gecacht is not None:
-        return gecacht
-    async with _lock(schluessel):
-        gecacht = await cache.hole(schluessel)  # ein paralleler Task hat evtl. schon gefuellt
-        if gecacht is not None:
-            return gecacht
-        wert = await _sicher(quelle())
-        if wert is None:
-            return ersatz
-        await cache.setze(schluessel, wert, ttl=ttl)
-        return wert
-
-
-async def _warn(o):
-    return await _gecacht(f"weather:warn:{o.slug}", TTL_WARN, lambda: warnungen.hole(o.lat, o.lon), [])
-
-
-async def _blitze(o):
-    return await _gecacht(f"weather:blitze:{o.slug}", TTL_BLITZE, lambda: blitze.hole(o.lat, o.lon), None)
-
-
-async def _luft(o):
-    return await _gecacht(f"weather:luft:{o.slug}", TTL_LUFT, lambda: luftqualitaet.hole(o.lat, o.lon), None)
-
-
-async def _pollen(o):
-    return await _gecacht(f"weather:pollen:{o.slug}", TTL_POLLEN, lambda: pollen_dwd.hole(o.lat, o.lon), None)
+def _darstellung_warn(o, roh: list | None) -> list | None:
+    return warnungen.darstellung(roh, o.zeitzone) if roh is not None else None
 
 
 @router.get("/complete/{ort}")
 async def complete(ort: str) -> dict:
-    """Alles zu einem Ort in einer Antwort (fuer den Erstaufbau). Setzt sich aus
-    denselben gecachten Bereichen zusammen wie die Einzel-Endpunkte."""
+    """Alles zu einem Ort in einer Antwort (Desktop-Form). Status je Bereich in meta.bereiche."""
     o = await _ort(ort)
-    b = await _basis(o)
-    luft, warn, blitz, pollen = await asyncio.gather(_luft(o), _warn(o), _blitze(o), _pollen(o))
-    return wrap({**b, "luft": luft, "warnungen": warn, "blitze": blitz, "pollen": pollen})
+    b, luft, warn, blitz, pollen = await asyncio.gather(
+        wetterdienst.basis(o), wetterdienst.luft(o), wetterdienst.warnungen(o), wetterdienst.blitze(o), wetterdienst.pollen(o)
+    )
+    if b.wert is None:
+        raise HTTPException(status_code=502, detail="Wetterquelle nicht erreichbar")
+    antwort = wrap({
+        **_darstellung_basis(o, b.wert),
+        "luft": luft.wert,
+        "warnungen": _darstellung_warn(o, warn.wert),
+        "blitze": blitz.wert,
+        "pollen": pollen.wert,
+    })
+    antwort["meta"]["bereiche"] = {
+        name: e.meta() for name, e in (("basis", b), ("luft", luft), ("warnungen", warn), ("blitze", blitz), ("pollen", pollen))
+    }
+    return antwort
 
 
-# --- Einzel-Bereiche: jeder in seinem eigenen Frische-Takt abfragbar ---
+@router.get("/kompakt/{ort}")
+async def kompakt_ep(ort: str) -> dict:
+    """Alles für die Telefonansicht in einem Abruf: Rohwerte, Zeiten mit Versatz, Status je
+    Bereich (siehe schemas/kompakt.py und docs/TELEFON.md)."""
+    o = await _ort(ort)
+    return wrap((await kompakt.lade(o)).model_dump(mode="json"))
+
+
+# --- Einzel-Bereiche: jeder in seinem eigenen Frische-Takt abfragbar. Fehlt ein Bereich,
+# kommt data = null mit meta.status = "fehlt" (kein Fehlercode), damit die Oberfläche den
+# Zustand zeigen kann.
 
 
 @router.get("/basis/{ort}")
 async def basis(ort: str) -> dict:
-    """Aktuell, stuendlich, taeglich, Sonne - fuer den ~10-min-Takt."""
-    return wrap(await _basis(await _ort(ort)))
+    """Aktuell, stuendlich, taeglich, Sonne."""
+    o = await _ort(ort)
+    e = await wetterdienst.basis(o)
+    return wrap(_darstellung_basis(o, e.wert), ergebnis=e)
 
 
 @router.get("/warnungen/{ort}")
 async def warnungen_ep(ort: str) -> dict:
-    """Amtliche Warnungen - zeitkritisch."""
-    return wrap(await _warn(await _ort(ort)))
+    """Amtliche Warnungen - zeitkritisch. Bei Ausfall data = null, nie eine leere Liste."""
+    o = await _ort(ort)
+    e = await wetterdienst.warnungen(o)
+    return wrap(_darstellung_warn(o, e.wert), ergebnis=e)
 
 
 @router.get("/blitze/{ort}")
 async def blitze_ep(ort: str) -> dict:
     """Blitze im Umkreis - zeitkritisch."""
-    return wrap(await _blitze(await _ort(ort)))
+    e = await wetterdienst.blitze(await _ort(ort))
+    return wrap(e.wert, ergebnis=e)
 
 
 @router.get("/luft/{ort}")
 async def luft_ep(ort: str) -> dict:
     """Luftqualitaet - traege."""
-    return wrap(await _luft(await _ort(ort)))
+    e = await wetterdienst.luft(await _ort(ort))
+    return wrap(e.wert, ergebnis=e)
 
 
 @router.get("/pollen/{ort}")
 async def pollen_ep(ort: str) -> dict:
     """Pollenflug - sehr traege."""
-    return wrap(await _pollen(await _ort(ort)))
+    e = await wetterdienst.pollen(await _ort(ort))
+    return wrap(e.wert, ergebnis=e)
 
 
 @router.get("/warnkarte")
@@ -191,7 +146,7 @@ async def klima_ep(ort: str) -> dict:
     o = await _ort(ort)
     async with SessionLocal() as session:
         row = await session.get(KlimaNormale, o.slug)
-        if row is not None and (datetime.now() - row.stand) < timedelta(days=30):
+        if row is not None and (jetzt() - row.stand) < timedelta(days=30):
             return wrap(json.loads(row.daten))
     try:
         daten = await klima.normalen(o.lat, o.lon)
@@ -203,9 +158,9 @@ async def klima_ep(ort: str) -> dict:
         gespeichert = await session.get(KlimaNormale, o.slug)
         if gespeichert is not None:
             gespeichert.daten = json.dumps(daten)
-            gespeichert.stand = datetime.now()
+            gespeichert.stand = jetzt()
         else:
-            session.add(KlimaNormale(ort=o.slug, daten=json.dumps(daten), stand=datetime.now()))
+            session.add(KlimaNormale(ort=o.slug, daten=json.dumps(daten), stand=jetzt()))
         await session.commit()
     return wrap(daten)
 
@@ -217,9 +172,11 @@ async def messjahre_ep(ort: str) -> dict:
     Frischt die Aggregate dieses Ortes vorab auf, damit gerade erst aufgezeichnete
     Werte sofort erscheinen."""
     o = await _ort(ort)
-    await klima_aggregat.aktualisiere([o.slug])
+    heute = jetzt().astimezone(zone(o.zeitzone))
+    # Nur den laufenden Monat: ältere verdichtet der Recorder, sie ändern sich nicht mehr.
+    await klima_aggregat.aktualisiere([o.slug], monat=(heute.year, heute.month))
     jahre, variablen = await asyncio.gather(klima_aggregat.jahre(o.slug), klima_aggregat.variablen(o.slug))
-    return wrap({"jahre": jahre, "variablen": variablen, "aktuelles_jahr": datetime.now().year})
+    return wrap({"jahre": jahre, "variablen": variablen, "aktuelles_jahr": jetzt().astimezone(zone(o.zeitzone)).year})
 
 
 @router.get("/jahresmesswerte/{ort}")
@@ -234,4 +191,4 @@ async def jahresmesswerte_ep(ort: str, jahr: int, variable: str = "temperatur") 
         {"monat": i, "kurz": MONATE_KURZ[i - 1], **({k: v for k, v in vorhanden[i].items() if k != "monat"} if i in vorhanden else {"mittel": None, "minimum": None, "maximum": None, "summe": None, "anzahl": 0})}
         for i in range(1, 13)
     ]
-    return wrap({"jahr": jahr, "variable": variable, "aktuelles_jahr": datetime.now().year, "monate": monate})
+    return wrap({"jahr": jahr, "variable": variable, "aktuelles_jahr": jetzt().astimezone(zone(o.zeitzone)).year, "monate": monate})
