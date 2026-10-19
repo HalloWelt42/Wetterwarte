@@ -60,7 +60,7 @@ case "${1:-}" in
       --exclude '.DS_Store' --exclude '.run' --exclude 'mockups' --exclude 'zertifikate' \
       -e ssh ./ "$PI_HOST:$PI_PFAD/" \
       && ssh "$PI_HOST" "cd '$PI_PFAD' && ./wetter prod-restart" \
-      && echo "Deploy fertig." ;;
+      && echo "Deploy fertig. Prüfen: ./wetter rauchtest" ;;
   zertifikat)
     # Blattzertifikat der Hausstelle (mkcert auf diesem Mac) für die sichere Adresse ausstellen und nach
     # $PI_PFAD/zertifikate legen; danach ./wetter deploy (Dienst vorne). Namen über ZERT_NAMEN änderbar.
@@ -75,8 +75,12 @@ case "${1:-}" in
       && scp -q "$ARBEIT"/wetterwarte.pem "$ARBEIT"/wetterwarte-schluessel.pem "$ARBEIT"/rootCA.pem "$PI_HOST:$PI_PFAD/zertifikate/" \
       && ssh "$PI_HOST" "chmod 644 '$PI_PFAD/zertifikate/wetterwarte.pem' '$PI_PFAD/zertifikate/rootCA.pem' && chmod 640 '$PI_PFAD/zertifikate/wetterwarte-schluessel.pem'" \
       && echo "Zertifikat auf $PI_HOST:$PI_PFAD/zertifikate, $(openssl x509 -in "$ARBEIT/wetterwarte.pem" -noout -enddate)" ;;
+  rauchtest)
+    # Alle Ansichten im echten Aufbau öffnen, Konsolenfehler und gescheiterte Anfragen sammeln (tools/rauchtest.mjs).
+    # Ohne Adresse: der Betrieb auf dem Pi (nur lesend).
+    node tools/rauchtest.mjs --app "${2:-http://192.168.178.49:8061}" ;;
   mockup)
     ./start-mockups.sh "${2:-start}" ;;
   *)
-    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs|zertifikat|deploy]" ;;
+    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs|zertifikat|deploy|rauchtest]" ;;
 esac

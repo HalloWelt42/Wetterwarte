@@ -55,6 +55,13 @@ Blattzertifikat der Hausstelle, wie bei Kiste, Kellerwolke und Transkription. Di
 vertrauen (einmalig eingerichtet). Dann `https://192.168.178.49:8062/telefon` öffnen, Teilen, Zum
 Home-Bildschirm, aus dem neuen Symbol starten und unter Mehr, Warnungen aufs Telefon einschalten.
 
+## Rauchtest vor und nach dem Ausrollen
+
+`./wetter rauchtest [adresse]` öffnet jede Ansicht (Desktop und Telefon) in einem kopflosen Chrome und meldet jede
+Ausnahme, jeden Konsolenfehler und jede Anfrage mit Status ab 400. Vor dem Ausrollen gegen einen Probelauf des
+Produktionsaufbaus (nur dort laufen nginx und Caddy wie im Betrieb; der Entwicklungsserver verdeckt Fehler der
+Auslieferung), danach gegen den Pi. Ausgang 1 bei jedem Befund.
+
 ## Steuerung
 
 ```bash

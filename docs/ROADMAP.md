@@ -127,6 +127,10 @@ bzw. `frontend/src/`.
 - 0.49.2: Seiten melden nur PNG-Symbole (wie die Kiste). Mit favicon.ico `sizes="any"` und SVG-Symbol zeigte das
   iPhone beim Hinzufügen zum Home-Bildschirm nur den Anfangsbuchstaben (auch die Transkription). Caddy ohne
   HTTP/3, das er auf dem falschen Port ankündigte.
+- 0.49.3: nginx gab `/api/...png` nie ans Backend weiter (Musterregel für Dateien mit Endung ging der Weiterleitung
+  vor, seit 0.46.4): Regenradar auf der Karte und Temperaturfeld fehlten im Betrieb. Weiterleitungen jetzt mit `^~`.
+  Archiv fragt erst mit gewähltem Ort ab. Neu: `./wetter rauchtest` sammelt Konsolenfehler und gescheiterte Anfragen
+  aller Ansichten im echten Aufbau.
 
 ## Reihenfolge (offen)
 

@@ -56,8 +56,9 @@
       verlauf = [];
     }
   }
+  // Erst abfragen, wenn Station und Größe feststehen (vorher kam ein Abruf ohne Ort und lief auf 404)
   $effect(() => {
-    void laden(station, variable, zeit);
+    if (station && variable) void laden(station, variable, zeit);
   });
 
   // Kennzahlen aus den echten Werten (das Diagramm selbst zeichnet LinienChart).
