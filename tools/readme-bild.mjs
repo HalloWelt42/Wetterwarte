@@ -5,11 +5,12 @@
 // des Produktionsaufbaus, und der Entwurfsserver (./wetter mockup). Chrome startet das Skript selbst.
 //
 //   node tools/readme-bild.mjs --app http://localhost:6181 --ort koeln
+//   node tools/readme-bild.mjs --nur-buehne      # nur die Präsentation neu (etwa nach neuem App-Symbol)
 //
 // Das Telefon zeigt die Lage "Leichter Regen in 30 Minuten" (Lageband, Regenkachel, Mitteilung), damit das Bild
 // die aktiven Warnungen zeigt; alle übrigen Werte sind die echten des Orts. Ton bleibt aus.
 import { spawn } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +22,7 @@ const ENTWURF = argumente.entwurf ?? "http://localhost:6159";
 const ORT = argumente.ort ?? "koeln";
 const CHROME = argumente.chrome ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PORT = 9350;
+const NUR_BUEHNE = "nur-buehne" in argumente;
 
 const warte = (ms) => new Promise((r) => setTimeout(r, ms));
 const profil = mkdtempSync(join(tmpdir(), "readme-bild-"));
@@ -106,35 +108,41 @@ await cdp("Page.addScriptToEvaluateOnNewDocument", { source: `
     return new Response(JSON.stringify(j), { status: 200, headers: { "Content-Type": "application/json" } });
   };` });
 
-// Gerätewerte vorab auf einer schlichten Seite derselben Herkunft setzen: jede Ansicht wird dann nur einmal geladen.
-// Ein zweites Laden derselben Seite sperrt kopflos das Software-WebGL, dann zeigte die Karte nur ihren Hinweis.
-await laden(`${APP}/api/v1/health`, 800);
-await auswerten(`for (const [k, v] of Object.entries({ "willkommen.gesehen": true, ansicht: "desktop", "telefon.nacht": "aus", "telefon.ansagen": false, "telefon.stufe": "normal" })) localStorage.setItem("wetterwarte." + k, JSON.stringify(v))`);
+// Uhrzeit und Ort der Aufnahme, damit eine neu gerenderte Bühne zur Telefonaufnahme passt
+const STAND = join(WURZEL, "mockups/praesentation/stand.json");
+let { uhr, ortName } = NUR_BUEHNE && existsSync(STAND) ? JSON.parse(readFileSync(STAND, "utf-8")) : { uhr: "", ortName: "" };
+if (!NUR_BUEHNE) {
+  // Gerätewerte vorab auf einer schlichten Seite derselben Herkunft setzen: jede Ansicht wird dann nur einmal geladen.
+  // Ein zweites Laden derselben Seite sperrt kopflos das Software-WebGL, dann zeigte die Karte nur ihren Hinweis.
+  await laden(`${APP}/api/v1/health`, 800);
+  await auswerten(`for (const [k, v] of Object.entries({ "willkommen.gesehen": true, ansicht: "desktop", "telefon.nacht": "aus", "telefon.ansagen": false, "telefon.stufe": "normal" })) localStorage.setItem("wetterwarte." + k, JSON.stringify(v))`);
 
-// 1. Desktop, 1600 x 1000 mit doppelter Dichte
-await cdp("Emulation.setDeviceMetricsOverride", { width: 1600, height: 1000, deviceScaleFactor: 2, mobile: false });
-await laden(`${APP}/?ort=${ORT}`, 500);
-await bisDa(`document.body.innerText.includes("aktualisiert") && !document.body.innerText.includes("lädt")`, "Desktop");
-// Profil Garten: ohne Kartenkachel, denn kopflos bildet Chrome die WebGL-Fläche im Bild nicht ab
-await auswerten(`[...document.querySelectorAll("button")].find((b) => b.innerText.trim() === "Garten")?.click()`);
-await warte(1000);
-await bisDa(`document.body.innerText.includes("POLLENFLUG") && !document.body.innerText.includes("lädt")`, "Desktop, Profil Garten");
-await aufnehmen(join(WURZEL, "mockups/praesentation/desktop.png"));
+  // 1. Desktop, 1600 x 1000 mit doppelter Dichte
+  await cdp("Emulation.setDeviceMetricsOverride", { width: 1600, height: 1000, deviceScaleFactor: 2, mobile: false });
+  await laden(`${APP}/?ort=${ORT}`, 500);
+  await bisDa(`document.body.innerText.includes("aktualisiert") && !document.body.innerText.includes("lädt")`, "Desktop");
+  // Profil Garten: ohne Kartenkachel, denn kopflos bildet Chrome die WebGL-Fläche im Bild nicht ab
+  await auswerten(`[...document.querySelectorAll("button")].find((b) => b.innerText.trim() === "Garten")?.click()`);
+  await warte(1000);
+  await bisDa(`document.body.innerText.includes("POLLENFLUG") && !document.body.innerText.includes("lädt")`, "Desktop, Profil Garten");
+  await aufnehmen(join(WURZEL, "mockups/praesentation/desktop.png"));
 
-// 2. Telefon, 390 x 844 mit dreifacher Dichte, Tagbetrieb, Ansagen aus
-await cdp("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
-await cdp("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
-await laden(`${APP}/telefon?ort=${ORT}`, 500);
-await bisDa(`!!document.querySelector(".warnband.lage") && document.querySelectorAll(".k").length > 4`, "Telefon");
-const uhr = await auswerten(`new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })`);
-const ortName = await auswerten(`document.querySelector(".kopf .name, .kopf-ort")?.textContent?.trim() ?? ""`);
-await aufnehmen(join(WURZEL, "mockups/praesentation/telefon.png"));
+  // 2. Telefon, 390 x 844 mit dreifacher Dichte, Tagbetrieb, Ansagen aus
+  await cdp("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+  await cdp("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+  await laden(`${APP}/telefon?ort=${ORT}`, 500);
+  await bisDa(`!!document.querySelector(".warnband.lage") && document.querySelectorAll(".k").length > 4`, "Telefon");
+  uhr = await auswerten(`new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })`);
+  ortName = await auswerten(`document.querySelector(".kopf .name, .kopf-ort")?.textContent?.trim() ?? ""`);
+  await aufnehmen(join(WURZEL, "mockups/praesentation/telefon.png"));
+  writeFileSync(STAND, JSON.stringify({ uhr, ortName }));
+}
 
 // 3. Präsentation 2400 x 1400, freigestellt
 await cdp("Emulation.setTouchEmulationEnabled", { enabled: false });
 await cdp("Emulation.setDeviceMetricsOverride", { width: 2400, height: 1400, deviceScaleFactor: 1, mobile: false });
 await cdp("Emulation.setDefaultBackgroundColorOverride", { color: { r: 0, g: 0, b: 0, a: 0 } });
-const p = new URLSearchParams({ uhr, titel: `${ortName || "Köln"}: ${lage[0].titel}`, text: lage[0].text });
+const p = new URLSearchParams({ ...(uhr ? { uhr } : {}), titel: `${ortName || "Köln"}: ${lage[0].titel}`, text: lage[0].text });
 await laden(`${ENTWURF}/mockups/praesentation.html?${p}`, 2500);
 await aufnehmen(join(WURZEL, ".github/bilder/geraete.png"), { x: 0, y: 0, width: 2400, height: 1400 });
 

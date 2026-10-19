@@ -121,6 +121,9 @@ bzw. `frontend/src/`.
   Regen-Nowcast aus derselben Quelle wie Telefon und Meldungen (Radar vor Modell). Ohne WebGL zeigen die
   Karten einen Hinweis, statt die Desktop-Ansicht mitzureißen. Einheiten in Telefonkacheln ausgeschrieben.
   README-Bild aus der echten App mit Demo-Orten (`tools/readme-bild.mjs`, `mockups/praesentation.html`).
+- 0.49.1: Eigenes App-Symbol (`frontend/public/symbol.svg`, kräftiger Himmel statt blasser Wolke auf Grau);
+  alle Symbole für Startbildschirm und Manifest deckend und randlos (iOS 18 nimmt die Manifest-Symbole und zeigt
+  durchsichtige nicht), erzeugt mit `tools/symbole.py` nach der Vorlage des Appkerns.
 
 ## Reihenfolge (offen)
 

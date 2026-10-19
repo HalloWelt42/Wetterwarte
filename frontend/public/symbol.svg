@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Logo der Wetterwarte: einzige Quelle des Symbolsatzes (tools/symbole.py). Erst der Grund über die ganze
+       Fläche, dann das Motiv: Sonne mit Schein, Wolke, drei Regenstriche. Farben und Wolke teilen sich einen
+       Verlauf im Bildraum, damit die Wolkenteile ohne Naht ineinander übergehen. -->
+  <defs>
+    <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3d8bff"/>
+      <stop offset="1" stop-color="#16348f"/>
+    </linearGradient>
+    <radialGradient id="schein" cx="190" cy="186" r="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe7a3" stop-opacity="0.7"/>
+      <stop offset="0.5" stop-color="#ffd166" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffd166" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sonne" x1="0" y1="112" x2="0" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffd84d"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="wolke" x1="0" y1="168" x2="0" y2="372" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d6e4fb"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#himmel)"/>
+  <circle cx="190" cy="186" r="170" fill="url(#schein)"/>
+  <circle cx="190" cy="186" r="74" fill="url(#sonne)"/>
+  <g fill="#0b1f5c" opacity="0.28" transform="translate(-14 12)">
+    <circle cx="214" cy="292" r="66"/>
+    <circle cx="300" cy="258" r="92"/>
+    <circle cx="384" cy="302" r="56"/>
+    <rect x="128" y="290" width="312" height="82" rx="41"/>
+  </g>
+  <g fill="url(#wolke)" transform="translate(-14 0)">
+    <circle cx="214" cy="292" r="66"/>
+    <circle cx="300" cy="258" r="92"/>
+    <circle cx="384" cy="302" r="56"/>
+    <rect x="128" y="290" width="312" height="82" rx="41"/>
+  </g>
+  <g stroke="#8fdcff" stroke-width="22" stroke-linecap="round" transform="translate(-14 0)">
+    <line x1="212" y1="404" x2="198" y2="440"/>
+    <line x1="284" y1="404" x2="270" y2="440"/>
+    <line x1="356" y1="404" x2="342" y2="440"/>
+  </g>
+</svg>
