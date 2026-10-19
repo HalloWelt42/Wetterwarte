@@ -5,9 +5,14 @@ FROM python:3.12-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY backend/pyproject.toml ./
+# Abhängigkeiten exakt nach uv.lock: ein freies "pip install ." zieht bei jedem Bau die
+# neueste Fassung (so kam eine sqlmodel-Fassung, die naive Zeitstempel ablehnt).
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY backend/pyproject.toml backend/uv.lock ./
+RUN uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt \
+    && pip install --no-cache-dir --prefix=/install -r requirements.txt
 COPY backend/src ./src
-RUN pip install --no-cache-dir --prefix=/install .
+RUN pip install --no-cache-dir --no-deps --prefix=/install .
 
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1
