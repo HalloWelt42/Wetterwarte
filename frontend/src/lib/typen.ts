@@ -1,4 +1,4 @@
-// Typen fuer die (vorerst platzhalterhaften) Wetterdaten des Dashboards.
+// Typen der Wetterdaten in Desktop-Form (Antworten der Bereichs-Endpunkte).
 
 export type TempKlasse =
   | "t-frost"
@@ -28,13 +28,13 @@ export interface Aktuell {
   feuchte: number;
   wind: number;
   windRichtung: string;
-  windGrad?: number;
+  windGrad: number;
   boeen?: number;
   druck: number;
   sicht: number;
   taupunkt: number;
   bewoelkung: number;
-  uv?: number;
+  uv: number;
 }
 
 export interface Stunde {

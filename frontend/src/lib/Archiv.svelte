@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { hole } from "./api";
+  import { hole } from "../kern/api";
   import LinienChart from "./LinienChart.svelte";
-  import { orteState } from "./orte.svelte";
+  import { orteState } from "../kern/orte.svelte";
   import HilfeLink from "./HilfeLink.svelte";
 
   interface VarDef {

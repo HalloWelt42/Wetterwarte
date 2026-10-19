@@ -2444,6 +2444,30 @@ textarea,
   animation: schimmer 1.3s infinite;
   border-radius: 6px;
 }
+/* Kachelhülle: Laden als Skelett, alter Stand als Marke (siehe KachelKoerper.svelte) */
+.kw-laden {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 2px;
+}
+.kw-laden .sk {
+  display: block;
+  height: 16px;
+}
+.kw-fehlt i {
+  color: var(--text-3);
+}
+.kw-alt {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--warn);
+  z-index: 2;
+}
+
 @keyframes schimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }

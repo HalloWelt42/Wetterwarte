@@ -3,7 +3,7 @@
   // gerade erreichbar sind - gruppiert nach intern / lokal / extern.
   import { onMount } from "svelte";
   import { ui } from "./ui.svelte";
-  import { hole } from "./api";
+  import { hole } from "../kern/api";
   import HilfeLink from "./HilfeLink.svelte";
   import Speicher from "./Speicher.svelte";
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   // Kalender-Kachel in mehreren Varianten (Monat, Tag). Kein Ortsbezug.
-  import { uhr } from "../../uhr.svelte";
+  import { uhr } from "../../../kern/uhr.svelte";
 
   let { conf = {} }: { conf?: Record<string, any>; ort?: string } = $props();
   const variante = $derived((conf.variante as string) ?? "monat");

@@ -4,7 +4,7 @@
 //
 // Als Funktion mit $effect: nur waehrend der Komponenten-Initialisierung aufrufen
 // (dann haengt das Abo am Lebenszyklus der Kachel und wird beim Entfernen geloest).
-import { abonniere, gibFrei } from "./datenquelle.svelte";
+import { abonniere, gibFrei, type Quelle, type Zustand } from "../kern/datenquelle.svelte";
 import type { Aktuell, Blitze, Luft, Nowcast, Pollen, Stunde, Tag, Warnung } from "./typen";
 
 interface Basis {
@@ -16,7 +16,8 @@ interface Basis {
   nowcast: Nowcast | null;
 }
 
-const BEREICHE = ["basis", "warnungen", "blitze", "luft", "pollen"] as const;
+export const BEREICHE = ["basis", "warnungen", "blitze", "luft", "pollen"] as const;
+export type BereichName = (typeof BEREICHE)[number];
 
 export interface OrtDaten {
   readonly basis: Basis | null;
@@ -25,10 +26,16 @@ export interface OrtDaten {
   readonly luft: Luft | null;
   readonly pollen: Pollen | null;
   readonly geladen: boolean;
+  /** Zustand eines Bereichs (laedt, ok, alt, fehlt); nicht abonnierte gelten als ok. */
+  zustand(bereich: BereichName): Zustand;
+  /** Zeitpunkt der Daten eines Bereichs (ISO) oder null. */
+  stand(bereich: BereichName): string | null;
 }
 
-export function nutzeOrtDaten(ort: () => string): OrtDaten {
-  let quellen = $state<Record<string, { data: unknown }>>({});
+/** Daten eines Orts für eine Kachel. `bereiche` nennt, was die Kachel braucht (aus dem Katalog);
+ *  nur diese werden abonniert. */
+export function nutzeOrtDaten(ort: () => string, bereiche: readonly BereichName[] = BEREICHE): OrtDaten {
+  let quellen = $state<Partial<Record<BereichName, Quelle>>>({});
 
   $effect(() => {
     const o = ort();
@@ -36,15 +43,11 @@ export function nutzeOrtDaten(ort: () => string): OrtDaten {
       quellen = {};
       return;
     }
-    quellen = {
-      basis: abonniere("basis", o),
-      warnungen: abonniere("warnungen", o),
-      blitze: abonniere("blitze", o),
-      luft: abonniere("luft", o),
-      pollen: abonniere("pollen", o),
-    };
+    const neu: Partial<Record<BereichName, Quelle>> = {};
+    for (const b of bereiche) neu[b] = abonniere(b, o);
+    quellen = neu;
     return () => {
-      for (const b of BEREICHE) gibFrei(b, o);
+      for (const b of bereiche) gibFrei(b, o);
     };
   });
 
@@ -66,6 +69,13 @@ export function nutzeOrtDaten(ort: () => string): OrtDaten {
     },
     get geladen() {
       return quellen.basis?.data != null;
+    },
+    zustand(bereich: BereichName): Zustand {
+      const q = quellen[bereich];
+      return q ? q.zustand : bereiche.includes(bereich) ? "laedt" : "ok";
+    },
+    stand(bereich: BereichName): string | null {
+      return quellen[bereich]?.stand ?? null;
     },
   };
 }

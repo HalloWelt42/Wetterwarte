@@ -2,7 +2,7 @@
   // Inline-Ortssuche im Kopf: tippen zeigt direkt eine Trefferliste (Geokodierung).
   // Ein Treffer, der schon in der Liste ist, wird nur aktiviert; ein neuer wird
   // hinzugefuegt. Ersetzt das alte, nur-lesbare Suchfeld, das bloss ein Modal oeffnete.
-  import { sucheOrte, fuegeOrtHinzu, orteState, type Treffer } from "./orte.svelte";
+  import { sucheOrte, fuegeOrtHinzu, orteState, type Treffer } from "../kern/orte.svelte";
   import { ladeWetter } from "./wetter.svelte";
   import { gehe } from "./route.svelte";
 

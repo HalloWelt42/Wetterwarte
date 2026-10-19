@@ -2,7 +2,7 @@
 // Overlays und Simulation. Grosse Karte UND Mini-Karte lesen daraus, damit die
 // Mini-Karte auf dem Dashboard denselben Einstellungen folgt wie die grosse Ansicht.
 // Wird in localStorage gemerkt.
-import { lies, schreib } from "./speicher";
+import { lies, schreib } from "../kern/speicher";
 
 const OVERLAYS_STANDARD: Record<string, boolean> = {
   blitze: true,

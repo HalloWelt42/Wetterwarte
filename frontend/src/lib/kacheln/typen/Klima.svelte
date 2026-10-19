@@ -2,9 +2,9 @@
   // Klima-Diagramm-Kachel: Monatsmittel Temperatur (Linie) + mittlerer
   // Monatsniederschlag (Balken) ueber den Referenzzeitraum. Daten kommen gespeichert
   // aus dem Backend (Open-Meteo-Archiv); pro Ort eigenstaendig.
-  import { hole } from "../../api";
-  import { uhr } from "../../uhr.svelte";
-  import { zeitzoneFuer } from "../../orte.svelte";
+  import { hole } from "../../../kern/api";
+  import { uhr } from "../../../kern/uhr.svelte";
+  import { zeitzoneFuer } from "../../../kern/orte.svelte";
 
   let { ort }: { conf?: Record<string, any>; ort: string } = $props();
 

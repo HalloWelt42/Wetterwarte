@@ -1,6 +1,6 @@
 // Darstellungsmodus: dichtes Dashboard (Standard) oder atmosphaerisch mit
 // Vollbild-Hintergrund je Wetterlage. Die Wahl wird gemerkt (localStorage).
-import { lies, schreib } from "./speicher";
+import { lies, schreib } from "../kern/speicher";
 
 export const stil = $state<{ atmo: boolean }>({ atmo: lies("stil.atmo", false) });
 

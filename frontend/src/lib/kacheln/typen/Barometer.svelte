@@ -1,17 +1,14 @@
 <script lang="ts">
-  import { aktuell, stunden } from "../../platzhalter";
-  import { nutzeOrtDaten } from "../../ortdaten.svelte";
+  import type { OrtDaten } from "../../ortdaten.svelte";
   import { tipp } from "../../tipp";
-  import { begriffe } from "../../begriffe";
+  import { begriffe } from "../../../kern/begriffe";
   import LinienChart from "../../LinienChart.svelte";
 
-  let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
+  // Daten kommen von der Kachelhülle (KachelKoerper), erst wenn sie geladen sind.
+  let { conf = {}, ort, daten }: { conf?: Record<string, any>; ort: string; daten: OrtDaten } = $props();
 
-  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
-  const daten = nutzeOrtDaten(() => ort);
-
-  const jetzt = $derived(daten.basis?.aktuell ?? aktuell);
-  const stundenListe = $derived(daten.basis?.stunden?.length ? daten.basis.stunden : stunden);
+  const jetzt = $derived(daten.basis!.aktuell);
+  const stundenListe = $derived(daten.basis!.stunden);
 
   // Barometer: Luftdruck-Verlauf (falls die Stundendaten Druck liefern).
   const druckPunkte = $derived(

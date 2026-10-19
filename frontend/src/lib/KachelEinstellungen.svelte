@@ -2,7 +2,7 @@
   import { ui } from "./ui.svelte";
   import { konf } from "./kachelConf.svelte";
   import { registry, type Feld } from "./kacheln/registry";
-  import { orteState } from "./orte.svelte";
+  import { orteState } from "../kern/orte.svelte";
 
   const def = $derived(registry[konf.typ]);
   const felder = $derived(def?.einstellungen ?? []);

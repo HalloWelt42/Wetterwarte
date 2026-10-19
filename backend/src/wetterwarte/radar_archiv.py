@@ -38,7 +38,7 @@ async def einstellungen() -> dict:
         stunden = int(await _lies("radar_archiv_stunden", str(_STD_STUNDEN)))
     except ValueError:
         stunden = _STD_STUNDEN
-    return {"aktiv": aktiv, "stunden": _klemme(stunden)}
+    return {"aktiv": aktiv, "stunden": _klemme(stunden), "max_stunden": MAX_STUNDEN}
 
 
 async def setze(aktiv: bool, stunden: int) -> None:

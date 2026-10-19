@@ -2,9 +2,10 @@
   // Hilfepunkt an fachlichen Stellen: oeffnet das Hilfe-Panel beim passenden Thema;
   // optional wird ein Begriff gleich gesucht und markiert (Auffinden).
   // Beispiel: <HilfeLink topic="karte" find="Blitze">Overlays</HilfeLink>
+  import type { Snippet } from "svelte";
   import { hilfe } from "./hilfeStore.svelte";
 
-  let { topic, find = "", children = null }: { topic: string; find?: string; children?: (() => unknown) | null } = $props();
+  let { topic, find = "", children }: { topic: string; find?: string; children?: Snippet } = $props();
 
   function oeffnen(e: MouseEvent): void {
     e.preventDefault();

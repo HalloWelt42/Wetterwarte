@@ -2,7 +2,7 @@
   // Offline-Kartencache: Speicher-Statistik je Thema + Fuell-Bot (Start/Stopp,
   // Fortschritt, Fehler-/Fertig-Logik). Fragt das Backend, pollt waehrend des Laufs.
   import { onMount, onDestroy } from "svelte";
-  import { hole, sende } from "./api";
+  import { hole, sende } from "../kern/api";
 
   interface Thema {
     anbieter: string;

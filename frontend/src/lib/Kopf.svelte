@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { meteocon } from "./icons";
+  import { meteocon } from "../kern/icons";
   import { thema, themaUmschalten } from "./thema.svelte";
   import { ui } from "./ui.svelte";
   import { layoutState, setzeAktiv, profilIcon } from "./layout.svelte";

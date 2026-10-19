@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { uhr } from "../../uhr.svelte";
-  import { zeitzoneFuer } from "../../orte.svelte";
+  import { uhr } from "../../../kern/uhr.svelte";
+  import { zeitzoneFuer } from "../../../kern/orte.svelte";
 
   let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
 

@@ -1,5 +1,6 @@
 // Gemeinsamer Zustand der benannten Layouts.
-import { hole, sende } from "./api";
+import { kachelId } from "../kern/kennung";
+import { hole, sende } from "../kern/api";
 import { profilDaten } from "./profile";
 
 export interface Layout {
@@ -91,7 +92,7 @@ export async function dupliziereLayout(id: string): Promise<void> {
   if (!quelle) return;
   // Kacheln mit frischen IDs kopieren, damit sich Original und Kopie nicht ueber
   // gleiche IDs koppeln (sonst wandern Groesse/Einstellungen zwischen beiden).
-  const daten = quelle.daten.map((k) => ({ ...k, id: `${k.typ}-${crypto.randomUUID()}` }));
+  const daten = quelle.daten.map((k) => ({ ...k, id: kachelId(k.typ ?? "kachel") }));
   try {
     await sende("/layouts", "POST", { name: `${quelle.name} Kopie`, daten, icon: quelle.icon ?? "" });
     await ladeLayouts();

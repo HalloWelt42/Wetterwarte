@@ -6,7 +6,7 @@
   import { onMount } from "svelte";
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
-  import { orteState } from "./orte.svelte";
+  import { orteState } from "../kern/orte.svelte";
   import { gehe } from "./route.svelte";
   import { kachelUrl } from "./karteEinst.svelte";
   import { patcheKachel } from "./kachelConf.svelte";

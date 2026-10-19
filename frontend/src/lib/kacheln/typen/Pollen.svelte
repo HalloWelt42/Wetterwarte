@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { nutzeOrtDaten } from "../../ortdaten.svelte";
+  import type { OrtDaten } from "../../ortdaten.svelte";
 
-  let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
-
-  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
-  const daten = nutzeOrtDaten(() => ort);
+  // Daten kommen von der Kachelhülle (KachelKoerper), erst wenn sie geladen sind.
+  let { conf = {}, ort, daten }: { conf?: Record<string, any>; ort: string; daten: OrtDaten } = $props();
 
   const allergien = $derived((conf.allergien as string[]) ?? []);
 

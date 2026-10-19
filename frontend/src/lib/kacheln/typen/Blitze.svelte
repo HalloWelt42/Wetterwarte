@@ -1,18 +1,16 @@
 <script lang="ts">
-  import { meteocon } from "../../icons";
-  import { nutzeOrtDaten } from "../../ortdaten.svelte";
+  import { meteocon } from "../../../kern/icons";
+  import type { OrtDaten } from "../../ortdaten.svelte";
 
-  let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
+  // Daten kommen von der Kachelhülle (KachelKoerper), erst wenn sie geladen sind.
+  let { conf = {}, ort, daten }: { conf?: Record<string, any>; ort: string; daten: OrtDaten } = $props();
 
-  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
-  const daten = nutzeOrtDaten(() => ort);
-
-  const blitze = $derived(daten.blitze);
+  const blitze = $derived(daten.blitze!);
 </script>
 
 <div class="reihe" style="gap: var(--a3)">
   <img class="mc mittel" src={meteocon("lightning-bolt")} alt="" />
-  <div><span class="blitz-zahl">{blitze?.anzahl ?? 0}</span> <span class="dimm klein-txt">letzte Stunde</span></div>
+  <div><span class="blitz-zahl">{blitze.anzahl}</span> <span class="dimm klein-txt">letzte Stunde</span></div>
 </div>
 {#if blitze?.liste?.length}
   <div class="blitz-liste">{#each blitze.liste as b}<div class="bz"><span>{b.zeit}</span><span>{b.distanz}</span></div>{/each}</div>

@@ -9,7 +9,7 @@
 //
 // Jeder Wechsel von Ansicht, Ort oder Profil ist der ruhige Moment für eine neue Fassung: die Adresse steht dann
 // schon, und das Neuladen landet genau dort (lib/fassung.svelte.ts).
-import { vielleichtNeuLaden } from "./fassung.svelte";
+import { vielleichtNeuLaden } from "../kern/fassung.svelte";
 
 export type Ansicht = "dashboard" | "karte" | "aufzeichnung" | "archiv";
 

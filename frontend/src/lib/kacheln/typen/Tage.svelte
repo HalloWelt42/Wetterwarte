@@ -1,17 +1,14 @@
 <script lang="ts">
-  import { meteocon } from "../../icons";
-  import { tage } from "../../platzhalter";
-  import { nutzeOrtDaten } from "../../ortdaten.svelte";
+  import { meteocon } from "../../../kern/icons";
+  import type { OrtDaten } from "../../ortdaten.svelte";
 
-  let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
-
-  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
-  const daten = nutzeOrtDaten(() => ort);
+  // Daten kommen von der Kachelhülle (KachelKoerper), erst wenn sie geladen sind.
+  let { conf = {}, ort, daten }: { conf?: Record<string, any>; ort: string; daten: OrtDaten } = $props();
 
   // Pro-Kachel-Einstellungen (mit sinnvollen Standardwerten, wenn nicht gesetzt).
   const tageAnzahl = $derived((conf.anzahl as number) ?? 7);
 
-  const tageListe = $derived(daten.basis?.tage?.length ? daten.basis.tage : tage);
+  const tageListe = $derived(daten.basis!.tage);
 </script>
 
 <div class="tage">

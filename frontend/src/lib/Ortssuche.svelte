@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ui } from "./ui.svelte";
-  import { sucheOrte, fuegeOrtHinzu, orteState, type Treffer } from "./orte.svelte";
+  import { sucheOrte, fuegeOrtHinzu, orteState, type Treffer } from "../kern/orte.svelte";
   import { ladeWetter } from "./wetter.svelte";
   import { gehe } from "./route.svelte";
 

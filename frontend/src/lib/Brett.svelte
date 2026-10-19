@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { kachelId } from "../kern/kennung";
   import { onMount, tick } from "svelte";
   import { GridStack } from "gridstack";
   import Kachel from "./Kachel.svelte";
   import { registry } from "./kacheln/registry";
   import { profilTypen } from "./profile";
-  import { sende } from "./api";
+  import { sende } from "../kern/api";
   import { layoutState } from "./layout.svelte";
   import { kachelAktion, brettState } from "./kachelAktion.svelte";
   import { konf, konfPatch } from "./kachelConf.svelte";
@@ -37,7 +38,7 @@
   // Leeres Layout uebernimmt die zu seinem Namen passende Profil-Anordnung.
   function profilInstanzen(name: string): Instanz[] {
     // ID global eindeutig (UUID) - so koppeln sich Profile nie ueber gleiche IDs.
-    return profilTypen(name).map((typ) => ({ id: `${typ}-${crypto.randomUUID()}`, typ, w: registry[typ].w, h: registry[typ].h, conf: {} }));
+    return profilTypen(name).map((typ) => ({ id: kachelId(typ), typ, w: registry[typ].w, h: registry[typ].h, conf: {} }));
   }
 
   function initGrid(): void {
@@ -63,10 +64,19 @@
     });
   }
 
+  // Unter der Spaltengrenze rechnet gridstack auf eine Spalte um. Diese Positionen sind nur
+  // Anzeige und dürfen das Desktop-Layout nie überschreiben.
+  function volleSpalten(): boolean {
+    return !!grid && grid.getColumn() === 12;
+  }
+
   function speichere(): void {
     const id = layoutState.aktivId;
     if (!grid || !id) return;
-    const pos = grid.save(false) as { id: string; x: number; y: number; w: number; h: number }[];
+    // Schmal: die Liste kann sich ändern (Hinzufügen, Entfernen), die Lagen bleiben die vom Desktop.
+    const pos = volleSpalten()
+      ? (grid.save(false) as { id: string; x: number; y: number; w: number; h: number }[])
+      : kacheln.map((k) => ({ id: k.id, x: k.x ?? 0, y: k.y ?? 0, w: k.w, h: k.h }));
     // Schutz: ein leeres Brett niemals ueber ein befuelltes Layout speichern
     // (schuetzt vor transienten Zustaenden, z.B. beim Neuaufbau).
     if (pos.length === 0 && kacheln.length === 0) return;
@@ -84,7 +94,7 @@
 
   // Aktuelle gridstack-Positionen in die Instanzen zurueckschreiben (vor Umbau).
   function synchronisiere(): void {
-    if (!grid) return;
+    if (!grid || !volleSpalten()) return;
     const pos = grid.save(false) as { id: string; x: number; y: number; w: number; h: number }[];
     for (const p of pos) {
       const k = kacheln.find((x) => x.id === p.id);
@@ -140,7 +150,7 @@
     const def = registry[typ];
     if (!def) return;
     void umbauen(() => {
-      kacheln = [...kacheln, { id: `${typ}-${crypto.randomUUID()}`, typ, w: def.w, h: def.h, conf: {} }];
+      kacheln = [...kacheln, { id: kachelId(typ), typ, w: def.w, h: def.h, conf: {} }];
     });
   }
 

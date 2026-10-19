@@ -2,11 +2,11 @@
   import { onMount } from "svelte";
   import { route, gehe, type Ansicht } from "./route.svelte";
   import { wetter, ladeWetter } from "./wetter.svelte";
-  import { orteState, entferneOrt, startOrt, sortiereOrte, type Ort } from "./orte.svelte";
+  import { orteState, entferneOrt, startOrt, sortiereOrte, type Ort } from "../kern/orte.svelte";
   import { ui } from "./ui.svelte";
   import { layoutState, setzeAktiv } from "./layout.svelte";
   import { hilfe } from "./hilfeStore.svelte";
-  import { hole } from "./api";
+  import { hole } from "../kern/api";
 
   const layoutIcons: Record<string, string> = {
     Zuhause: "fa-house",

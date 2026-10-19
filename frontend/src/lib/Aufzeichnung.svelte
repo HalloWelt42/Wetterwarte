@@ -2,7 +2,7 @@
   // Aufzeichnungs-Manager: steuert je Ort und Variable, was dauerhaft archiviert wird.
   // Echte Daten aus dem Backend (/aufzeichnung); jede Aenderung wird sofort gespeichert.
   import { onMount } from "svelte";
-  import { hole, sende } from "./api";
+  import { hole, sende } from "../kern/api";
   import HilfeLink from "./HilfeLink.svelte";
 
   interface Eintrag {
@@ -21,6 +21,7 @@
   interface RadarArchiv {
     aktiv: boolean;
     stunden: number;
+    max_stunden: number;
     anzahl: number;
     aeltest: string | null;
     neuest: string | null;
@@ -179,7 +180,7 @@
             class="feld"
             type="number"
             min="1"
-            max="336"
+            max={radar.max_stunden}
             value={radar.stunden}
             onchange={(e) => setzeRadar(true, +e.currentTarget.value)}
           />

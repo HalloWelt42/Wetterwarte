@@ -19,11 +19,11 @@
   import { ui } from "./lib/ui.svelte";
   import { ladeLayouts, layoutState, setzeAktiv } from "./lib/layout.svelte";
   import { ladeWetter, wetter } from "./lib/wetter.svelte";
-  import { ladeOrte, startOrt, orteState } from "./lib/orte.svelte";
+  import { ladeOrte, startOrt, orteState } from "./kern/orte.svelte";
   import { stil } from "./lib/stil.svelte";
   import { hilfe } from "./lib/hilfeStore.svelte";
-  import { lies, schreib } from "./lib/speicher";
-  import { fassung, fassungVerfolgen, neuLadenAufhalten, ruhig } from "./lib/fassung.svelte";
+  import { lies, schreib } from "./kern/speicher";
+  import { fassung, fassungVerfolgen, neuLadenAufhalten, ruhig } from "./kern/fassung.svelte";
 
   onMount(() => fassungVerfolgen());
   // Offener Dialog oder laufende Ortssuche: eine neue Fassung wartet bis danach.

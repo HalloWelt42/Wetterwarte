@@ -6,8 +6,8 @@
 //
 // Diese Fassade haelt bestehende Kacheln lauffaehig; kuenftig abonnieren einzelne Widgets
 // die Datenquellen direkt - auch fuer einen eigenen, pro Kachel gewaehlten Ort.
-import { schreib } from "./speicher";
-import { abonniere, frischeZeitkritisch, gibFrei } from "./datenquelle.svelte";
+import { schreib } from "../kern/speicher";
+import { abonniere, frischeVeraltete, gibFrei } from "../kern/datenquelle.svelte";
 import type { Aktuell, Blitze, Luft, Nowcast, Pollen, Stunde, Tag, Warnung } from "./typen";
 
 interface Basis {
@@ -95,10 +95,10 @@ function verbindeQuellen(slug: string): void {
   };
 }
 
-// Beim Zurueckkehren zum Tab die zeitkritischen Bereiche sofort auffrischen.
+// Beim Zurückkehren zum Tab alles Veraltete sofort auffrischen.
 if (typeof document !== "undefined") {
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) frischeZeitkritisch();
+    if (!document.hidden) frischeVeraltete();
   });
 }
 

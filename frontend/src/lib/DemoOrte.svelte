@@ -2,9 +2,9 @@
   // Demo-Orte: kuratierte Orte mit Extremwetter + bekannte Orte weltweit, zum
   // Ausprobieren und Vorfuehren. Ein Klick fuegt sie der Ortsliste hinzu.
   import { onMount } from "svelte";
-  import { hole } from "./api";
+  import { hole } from "../kern/api";
   import { ui } from "./ui.svelte";
-  import { orteState, fuegeOrtHinzu } from "./orte.svelte";
+  import { orteState, fuegeOrtHinzu } from "../kern/orte.svelte";
 
   interface DemoOrt {
     name: string;

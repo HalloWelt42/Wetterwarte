@@ -2,8 +2,8 @@
   // Jahresmesswerte: echte, aus dem Archiv aggregierte Monatswerte eines Ortes fuer
   // ein Jahr. Zwischen den Jahren blaetterbar; das aktuelle Jahr ist markiert, ebenso
   // der laufende Monat. Hover zeigt den Detailwert als Bubble an der Position.
-  import { hole } from "../../api";
-  import { uhr } from "../../uhr.svelte";
+  import { hole } from "../../../kern/api";
+  import { uhr } from "../../../kern/uhr.svelte";
 
   let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
 

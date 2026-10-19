@@ -1,14 +1,11 @@
 <script lang="ts">
-  import { meteocon } from "../../icons";
-  import { warnungen } from "../../platzhalter";
-  import { nutzeOrtDaten } from "../../ortdaten.svelte";
+  import { meteocon } from "../../../kern/icons";
+  import type { OrtDaten } from "../../ortdaten.svelte";
 
-  let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
+  // Daten kommen von der Kachelhülle (KachelKoerper), erst wenn sie geladen sind.
+  let { conf = {}, ort, daten }: { conf?: Record<string, any>; ort: string; daten: OrtDaten } = $props();
 
-  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
-  const daten = nutzeOrtDaten(() => ort);
-
-  const warnungenListe = $derived(daten.geladen ? (daten.warnungen ?? []) : warnungen);
+  const warnungenListe = $derived(daten.warnungen ?? []);
 </script>
 
 {#if warnungenListe.length}

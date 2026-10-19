@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { nutzeOrtDaten } from "../../ortdaten.svelte";
-  import { uhr } from "../../uhr.svelte";
-  import { zeitzoneFuer } from "../../orte.svelte";
+  import type { OrtDaten } from "../../ortdaten.svelte";
+  import { uhr } from "../../../kern/uhr.svelte";
+  import { zeitzoneFuer } from "../../../kern/orte.svelte";
 
-  let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
-
-  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
-  const daten = nutzeOrtDaten(() => ort);
+  // Daten kommen von der Kachelhülle (KachelKoerper), erst wenn sie geladen sind.
+  let { conf = {}, ort, daten }: { conf?: Record<string, any>; ort: string; daten: OrtDaten } = $props();
 
   // Auf-/Untergang liefert das Backend als Ortszeit; darum muss auch das "Jetzt"
   // die Wanduhrzeit am Ort sein - sonst wandert der Marker bei fernen Orten falsch.
@@ -18,8 +16,8 @@
     const m = t ? /^(\d{1,2}):(\d{2})/.exec(t) : null;
     return m ? +m[1] * 60 + +m[2] : 0;
   }
-  const sonneAuf = $derived(zuMinuten(daten.basis?.sonne?.aufgang));
-  const sonneUnter = $derived(zuMinuten(daten.basis?.sonne?.untergang));
+  const sonneAuf = $derived(zuMinuten(daten.basis!.sonne.aufgang));
+  const sonneUnter = $derived(zuMinuten(daten.basis!.sonne.untergang));
   const jetztMin = $derived(jetztAmOrt.getHours() * 60 + jetztAmOrt.getMinutes());
   const jetztZeit = $derived(uhr.jetzt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", ...(zone ? { timeZone: zone } : {}) }));
   const istTag = $derived(jetztMin >= sonneAuf && jetztMin <= sonneUnter);
@@ -66,6 +64,6 @@
   <div class="sm-mitte"><div class="sm-jetzt">Jetzt</div><div class="sm-zeit">{jetztZeit}</div></div>
 </div>
 <div class="sm-auf-unter">
-  <span><span class="sm-lab">Aufgang</span><b><i class="fa-solid fa-arrow-up dimm"></i> {daten.basis?.sonne?.aufgang ?? "-"}</b></span>
-  <span class="rechts"><span class="sm-lab">Untergang</span><b>{daten.basis?.sonne?.untergang ?? "-"} <i class="fa-solid fa-arrow-down dimm"></i></b></span>
+  <span><span class="sm-lab">Aufgang</span><b><i class="fa-solid fa-arrow-up dimm"></i> {daten.basis!.sonne.aufgang}</b></span>
+  <span class="rechts"><span class="sm-lab">Untergang</span><b>{daten.basis!.sonne.untergang} <i class="fa-solid fa-arrow-down dimm"></i></b></span>
 </div>

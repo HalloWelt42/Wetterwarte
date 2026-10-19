@@ -1,54 +1,42 @@
 <script lang="ts">
-  // Schlanker Dispatcher: waehlt anhand des Typs die eigenstaendige Kachel-Komponente.
-  // Jede Komponente holt ihre Daten selbst (siehe typen/*.svelte + ortdaten.svelte.ts).
-  import Aktuell from "./typen/Aktuell.svelte";
-  import Stunden from "./typen/Stunden.svelte";
-  import Warnungen from "./typen/Warnungen.svelte";
-  import Karte from "./typen/Karte.svelte";
-  import Tage from "./typen/Tage.svelte";
-  import Nowcast from "./typen/Nowcast.svelte";
-  import Wind from "./typen/Wind.svelte";
-  import Sonne from "./typen/Sonne.svelte";
-  import Mond from "./typen/Mond.svelte";
-  import Luftqualitaet from "./typen/Luftqualitaet.svelte";
-  import Uv from "./typen/Uv.svelte";
-  import Pollen from "./typen/Pollen.svelte";
-  import Barometer from "./typen/Barometer.svelte";
-  import Blitze from "./typen/Blitze.svelte";
-  import Verlauf from "./typen/Verlauf.svelte";
-  import Uhr from "./typen/Uhr.svelte";
-  import Kalender from "./typen/Kalender.svelte";
-  import Klima from "./typen/Klima.svelte";
-  import Jahresmesswerte from "./typen/Jahresmesswerte.svelte";
-
-  const KOMPONENTEN: Record<string, unknown> = {
-    aktuell: Aktuell,
-    stunden: Stunden,
-    warnungen: Warnungen,
-    karte: Karte,
-    tage: Tage,
-    nowcast: Nowcast,
-    wind: Wind,
-    sonne: Sonne,
-    mond: Mond,
-    luftqualitaet: Luftqualitaet,
-    uv: Uv,
-    pollen: Pollen,
-    barometer: Barometer,
-    blitze: Blitze,
-    verlauf: Verlauf,
-    uhr: Uhr,
-    kalender: Kalender,
-    klima: Klima,
-    jahresmesswerte: Jahresmesswerte,
-  };
+  // Kachelhülle: holt die Datenbereiche, die der Typ laut Katalog braucht, und zeichnet die
+  // Kachel erst, wenn sie da sind. Bis dahin ein Skelett, bei Ausfall ein ehrlicher Hinweis,
+  // bei altem Stand eine Altersmarke. Erfundene Ersatzwerte gibt es nie.
+  import { registry } from "./registry";
+  import { nutzeOrtDaten } from "../ortdaten.svelte";
+  import { uhr } from "../../kern/uhr.svelte";
 
   let { typ, id, conf = {}, ort }: { typ: string; id: string; conf?: Record<string, any>; ort: string } = $props();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Komponente = $derived(KOMPONENTEN[typ] as any);
+  // Typ und damit Komponente und Bereiche sind für eine Kachel fest.
+  // svelte-ignore state_referenced_locally
+  const def = registry[typ];
+  const daten = nutzeOrtDaten(() => ort, def?.bereiche ?? []);
+
+  const zustaende = $derived((def?.bereiche ?? []).map((b) => daten.zustand(b)));
+  const laedt = $derived(zustaende.includes("laedt"));
+  const fehlt = $derived(zustaende.includes("fehlt"));
+  const altSeit = $derived.by(() => {
+    const alt = (def?.bereiche ?? []).filter((b) => daten.zustand(b) === "alt").map((b) => daten.stand(b));
+    const stand = alt.filter((s): s is string => !!s).sort()[0];
+    if (!alt.length) return "";
+    if (!stand) return "alt";
+    const min = Math.max(0, Math.round((uhr.jetzt.getTime() - new Date(stand).getTime()) / 60000));
+    return min < 60 ? `vor ${min} Min` : `vor ${Math.round(min / 60)} h`;
+  });
 </script>
 
-{#if Komponente}
-  <Komponente {id} {conf} {ort} />
+{#if !def}
+  <div class="kw-leer"><i class="fa-solid fa-circle-question"></i><div>Unbekannter Kacheltyp</div></div>
+{:else if laedt}
+  <div class="kw-laden" aria-busy="true" aria-label="Lädt">
+    <span class="sk" style="width: 55%"></span>
+    <span class="sk" style="width: 80%"></span>
+    <span class="sk" style="width: 40%"></span>
+  </div>
+{:else if fehlt}
+  <div class="kw-leer kw-fehlt"><i class="fa-solid fa-plug-circle-xmark"></i><div>{def.fehltHinweis ?? "Daten gerade nicht erreichbar, neuer Versuch folgt von selbst."}</div></div>
+{:else}
+  {#if altSeit}<span class="kw-alt" title="Die Quelle antwortet gerade nicht, gezeigt wird der letzte Stand.">Stand {altSeit}</span>{/if}
+  <def.komponente {id} {conf} {ort} {daten} />
 {/if}

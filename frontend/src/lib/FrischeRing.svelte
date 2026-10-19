@@ -1,10 +1,11 @@
 <script lang="ts">
   // Ring-Prozessbalken der Datenfrische: laeuft wie eine Sanduhr ab - beim
-  // Auffrischen voll, leert sich bis zur naechsten Basis-Auffrischung (~10 min).
-  import { uhr } from "./uhr.svelte";
+  // Auffrischen voll, leert sich bis zur naechsten Basis-Auffrischung.
+  import { uhr } from "../kern/uhr.svelte";
+  import { taktVon } from "../kern/datenquelle.svelte";
   import { wetter } from "./wetter.svelte";
 
-  const INTERVALL = 600_000; // 10-min-Basis-Takt (siehe wetter.svelte.ts)
+  const INTERVALL = taktVon("basis");
   const verstrichen = $derived(wetter.aktualisiert ? uhr.jetzt.getTime() - wetter.aktualisiert : INTERVALL);
   const anteil = $derived(Math.min(1, Math.max(0, verstrichen / INTERVALL)));
 

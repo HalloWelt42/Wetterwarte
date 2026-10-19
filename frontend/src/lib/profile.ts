@@ -2,6 +2,7 @@
 // zum Zweck passenden Kachel-Auswahl, damit sich die Profile klar unterscheiden.
 // Ein leeres Layout uebernimmt automatisch das Profil zu seinem Namen; ueber die
 // Verwaltung laesst sich ein Layout jederzeit auf seinen Profil-Standard zuruecksetzen.
+import { kachelId } from "../kern/kennung";
 import { registry, standardKacheln } from "./kacheln/registry";
 
 const PROFILE: Record<string, string[]> = {
@@ -43,7 +44,7 @@ export function profilDaten(name: string): KachelDaten[] {
       zeilenhoehe = 0;
     }
     // ID global eindeutig (UUID), damit sich Profile nie ueber gleiche IDs koppeln.
-    const d: KachelDaten = { id: `${typ}-${crypto.randomUUID()}`, typ, x, y, w: def.w, h: def.h, conf: {} };
+    const d: KachelDaten = { id: kachelId(typ), typ, x, y, w: def.w, h: def.h, conf: {} };
     x += def.w;
     zeilenhoehe = Math.max(zeilenhoehe, def.h);
     return d;

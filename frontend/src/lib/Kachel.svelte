@@ -3,7 +3,7 @@
   import KachelKoerper from "./kacheln/KachelKoerper.svelte";
   import { ui } from "./ui.svelte";
   import { wetter } from "./wetter.svelte";
-  import { orteState } from "./orte.svelte";
+  import { orteState } from "../kern/orte.svelte";
   import { konf } from "./kachelConf.svelte";
   import HilfeLink from "./HilfeLink.svelte";
 
@@ -21,20 +21,7 @@
   const ort = $derived((conf.ort as string) || wetter.slug);
   const ortName = $derived(orteState.liste.find((o) => o.slug === ort)?.name ?? wetter.ort);
   const unter = $derived(def?.unter === "ORT" ? ortName : def?.unter);
-  // Passendes Hilfethema je Kacheltyp (Deeplink zum jeweils treffendsten Thema).
-  const THEMA_JE_TYP: Record<string, string> = {
-    karte: "karte",
-    nowcast: "diagramme",
-    verlauf: "diagramme",
-    barometer: "diagramme",
-    klima: "archiv",
-    jahresmesswerte: "archiv",
-    uhr: "zeit",
-    kalender: "zeit",
-    sonne: "zeit",
-    mond: "zeit",
-  };
-  const hilfeThema = $derived(THEMA_JE_TYP[typ] ?? "kacheln");
+  const hilfeThema = $derived(def?.hilfe ?? "kacheln");
 
   function oeffneEinstellungen(): void {
     konf.id = id;

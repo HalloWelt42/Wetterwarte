@@ -1,15 +1,12 @@
 <script lang="ts">
-  import { aktuell } from "../../platzhalter";
-  import { nutzeOrtDaten } from "../../ortdaten.svelte";
+  import type { OrtDaten } from "../../ortdaten.svelte";
   import { tipp } from "../../tipp";
-  import { begriffe } from "../../begriffe";
+  import { begriffe } from "../../../kern/begriffe";
 
-  let { conf = {}, ort }: { conf?: Record<string, any>; ort: string } = $props();
+  // Daten kommen von der Kachelhülle (KachelKoerper), erst wenn sie geladen sind.
+  let { conf = {}, ort, daten }: { conf?: Record<string, any>; ort: string; daten: OrtDaten } = $props();
 
-  // Jede Kachel holt ihre Daten eigenstaendig fuer ihren Ort (Standard: aktiver Ort).
-  const daten = nutzeOrtDaten(() => ort);
-
-  const jetzt = $derived(daten.basis?.aktuell ?? aktuell);
+  const jetzt = $derived(daten.basis!.aktuell);
 </script>
 
 <div class="gauge-zeile">
@@ -19,7 +16,7 @@
       <line x1="50" y1="7" x2="50" y2="15" /><line x1="93" y1="50" x2="85" y2="50" /><line x1="50" y1="93" x2="50" y2="85" /><line x1="7" y1="50" x2="15" y2="50" />
     </g>
     <text x="50" y="22" text-anchor="middle" style="fill: var(--text-3); font-size: 9px">N</text>
-    <g transform="rotate({(jetzt.windGrad ?? 315) - 315} 50 50)">
+    <g transform="rotate({jetzt.windGrad - 315} 50 50)">
       <line x1="50" y1="50" x2="32" y2="32" style="stroke: var(--akzent); stroke-width: 3; stroke-linecap: round" />
       <polygon points="32,32 43,34 34,43" style="fill: var(--akzent)" />
     </g>

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import { neuLadenAufhalten } from "./fassung.svelte";
+  import { neuLadenAufhalten } from "../kern/fassung.svelte";
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
-  import { orteState } from "./orte.svelte";
+  import { orteState } from "../kern/orte.svelte";
   import HilfeLink from "./HilfeLink.svelte";
   import { karteEinst, kachelUrl, BLITZE_LIMIT_MAX } from "./karteEinst.svelte";
 
