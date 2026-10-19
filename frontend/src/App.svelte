@@ -9,6 +9,7 @@
   import Katalog from "./lib/Katalog.svelte";
   import Hilfe from "./lib/Hilfe.svelte";
   import Layouts from "./lib/Layouts.svelte";
+  import TelefonEditor from "./lib/telefoneditor/TelefonEditor.svelte";
   import KachelEinstellungen from "./lib/KachelEinstellungen.svelte";
   import Ortssuche from "./lib/Ortssuche.svelte";
   import Dienste from "./lib/Dienste.svelte";
@@ -100,6 +101,8 @@
     <Aufzeichnung />
   {:else if route.ansicht === "archiv"}
     <Archiv />
+  {:else if route.ansicht === "telefon"}
+    <TelefonEditor />
   {:else}
     <Dashboard />
   {/if}

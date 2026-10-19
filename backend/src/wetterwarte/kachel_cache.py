@@ -10,7 +10,6 @@ schneller wird. Der Cache ist die einzige Wahrheit fuer Speicher-Statistik + Bot
 import asyncio
 import math
 import os
-import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -24,7 +23,14 @@ ANBIETER = ["dark", "light", "satellite", "voyager"]
 # Deutschland-Bbox (lon/lat).
 DE = (5.8, 47.2, 15.1, 55.1)
 
-_erlaubt = re.compile(r"^[a-z0-9-]{1,32}$")
+# Höchster Zoom, den der Kachel-Dienst liefert; darüber gibt es nichts zu holen.
+MAX_ZOOM = 18
+
+
+def gueltig(anbieter: str, z: int, x: int, y: int) -> bool:
+    """Nur bekannte Anbieter und Kachelnummern, die es bei diesem Zoom gibt: sonst ließe sich die
+    Platte über beliebige Pfade füllen."""
+    return anbieter in ANBIETER and 0 <= z <= MAX_ZOOM and 0 <= x < 2**z and 0 <= y < 2**z
 
 
 def _cache_dir() -> Path:
@@ -50,7 +56,7 @@ def medientyp(daten: bytes) -> str:
 
 async def hole(anbieter: str, z: int, x: int, y: int) -> bytes | None:
     """Kachel aus dem Cache lesen; bei Fehltreffer vom Kachel-Dienst holen + ablegen."""
-    if not _erlaubt.match(anbieter):
+    if not gueltig(anbieter, z, x, y):
         return None
     pfad = _pfad(anbieter, z, x, y)
     if pfad.exists():

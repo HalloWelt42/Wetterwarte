@@ -37,8 +37,9 @@ async def liste(session: AsyncSession = Depends(get_session)) -> dict:
 
 @router.post("")
 async def anlegen(eingabe: LayoutEingabe, session: AsyncSession = Depends(get_session)) -> dict:
-    t = _gepruefte(eingabe.telefon) if eingabe.telefon is not None else telefon_katalog.vorlage().model_dump()
-    layout = Layout(name=eingabe.name or "Neues Layout", daten=eingabe.daten or [], icon=eingabe.icon or "", telefon=t)
+    name = eingabe.name or "Neues Layout"
+    t = _gepruefte(eingabe.telefon) if eingabe.telefon is not None else telefon_katalog.vorlage(name).model_dump()
+    layout = Layout(name=name, daten=eingabe.daten or [], icon=eingabe.icon or "", telefon=t)
     session.add(layout)
     await session.commit()
     await session.refresh(layout)
@@ -80,7 +81,7 @@ async def telefon_vorlage(layout_id: str, session: AsyncSession = Depends(get_se
     layout = await session.get(Layout, layout_id)
     if layout is None:
         raise HTTPException(status_code=404, detail="Layout nicht gefunden")
-    layout.telefon = telefon_katalog.vorlage().model_dump()
+    layout.telefon = telefon_katalog.vorlage(layout.name).model_dump()
     session.add(layout)
     await session.commit()
     await session.refresh(layout)

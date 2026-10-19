@@ -16,6 +16,18 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <title>Wetterwarte</title>
+    <script>
+      // Telefone bekommen die eigene Telefonansicht (docs/TELEFON.md). Die Wahl in der Ansicht
+      // ("Zur Desktop-Ansicht" bzw. "Telefonansicht") merkt sich das Gerät; Ort und Profil bleiben.
+      (function () {
+        try {
+          var wahl = JSON.parse(localStorage.getItem("wetterwarte.ansicht") || "null");
+          // Telefon = Touch und kurze Bildschirmseite unter 600 Punkten (unabhängig von der Drehung; Tablets nicht).
+          var telefon = wahl ? wahl === "telefon" : matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;
+          if (telefon) location.replace("/telefon" + location.search);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

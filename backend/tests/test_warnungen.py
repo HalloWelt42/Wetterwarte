@@ -12,3 +12,10 @@ def test_zeitraum_in_ortszeit_aus_utc():
 def test_zeitraum_ueber_mitternacht():
     text = warnungen.zeitraum("2030-10-19T20:00:00+02:00", "2030-10-20T06:00:00+02:00", "Europe/Berlin")
     assert text == "ab 19.10. 20:00 bis 20.10. 06:00"
+
+
+def test_schreibweise_aus_grossbuchstaben():
+    assert warnungen.schreibweise("STARKES GEWITTER") == "Starkes Gewitter"
+    assert warnungen.schreibweise("GEWITTER MIT STARKREGEN UND HAGEL") == "Gewitter mit Starkregen und Hagel"
+    assert warnungen.schreibweise("Frost") == "Frost"
+    assert warnungen.schreibweise("GLÄTTE") == "Glätte"

@@ -58,3 +58,13 @@ def test_regen_beginn_und_ende():
     # laufende Viertelstunde ist 17:15 (Index 1): trocken, ab 17:30 nass (0,4 mm/h), ab 18:30 trocken
     assert r.beginn_min == 15 and r.ende_min == 75
     assert r.werte[0] == 0 and r.max_mm_h == 2.0
+
+
+def test_uv_hoechstwert_mit_uhrzeit_fuer_heute():
+    roh = json.loads((DATEN / "openmeteo_koeln.json").read_text())
+    k = kompakt.baue(_ort(), _ok(roh), _ok([]), _fehlt(), _fehlt(), _fehlt())
+    heute = k.tage[0]
+    # Der Abruf deckt den ganzen heutigen Tag ab; im Oktober in Köln gibt es mittags UV über 0.
+    assert heute.uv_max_zeit is not None
+    assert 9 <= heute.uv_max_zeit.hour <= 16
+    assert k.jetzt_index <= kompakt.ZURUECK_H  # die Telefonantwort bleibt bei 6 Stunden zurück

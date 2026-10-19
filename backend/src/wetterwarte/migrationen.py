@@ -64,11 +64,13 @@ async def aggregate_in_ortszeit() -> None:
 
 
 async def telefon_vorlagen() -> None:
-    """Jedes Profil ohne Telefon-Layout bekommt die Vorlage (Schema 0003). Läuft bei jedem Start,
-    trifft aber nur Profile, denen das Layout fehlt."""
+    """Jedes Profil ohne gültiges Telefon-Layout bekommt die Vorlage (Schema 0003). Läuft bei jedem
+    Start, trifft aber nur Profile, denen das Layout fehlt oder die noch die erste Form ohne Seiten
+    haben (die gab es nur als Vorlage, eingerichtet war darin nichts)."""
     from . import telefon
 
     async with SessionLocal() as session:
-        for layout in (await session.execute(select(Layout).where(Layout.telefon.is_(None)))).scalars().all():
-            layout.telefon = telefon.vorlage().model_dump()
+        for layout in (await session.execute(select(Layout))).scalars().all():
+            if not isinstance(layout.telefon, dict) or "seiten" not in layout.telefon:
+                layout.telefon = telefon.vorlage(layout.name).model_dump()
         await session.commit()

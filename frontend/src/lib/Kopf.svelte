@@ -5,6 +5,7 @@
   import { layoutState, setzeAktiv, profilIcon } from "./layout.svelte";
   import { hilfe } from "./hilfeStore.svelte";
   import KopfSuche from "./KopfSuche.svelte";
+  import { tipp } from "./tipp";
 
 </script>
 
@@ -14,9 +15,9 @@
   <KopfSuche />
   <div class="layout-tabs">
     {#each layoutState.liste as l}
-      <button class:aktiv={layoutState.aktivId === l.id} onclick={() => setzeAktiv(l.id)}>
+      <button class:aktiv={layoutState.aktivId === l.id} onclick={() => setzeAktiv(l.id)} aria-label={l.name} use:tipp={l.name}>
         <i class="fa-solid {profilIcon(l)}"></i>
-        {l.name}
+        <span class="tab-name">{l.name}</span>
       </button>
     {/each}
     <button class="still" title="Neues Layout" onclick={() => (ui.layouts = true)}><i class="fa-solid fa-plus"></i></button>

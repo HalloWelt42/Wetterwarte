@@ -1,5 +1,7 @@
 <script lang="ts">
   import { ui } from "./ui.svelte";
+  import { gehe } from "./route.svelte";
+  import { editor } from "./telefoneditor/editor.svelte";
   import {
     layoutState,
     setzeAktiv,
@@ -57,6 +59,13 @@
   function zu() {
     ui.layouts = false;
   }
+  // Telefon-Layout dieses Profils im Editor öffnen.
+  function telefonEinrichten(id: string): void {
+    editor.profilId = id;
+    editor.gewaehlt = null;
+    ui.layouts = false;
+    gehe("telefon");
+  }
 </script>
 
 <div class="modal-hg" role="presentation" onclick={zu}>
@@ -79,8 +88,8 @@
               <button
                 class="icon-knopf"
                 style="width: 30px; height: 30px; flex-shrink: 0"
-                title="Profil-Icon waehlen"
-                aria-label="Profil-Icon waehlen"
+                title="Profil-Icon wählen"
+                aria-label="Profil-Icon wählen"
                 onclick={() => (iconWahlId = iconWahlId === l.id ? null : l.id)}
               ><i class="fa-solid {profilIcon(l)}"></i></button>
               {#if bearbeiteId === l.id}
@@ -103,6 +112,7 @@
               {/if}
             </div>
             <div class="klein-txt dimm">{anzahl(l)} Kacheln</div>
+            <button class="knopf klein" onclick={() => telefonEinrichten(l.id)}><i class="fa-solid fa-mobile-screen"></i> Telefon einrichten</button>
             <div class="reihe" style="gap: 2px; margin-top: var(--a2)">
               <button class="icon-knopf" title="Umbenennen" style="width: 30px; height: 30px" onclick={() => starteBearbeiten(l)} aria-label="Umbenennen"><i class="fa-solid fa-pen"></i></button>
               <button class="icon-knopf" title="Duplizieren" style="width: 30px; height: 30px" onclick={() => dupliziereLayout(l.id)} aria-label="Duplizieren"><i class="fa-solid fa-copy"></i></button>

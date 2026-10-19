@@ -1,11 +1,28 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import fassungDatei from "../version.json";
+import telefonKatalog from "../gemeinsam/telefon-katalog.json";
+import wettercodes from "../gemeinsam/wettercodes.json";
 
 // Fassung der Oberfläche aus der einzigen Quelle (version.json); weicht die des Servers ab, lädt die Oberfläche neu
 // (src/lib/fassung.svelte.ts). Als Import zählt version.json zu den Abhängigkeiten der Konfiguration: ändert sie
 // sich, startet der Entwicklungsserver von selbst neu, und eingebaute und Server-Fassung bleiben gleich.
 const FASSUNG = fassungDatei.version;
+
+// Zwei Einstiege: index.html (Desktop) und telefon.html (Telefon, eigenes Bündel). Im Betrieb liefert
+// nginx /telefon aus telefon.html; in der Entwicklung übernimmt das dieses kleine Plugin.
+function telefonAdresse(): Plugin {
+  return {
+    name: "telefon-adresse",
+    configureServer(server) {
+      server.middlewares.use((anfrage, _antwort, weiter) => {
+        const req = anfrage as unknown as { url?: string };
+        if (req.url === "/telefon" || req.url?.startsWith("/telefon?")) req.url = req.url.replace("/telefon", "/telefon.html");
+        weiter();
+      });
+    },
+  };
+}
 
 // Ports stammen aus der projekt-eindeutigen .env im Projektwurzelverzeichnis.
 export default defineConfig(({ mode }) => {
@@ -13,8 +30,21 @@ export default defineConfig(({ mode }) => {
   const frontendPort = Number(env.FRONTEND_PORT) || 6151;
   const backendPort = Number(env.BACKEND_PORT) || 6150;
   return {
-    plugins: [svelte()],
-    define: { __FASSUNG__: JSON.stringify(FASSUNG) },
+    plugins: [svelte(), telefonAdresse()],
+    define: {
+      __FASSUNG__: JSON.stringify(FASSUNG),
+      // Mit dem Backend geteilte Dateien (gemeinsam/): einzige Wahrheit, beim Bau eingebaut.
+      __TELEFON_KATALOG__: JSON.stringify(telefonKatalog),
+      __WETTERCODES__: JSON.stringify(wettercodes),
+    },
+    build: {
+      rollupOptions: {
+        input: {
+          desktop: new URL("./index.html", import.meta.url).pathname,
+          telefon: new URL("./telefon.html", import.meta.url).pathname,
+        },
+      },
+    },
     server: {
       port: frontendPort,
       strictPort: true,

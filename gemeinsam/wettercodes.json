@@ -1,0 +1,17 @@
+{
+  "hinweis": "WMO-Wettercodes zu Wettersymbol (Meteocons) und Text. Einzige Wahrheit für Backend und Oberfläche.",
+  "gruppen": [
+    { "codes": [0], "tag": "clear-day", "nacht": "clear-night", "text": "Klar" },
+    { "codes": [1], "tag": "partly-cloudy-day", "nacht": "partly-cloudy-night", "text": "Überwiegend klar" },
+    { "codes": [2], "tag": "partly-cloudy-day", "nacht": "partly-cloudy-night", "text": "Wolkig" },
+    { "codes": [3], "tag": "overcast-day", "nacht": "overcast", "text": "Bedeckt" },
+    { "codes": [45, 48], "tag": "fog-day", "nacht": "fog-night", "text": "Nebel" },
+    { "codes": [51, 53, 55, 56, 57], "tag": "drizzle", "nacht": "drizzle", "text": "Nieselregen" },
+    { "codes": [61, 63, 65, 66, 67], "tag": "rain", "nacht": "rain", "text": "Regen" },
+    { "codes": [80, 81, 82], "tag": "rain", "nacht": "rain", "text": "Schauer" },
+    { "codes": [71, 73, 75, 77, 85, 86], "tag": "snow", "nacht": "snow", "text": "Schnee" },
+    { "codes": [95], "tag": "thunderstorms-day-rain", "nacht": "thunderstorms-night", "text": "Gewitter" },
+    { "codes": [96, 99], "tag": "thunderstorms-day-rain", "nacht": "thunderstorms-night", "text": "Gewitter mit Hagel" }
+  ],
+  "sonst": { "tag": "cloudy", "nacht": "cloudy", "text": "Wechselnd bewölkt" }
+}

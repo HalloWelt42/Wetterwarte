@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DRUCK_STABIL_HPA } from "../../../kern/grenzen";
   import type { OrtDaten } from "../../ortdaten.svelte";
   import { tipp } from "../../tipp";
   import { begriffe } from "../../../kern/begriffe";
@@ -18,15 +19,15 @@
     const p = druckPunkte;
     if (p.length < 4) return null;
     const d = Math.round((p[3].wert - p[0].wert) * 10) / 10;
-    return { delta: d, richtung: d > 0.3 ? "steigend" : d < -0.3 ? "fallend" : "gleichbleibend" };
+    return { delta: d, richtung: d > DRUCK_STABIL_HPA ? "steigend" : d < -DRUCK_STABIL_HPA ? "fallend" : "gleichbleibend" };
   });
 </script>
 
 <div class="baro-wert">
   <span class="zahl">{jetzt.druck}</span><span class="dimm" use:tipp={begriffe.hpa}>hPa</span>
   {#if druckTrend}
-    <span class="tendenz" style="color: {druckTrend.delta > 0.3 ? 'var(--gut)' : druckTrend.delta < -0.3 ? 'var(--gefahr)' : 'var(--text-3)'}">
-      <i class="fa-solid {druckTrend.delta > 0.3 ? 'fa-arrow-trend-up' : druckTrend.delta < -0.3 ? 'fa-arrow-trend-down' : 'fa-arrow-right-long'}"></i>
+    <span class="tendenz" style="color: {druckTrend.delta > DRUCK_STABIL_HPA ? 'var(--gut)' : druckTrend.delta < -DRUCK_STABIL_HPA ? 'var(--gefahr)' : 'var(--text-3)'}">
+      <i class="fa-solid {druckTrend.delta > DRUCK_STABIL_HPA ? 'fa-arrow-trend-up' : druckTrend.delta < -DRUCK_STABIL_HPA ? 'fa-arrow-trend-down' : 'fa-arrow-right-long'}"></i>
       {druckTrend.delta > 0 ? "+" : ""}{druckTrend.delta} / 3 h
     </span>
   {/if}

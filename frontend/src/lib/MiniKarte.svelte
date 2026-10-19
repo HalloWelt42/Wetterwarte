@@ -301,7 +301,7 @@
     <button class:an={blitzeAn} title="Blitze" aria-label="Blitze" onclick={() => umschalten("blitze", !blitzeAn)}><i class="fa-solid fa-bolt"></i></button>
     <button class:an={radarAn} title="Regen-Radar" aria-label="Regen-Radar" onclick={() => umschalten("radar", !radarAn)}><i class="fa-solid fa-cloud-showers-heavy"></i></button>
   </div>
-  <button class="icon-knopf mini-auf" aria-label="Grosse Karte oeffnen" onclick={() => gehe("karte")}>
+  <button class="icon-knopf mini-auf" aria-label="Große Karte öffnen" onclick={() => gehe("karte")}>
     <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
   </button>
   {#if blitzAnzahl > 0 && blitzeAn}

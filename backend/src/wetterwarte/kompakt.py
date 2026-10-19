@@ -106,7 +106,17 @@ def _stunden(h: dict, tz: str, idx: int) -> tuple[list[Stunde], int]:
     return stunden, idx - von
 
 
-def _tage(d: dict, tz: str) -> list[Tag]:
+def _uv_spitzen(h: dict) -> dict[str, str]:
+    """Je Datum (Ortszeit) die Stunde mit dem höchsten UV-Wert, soweit Stundenwerte vorliegen."""
+    spitzen: dict[str, tuple[float, str]] = {}
+    for t, uv in zip(h.get("time") or [], h.get("uv_index") or [], strict=False):
+        if isinstance(uv, int | float) and (t[:10] not in spitzen or uv > spitzen[t[:10]][0]):
+            spitzen[t[:10]] = (float(uv), t)
+    return {datum: t for datum, (uv, t) in spitzen.items() if uv > 0}
+
+
+def _tage(d: dict, tz: str, h: dict) -> list[Tag]:
+    spitzen = _uv_spitzen(h)
     tage = []
     for i, datum in enumerate(d["time"]):
 
@@ -126,6 +136,7 @@ def _tage(d: dict, tz: str) -> list[Tag]:
                 wind_max=_zahl(feld("wind_speed_10m_max")),
                 boeen_max=_zahl(feld("wind_gusts_10m_max")),
                 uv_max=_zahl(feld("uv_index_max")),
+                uv_max_zeit=lokal(spitzen[datum], tz) if datum in spitzen else None,
                 sonnenaufgang=lokal(auf, tz) if isinstance(auf, str) else None,
                 sonnenuntergang=lokal(unter, tz) if isinstance(unter, str) else None,
                 tageslaenge_s=_zahl(feld("daylight_duration")),
@@ -216,7 +227,7 @@ def baue(
         i = jetzt_index(h["time"], roh["current"]["time"])
         jetzt_wert = _jetzt(roh, tz, h, i)
         stunden, idx = _stunden(h, tz, i)
-        tage = _tage(roh["daily"], tz)
+        tage = _tage(roh["daily"], tz, h)
         regen = _regen(roh)
     return Kompakt(
         ort=KOrt(slug=o.slug, name=o.name, region=o.region, lat=o.lat, lon=o.lon, zeitzone=tz),
@@ -230,6 +241,7 @@ def baue(
         jetzt_index=idx,
         tage=tage,
         regen=regen,
+        # None bei Status ok: der Ort liegt außerhalb des Warngebiets; bei Status fehlt: Quelle ausgefallen
         warnungen=[Warnung(**w) for w in warnungen.wert] if warnungen.wert is not None else None,
         blitze=_blitze(blitze.wert) if blitze.wert else None,
         luft=_luft(luft.wert) if luft.wert else None,

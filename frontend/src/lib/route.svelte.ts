@@ -11,9 +11,9 @@
 // schon, und das Neuladen landet genau dort (lib/fassung.svelte.ts).
 import { vielleichtNeuLaden } from "../kern/fassung.svelte";
 
-export type Ansicht = "dashboard" | "karte" | "aufzeichnung" | "archiv";
+export type Ansicht = "dashboard" | "karte" | "aufzeichnung" | "archiv" | "telefon";
 
-const ANSICHTEN: Ansicht[] = ["dashboard", "karte", "aufzeichnung", "archiv"];
+const ANSICHTEN: Ansicht[] = ["dashboard", "karte", "aufzeichnung", "archiv", "telefon"];
 
 function ansichtAusUrl(): Ansicht {
   if (typeof location === "undefined") return "dashboard";

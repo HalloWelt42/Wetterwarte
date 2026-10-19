@@ -10,6 +10,7 @@ from datetime import UTC, date, datetime
 import httpx
 
 from ..config import settings
+from ..gemeinsam import wetterbild
 from ..zeit import jetzt
 
 _WOCHENTAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -37,31 +38,8 @@ def _temp_klasse(t: float) -> str:
 
 
 def _zustand(code: int, tag: bool) -> tuple[str, str]:
-    """WMO-Wettercode zu (Meteocon-Name, deutscher Text)."""
-    z = "day" if tag else "night"
-    if code == 0:
-        return (f"clear-{z}", "Klar")
-    if code == 1:
-        return (f"partly-cloudy-{z}", "Überwiegend klar")
-    if code == 2:
-        return (f"partly-cloudy-{z}", "Wolkig")
-    if code == 3:
-        return ("overcast-day" if tag else "overcast", "Bedeckt")
-    if code in (45, 48):
-        return (f"fog-{z}", "Nebel")
-    if code in (51, 53, 55, 56, 57):
-        return ("drizzle", "Nieselregen")
-    if code in (61, 63, 65, 66, 67):
-        return ("rain", "Regen")
-    if code in (80, 81, 82):
-        return ("rain", "Schauer")
-    if code in (71, 73, 75, 77, 85, 86):
-        return ("snow", "Schnee")
-    if code == 95:
-        return ("thunderstorms-day-rain" if tag else "thunderstorms-night", "Gewitter")
-    if code in (96, 99):
-        return ("thunderstorms-day-rain" if tag else "thunderstorms-night", "Gewitter mit Hagel")
-    return ("cloudy", "Wechselnd bewölkt")
+    """WMO-Wettercode zu (Meteocon-Name, deutscher Text), aus gemeinsam/wettercodes.json."""
+    return wetterbild(code, tag)
 
 
 def jetzt_index(zeiten: list[str], aktuell: str) -> int:
@@ -121,7 +99,7 @@ _TAGE = (
 
 
 async def hole(lat: float, lon: float) -> dict:
-    """Rohantwort von Open-Meteo (JSON) für einen Ort: aktuell, Stunden (6 h zurück bis 72 h voraus),
+    """Rohantwort von Open-Meteo (JSON) für einen Ort: aktuell, Stunden (24 h zurück bis 72 h voraus),
     7 Tage, 15-Minuten-Niederschlag für die nächsten 4 Stunden."""
     params = {
         "latitude": lat,
@@ -138,8 +116,8 @@ async def hole(lat: float, lon: float) -> dict:
         # auto = Zeiten in der LOKALEN Zeitzone des Ortes, sonst stimmen Sonnenzeiten fuer ferne Orte nicht.
         "timezone": "auto",
         "forecast_days": 7,
-        "past_hours": 6,
-        "forecast_hours": 72,  # Stunden: 6 zurück, 72 voraus (ohne Angabe wären es 16 Tage)
+        "past_hours": 24,  # der ganze heutige Tag (z. B. für die Uhrzeit des UV-Höchstwerts)
+        "forecast_hours": 72,  # Stunden: 24 zurück, 72 voraus (ohne Angabe wären es 16 Tage)
         "wind_speed_unit": "kmh",
     }
     async with httpx.AsyncClient(timeout=15) as client:

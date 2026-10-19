@@ -1,7 +1,9 @@
 // Gemeinsamer Zustand der benannten Layouts.
 import { kachelId } from "../kern/kennung";
+import { profilSymbol } from "../kern/profilsymbol";
 import { hole, sende } from "../kern/api";
 import { profilDaten } from "./profile";
+import type { TelefonLayout } from "../kern/gemeinsam";
 
 export interface Layout {
   id: string;
@@ -9,6 +11,7 @@ export interface Layout {
   ist_standard: boolean;
   icon?: string; // frei gewaehltes Profil-Icon (fa-Klasse); leer = Standard nach Name
   daten: { id: string; typ?: string; x: number; y: number; w: number; h: number }[];
+  telefon?: TelefonLayout | null; // Telefon-Layout (Kacheln je Seite), eingerichtet im Telefon-Editor
 }
 
 export const layoutState = $state<{ liste: Layout[]; aktivId: string | null; stand: number }>({
@@ -54,16 +57,9 @@ export const PROFIL_ICONS: string[] = [
   "fa-briefcase", "fa-heart", "fa-star", "fa-location-dot", "fa-map-location-dot", "fa-table-cells-large",
 ];
 
-// Name-basierte Standard-Icons (Fallback, wenn kein eigenes Icon gewaehlt wurde).
-const ICON_NACH_NAME: Record<string, string> = {
-  Zuhause: "fa-house",
-  Garten: "fa-seedling",
-  Reise: "fa-suitcase-rolling",
-  Unwetter: "fa-triangle-exclamation",
-};
 
 export function profilIcon(l: Layout): string {
-  return l.icon || ICON_NACH_NAME[l.name] || "fa-table-cells-large";
+  return profilSymbol(l);
 }
 
 export async function setzeIcon(id: string, icon: string): Promise<void> {

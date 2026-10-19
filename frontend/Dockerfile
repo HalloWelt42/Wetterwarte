@@ -9,7 +9,7 @@ RUN npm ci
 COPY frontend/ ./
 # vite.config.ts liest ../version.json und baut die Fassung ein
 COPY version.json /app/version.json
-COPY telefon-katalog.json /app/telefon-katalog.json
+COPY gemeinsam /app/gemeinsam
 RUN npm run build
 
 FROM nginx:alpine

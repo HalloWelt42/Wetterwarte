@@ -4,16 +4,10 @@
   import { wetter, ladeWetter } from "./wetter.svelte";
   import { orteState, entferneOrt, startOrt, sortiereOrte, type Ort } from "../kern/orte.svelte";
   import { ui } from "./ui.svelte";
-  import { layoutState, setzeAktiv } from "./layout.svelte";
+  import { layoutState, setzeAktiv, profilIcon } from "./layout.svelte";
   import { hilfe } from "./hilfeStore.svelte";
   import { hole } from "../kern/api";
 
-  const layoutIcons: Record<string, string> = {
-    Zuhause: "fa-house",
-    Garten: "fa-seedling",
-    Reise: "fa-suitcase-rolling",
-    Unwetter: "fa-triangle-exclamation",
-  };
 
   // Mobile Schublade schliessen (auf dem Desktop ohne Wirkung).
   function schliesse(): void {
@@ -115,12 +109,13 @@
   <button class="nav-eintrag" class:aktiv={route.ansicht === "karte"} onclick={() => zeige("karte")}><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></button>
   <button class="nav-eintrag" class:aktiv={route.ansicht === "aufzeichnung"} onclick={() => zeige("aufzeichnung")}><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></button>
   <button class="nav-eintrag" class:aktiv={route.ansicht === "archiv"} onclick={() => zeige("archiv")}><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv und Analyse</span></button>
+  <button class="nav-eintrag" class:aktiv={route.ansicht === "telefon"} onclick={() => zeige("telefon")}><i class="fa-solid fa-mobile-screen"></i> <span class="haupt">Telefon-Layout</span></button>
 
   <!-- Layouts und Sekundaer-Aktionen: auf dem Desktop in der Kopfleiste, auf Mobil nur hier erreichbar. -->
   <div class="nav-titel nur-mobil" style="margin-top: var(--a3)">Layouts</div>
   {#each layoutState.liste as l (l.id)}
     <button class="nav-eintrag nur-mobil" class:aktiv={route.ansicht === "dashboard" && layoutState.aktivId === l.id} onclick={() => waehleLayout(l.id)}>
-      <i class="fa-solid {l.icon || layoutIcons[l.name] || 'fa-table-cells-large'}"></i> <span class="haupt">{l.name}</span>
+      <i class="fa-solid {profilIcon(l)}"></i> <span class="haupt">{l.name}</span>
     </button>
   {/each}
 

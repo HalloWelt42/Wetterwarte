@@ -72,6 +72,7 @@ class Tag(BaseModel):
     wind_max: float
     boeen_max: float
     uv_max: float
+    uv_max_zeit: datetime | None  # Stunde des Höchstwerts, soweit die Stundenwerte den Tag abdecken
     sonnenaufgang: datetime | None
     sonnenuntergang: datetime | None
     tageslaenge_s: float
@@ -147,7 +148,7 @@ class Kompakt(BaseModel):
     jetzt_index: int  # Index der laufenden Stunde in stunden
     tage: list[Tag]
     regen: Regen | None
-    warnungen: list[Warnung] | None
+    warnungen: list[Warnung] | None  # None: außerhalb des Warngebiets (Status ok) oder Ausfall (Status fehlt)
     blitze: Blitze | None
     luft: Luft | None
     pollen: Pollen | None

@@ -21,8 +21,8 @@ WORKDIR /app
 # /api/v1/health meldet diese Fassung; die Oberfläche vergleicht ihre eingebaute damit
 COPY version.json ./version.json
 ENV WETTERWARTE_VERSION_DATEI=/app/version.json
-# Telefon-Kachelkatalog: einzige Wahrheit über Typen, Größen und Einstellungen (Prüfung der Layouts)
-COPY telefon-katalog.json ./telefon-katalog.json
-ENV WETTERWARTE_KATALOG_DATEI=/app/telefon-katalog.json
+# Mit der Oberfläche geteilte Dateien: Telefon-Kachelkatalog (Prüfung der Layouts), Wettercodes
+COPY gemeinsam ./gemeinsam
+ENV WETTERWARTE_GEMEINSAM=/app/gemeinsam
 EXPOSE 8000
 CMD ["uvicorn", "wetterwarte.main:app", "--host", "0.0.0.0", "--port", "8000"]

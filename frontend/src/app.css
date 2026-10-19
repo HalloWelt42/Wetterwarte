@@ -274,6 +274,23 @@ textarea,
   display: flex;
   align-items: center;
   gap: var(--a2);
+  flex: none;
+}
+/* Der Kopf darf nie breiter als das Fenster werden: die Suche schrumpft, und in schmaleren
+   Fenstern zeigen die Profilreiter nur ihr Symbol (der Name steht in der Hover-Erklärung). */
+.kopf > * {
+  min-width: 0;
+}
+.layout-tabs {
+  flex: none;
+}
+.kopf-suche-wrap {
+  flex: 1 1 140px;
+}
+@media (max-width: 1280px) {
+  .layout-tabs .tab-name {
+    display: none;
+  }
 }
 .nutzer-chip {
   display: flex;

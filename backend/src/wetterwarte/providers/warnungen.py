@@ -12,12 +12,29 @@ from ..zeit import jetzt, zone
 
 _STUFE = {"minor": 1, "moderate": 2, "severe": 3, "extreme": 4}
 
+# Kleine Wörter bleiben in der normalen Schreibweise klein (außer am Anfang).
+_KLEIN = {"mit", "und", "oder", "von", "bis", "im", "in", "an", "am", "auf", "über", "unter", "der", "die", "das", "den", "dem", "des", "vor", "zu", "zum", "zur", "bei", "ab"}
 
-async def hole(lat: float, lon: float, zeitzone: str) -> list[dict]:
-    """Gültige Warnungen am Ort, höchste Stufe zuerst. Zeiten als ISO 8601 mit Versatz."""
+
+def schreibweise(text: str) -> str:
+    """Der Wetterdienst liefert Ereignisse in Großbuchstaben ("STARKES GEWITTER"). Daraus wird
+    "Starkes Gewitter": jedes Wort groß, kleine Wörter klein. Gemischte Schreibweise bleibt."""
+    if not text.isupper():
+        return text
+    woerter = text.lower().split()
+    return " ".join(w if i and w in _KLEIN else w[:1].upper() + w[1:] for i, w in enumerate(woerter))
+
+
+async def hole(lat: float, lon: float, zeitzone: str) -> list[dict] | None:
+    """Gültige Warnungen am Ort, höchste Stufe zuerst. Zeiten als ISO 8601 mit Versatz.
+
+    None heißt: Der Ort liegt außerhalb des Warngebiets (der Wetterdienst warnt nur für
+    Deutschland). Das ist kein Ausfall, sondern "für diesen Ort gibt es keine amtlichen Warnungen"."""
     params = {"lat": lat, "lon": lon, "tz": zone(zeitzone).key}
     async with httpx.AsyncClient(timeout=15) as client:
         antwort = await client.get(f"{settings.bright_sky_base}/alerts", params=params)
+        if antwort.status_code == 404 and "not covered" in antwort.text:
+            return None
         antwort.raise_for_status()
         alarme = antwort.json().get("alerts") or []
 
@@ -25,7 +42,7 @@ async def hole(lat: float, lon: float, zeitzone: str) -> list[dict]:
     for a in alarme:
         ergebnis.append({
             "stufe": _STUFE.get(a.get("severity", "minor"), 1),
-            "ereignis": a.get("event_de") or a.get("headline_de") or "Wetterwarnung",
+            "ereignis": schreibweise(a.get("event_de") or a.get("headline_de") or "Wetterwarnung"),
             "ueberschrift": a.get("headline_de") or "",
             "beschreibung": a.get("description_de") or "",
             "von": a.get("onset"),

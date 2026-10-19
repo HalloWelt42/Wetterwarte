@@ -127,7 +127,7 @@
       {/each}
 
       {#if felder.length === 0}
-        <p class="dimm klein-txt" style="padding: var(--a2) 0">Diese Kachel hat ausser dem Titel keine weiteren Optionen.</p>
+        <p class="dimm klein-txt" style="padding: var(--a2) 0">Diese Kachel hat außer dem Titel keine weiteren Optionen.</p>
       {/if}
     </div>
     <div class="modal-fuss">

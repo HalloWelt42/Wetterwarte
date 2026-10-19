@@ -1,0 +1,17 @@
+/* Seitenrahmen des Telefon-Einstiegs (nur telefon.html; der Desktop-Editor bindet ihn nicht ein). */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  overscroll-behavior: none;
+}
+#telefon {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+#telefon > .tel {
+  position: absolute;
+  inset: 0;
+}

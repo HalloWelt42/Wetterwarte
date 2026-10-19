@@ -103,11 +103,22 @@ bzw. `frontend/src/`.
 - 0.46.4: Alten Service Worker der Vorgänger-App abgeräumt, Schale und Dateien ohne Prüfsumme nie
   zwischengespeichert, fehlende Dateien liefern 404 statt der Startseite, uv-Abbild fest.
 - API-Doku: Ersetzungsfehler "Kölnone" statt "Zeitzone" repariert.
+- 0.47.0: Alembic mit Grundstand; alle Zeitspalten mit Zeitzone, alte Werte je Herkunft umgerechnet,
+  Vorhersagezeilen aus dem Nachtrag gelöscht, Messwerte eindeutig mit Verbundindex, Monate und
+  Archivmittel in Ortszeit, Warnzeiten in Ortszeit. Status je Datenbereich (ok, alt, fehlt), Ausfall
+  der Warnquelle nie als leere Liste, Logging statt verschluckter Fehler, Aufzeichnung ungerundet und
+  je Schritt abgesichert, Radar-Rendern außerhalb des Event-Loops, Radar-Archiv höchstens zwei Wochen,
+  Kompat-Schicht über den gemeinsamen Zwischenspeicher, Antworten komprimiert, Telefon-Endpunkt.
+- 0.47.1: Keine Platzhalterdaten mehr in Desktop-Kacheln (Kachelhülle zeigt Laden, Ausfall, Alter),
+  Katalog einzige Wahrheit für Komponente, Daten und Hilfethema, schmale Fenster überschreiben keine
+  Desktop-Layouts mehr, Kachel-IDs ohne `crypto.randomUUID`, Nowcast-Achse richtig, gemeinsamer Kern.
+- Telefonansicht und Telefon-Editor nach [TELEFON.md](TELEFON.md); Kachelzwischenspeicher prüft
+  Anbieter und Kachelnummern; Umlaute in drei UI-Texten; `HilfeLink` als Snippet getypt.
 
-## Reihenfolge
+## Reihenfolge (offen)
 
-1. Sofort-Punkte (Platzhalter, Warnstatus, Warnzeiten, Schutz der Layouts, Schreibrouten).
-2. Zeitstempel-Umbau mit Alembic-Grundstand und Datenbereinigung, Radar-Rendern auslagern, Logging.
-3. Telefonansicht nach [TELEFON.md](TELEFON.md), darin enthalten `kern/`, Endpunkt `kompakt`,
-   Schriftskala.
-4. Mittel-Punkte, danach Gestaltung am Desktop (Schrift, Erklärungen).
+1. Schreibrouten absichern und Backend-Port nur für die Kompat-Schicht öffnen; unsichtbarer
+   Entfernen-Knopf der Desktop-Kacheln am Touchgerät.
+2. Mittel-Punkte: Verbundindex ist da, Vollscans in `/aufzeichnung` und `/archiv/variablen` bleiben;
+   Ort löschen kaskadieren; Abrufe in Effekten mit Abbruch; Blitz-WebSocket neu verbinden; MiniKarte.
+3. Gestaltung am Desktop: Schriftskala 17/15/13 wie am Telefon, Erklärungen ohne Überfahren.
