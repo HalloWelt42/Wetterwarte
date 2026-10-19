@@ -45,7 +45,8 @@ case "${1:-}" in
   prod-down|prod-stop)
     ensure_prod_env; $PROD down ;;
   prod-restart)
-    ensure_prod_env; $PROD up -d --build ;;
+    # Caddy (vorne) liest das eingebundene deploy/Caddyfile nur beim Start, darum nach dem Bauen neu starten
+    ensure_prod_env; $PROD up -d --build && $PROD restart vorne ;;
   prod-status)
     ensure_prod_env; $PROD ps ;;
   prod-logs)
