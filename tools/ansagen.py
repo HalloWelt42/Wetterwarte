@@ -7,14 +7,21 @@ Aufruf aus dem Backend-Ordner (dort liegt der Katalog-Code):
     cd backend && uv run python ../tools/ansagen.py pruefen    # nur prüfen, ob jeder Satz einen Klang hat
 
 Schritte einzeln: abgleich (Projekt, Rolle und Schlüssel im Medienpool), vertonen (nur Sätze ohne Klang; mit
---alle jeden neu), export (Satz auffüllen und als MP3 schreiben). Die Sätze gehören dem Katalog: ein geänderter
+--alle jeden neu), export (Satz auffüllen und als MP3 schreiben), gegenhoeren (jeden Klang per Spracherkennung mit
+seinem Text vergleichen; einzelne Wörter verspricht die Synthese manchmal, etwa "Glätte" als "Skelette"). Einen
+schwachen Satz neu sprechen lassen und die neue Fassung im Medienpool dem Satz zuweisen: Auffüllen belegt nur leere
+Plätze, eine vorhandene Zuweisung bleibt. Die Sätze gehören dem Katalog: ein geänderter
 Text kommt mit dem nächsten Abgleich in den Medienpool und braucht dann `vertonen --alle` für diesen Satz.
-Umgebung: WETTERWARTE_MEDIENPOOL (Vorgabe http://127.0.0.1:8470)."""
+Umgebung: WETTERWARTE_MEDIENPOOL (Vorgabe http://127.0.0.1:8470), WETTERWARTE_HOEREN (Spracherkennung, Vorgabe
+http://127.0.0.1:8783/v1/audio/transcriptions)."""
 
+import difflib
 import json
 import os
+import re
 import sys
 import time
+import uuid
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -23,6 +30,8 @@ from wetterwarte import ansagen
 
 WURZEL = Path(__file__).resolve().parents[1]
 MEDIENPOOL = os.environ.get("WETTERWARTE_MEDIENPOOL", "http://127.0.0.1:8470").rstrip("/")
+HOEREN = os.environ.get("WETTERWARTE_HOEREN", "http://127.0.0.1:8783/v1/audio/transcriptions")
+GEGENHOEREN_AB = 0.95  # Ähnlichkeit von Text und Erkanntem, darunter gilt ein Satz als verdächtig
 PROJEKT = "wetterwarte"
 SATZ = "klaenge"
 ZIEL = WURZEL / "frontend" / "src" / "telefon" / "ansagen"  # der Medienpool schreibt nach <ZIEL>/<SATZ>/
@@ -107,6 +116,32 @@ def pruefen() -> bool:
     return not fehlen
 
 
+def _normal(text: str) -> str:
+    return " ".join(re.sub(r"[^a-zäöü0-9 ]", " ", text.lower().replace("ß", "ss")).split())
+
+
+def _hoeren(datei: Path) -> str:
+    grenze = uuid.uuid4().hex
+    koerper = (f"--{grenze}\r\nContent-Disposition: form-data; name=\"language\"\r\n\r\nde\r\n--{grenze}\r\n"
+               f"Content-Disposition: form-data; name=\"file\"; filename=\"{datei.name}\"\r\nContent-Type: audio/mpeg\r\n\r\n").encode()
+    koerper += datei.read_bytes() + f"\r\n--{grenze}--\r\n".encode()
+    anfrage = urllib.request.Request(HOEREN, data=koerper, headers={"Content-Type": f"multipart/form-data; boundary={grenze}"})
+    with urllib.request.urlopen(anfrage, timeout=180) as antwort:
+        return json.loads(antwort.read()).get("text", "")
+
+
+def gegenhoeren() -> None:
+    """Jeden Klang erkennen lassen und mit Sprech- und Anzeigeform vergleichen (Zahlen erkennt sie als Ziffern)."""
+    schwach = []
+    for s in ansagen.alle().values():
+        gehoert = _hoeren(KLAENGE / f"{s.schluessel}.mp3")
+        guete = max(difflib.SequenceMatcher(None, _normal(gehoert), _normal(t)).ratio() for t in (s.sprechtext, s.text))
+        if guete < GEGENHOEREN_AB:
+            schwach.append((guete, s.schluessel, s.text, gehoert))
+            print(f"  schwach {guete:.2f} {s.schluessel}: soll '{s.text}', gehört '{gehoert}'", flush=True)
+    print(f"Gegenhören: {len(ansagen.alle())} Sätze, {len(schwach)} unter {GEGENHOEREN_AB:.0%} Übereinstimmung")
+
+
 def main() -> None:
     befehl = sys.argv[1] if len(sys.argv) > 1 else "pruefen"
     if befehl in ("abgleich", "alles"):
@@ -115,7 +150,9 @@ def main() -> None:
         vertonen(alle="--alle" in sys.argv)
     if befehl in ("export", "alles"):
         export()
-    if befehl not in ("abgleich", "vertonen", "export", "alles", "pruefen"):
+    if befehl == "gegenhoeren":
+        gegenhoeren()
+    if befehl not in ("abgleich", "vertonen", "export", "alles", "pruefen", "gegenhoeren"):
         raise SystemExit(__doc__)
     sys.exit(0 if pruefen() else 1)
 
