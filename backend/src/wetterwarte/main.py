@@ -7,11 +7,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 
-from . import recorder
+from . import melder, recorder
 from .config import settings
 from .db import dispose_engine, init_db
 from .migrationen import aggregate_in_ortszeit, migriere_tile_ids, telefon_vorlagen
-from .routers import archiv, aufzeichnung, dienste, health, kachel, kompat, layouts, orte, radar, weather
+from .routers import archiv, aufzeichnung, dienste, geraete, health, kachel, kompat, layouts, orte, radar, weather
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -23,13 +23,15 @@ async def lifespan(app: FastAPI):
     await migriere_tile_ids()  # einmalig: kollidierende Kachel-IDs -> eindeutige UUIDs
     await aggregate_in_ortszeit()  # einmalig nach der Umstellung auf Zeitzonen
     await telefon_vorlagen()  # Profile ohne Telefon-Layout bekommen die Vorlage
-    aufgabe = asyncio.create_task(recorder.schleife())
+    aufgaben = [asyncio.create_task(recorder.schleife()), asyncio.create_task(melder.schleife())]
     yield
-    aufgabe.cancel()
-    try:
-        await aufgabe
-    except asyncio.CancelledError:
-        pass
+    for aufgabe in aufgaben:
+        aufgabe.cancel()
+    for aufgabe in aufgaben:
+        try:
+            await aufgabe
+        except asyncio.CancelledError:
+            pass
     await dispose_engine()
 
 
@@ -54,5 +56,6 @@ app.include_router(dienste.router, prefix="/api/v1")
 app.include_router(aufzeichnung.router, prefix="/api/v1")
 app.include_router(radar.router, prefix="/api/v1")
 app.include_router(kachel.router, prefix="/api/v1")
+app.include_router(geraete.router, prefix="/api/v1")
 # Kompatibilitaets-Schicht der alten weathercache-API (fuer bestehende Konsumenten).
 app.include_router(kompat.router, prefix="/api/v1")

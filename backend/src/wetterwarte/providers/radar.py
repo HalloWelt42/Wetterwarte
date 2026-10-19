@@ -14,6 +14,7 @@ die offline mit wradlib/pyproj erzeugt wurden.
 import asyncio
 import bz2
 import io
+import math
 import re
 import tarfile
 from datetime import datetime, timedelta, timezone
@@ -42,6 +43,25 @@ _IDX_1200 = _lade_index("radar_index_de1200.npz")
 # Beide Indexkarten teilen dieselbe Ausgabe-Bbox -> eine Bild-Overlay-Koordinate.
 COORDS = _IDX_900["coords"]
 
+def punkt_index(lat: float, lon: float) -> int:
+    """Flacher Index im DE1200-Gitter (RV) für einen Ort, -1 außerhalb des Radargebiets. Die Indexkarte bildet
+    das Mercator-Ausgabebild (Ecken COORDS, linear in Web-Mercator) auf das RADOLAN-Gitter ab."""
+    (west, nord), _, (ost, sued), _ = _IDX_1200["coords"]
+    q = _IDX_1200["quelle"]
+    hoehe, breite = q.shape
+
+    def merc(breitengrad: float) -> float:
+        return math.log(math.tan(math.pi / 4 + math.radians(breitengrad) / 2))
+
+    if not (west <= lon < ost and sued < lat <= nord):
+        return -1
+    spalte = int((lon - west) / (ost - west) * breite)
+    zeile = int((merc(nord) - merc(lat)) / (merc(nord) - merc(sued)) * hoehe)
+    if not (0 <= zeile < hoehe and 0 <= spalte < breite):
+        return -1
+    return int(q[zeile, spalte])
+
+
 # Anzahl gemessener Vergangenheits-Frames (RY, 5-min-Schritte).
 RY_ANZAHL = 10
 
@@ -58,14 +78,44 @@ _STOPS = [
 ]
 
 
+def _kopf(rohbytes: bytes) -> tuple[int, float, float]:
+    """Ende des Kopfs, Genauigkeit (PR) und Faktor auf mm/h aus dem Kopf einer RADOLAN-Datei.
+
+    RY und RV liefern die Niederschlagshöhe eines Intervalls (INT, Minuten) in Schritten der Genauigkeit
+    (PR E-02 = 0,01 mm); eine Rate in mm/h ist also Höhe mal 60 durch Intervall."""
+    etx = rohbytes.find(b"\x03")
+    kopf = rohbytes[:etx].decode("latin-1", "replace")
+    pr = re.search(r"PR\s*E-(\d\d)", kopf)
+    intervall = re.search(r"INT\s*(\d+)", kopf)
+    genauigkeit = 10.0 ** -int(pr.group(1)) if pr else 0.01
+    minuten = int(intervall.group(1)) if intervall and int(intervall.group(1)) > 0 else 60
+    return etx, genauigkeit, 60.0 / minuten
+
+
 def _decode(rohbytes: bytes, ny: int, nx: int) -> np.ndarray:
     """RADOLAN-Binaer -> Regenrate mm/h (NaN = keine Messung/kein Regenwert)."""
-    etx = rohbytes.find(b"\x03")
+    etx, genauigkeit, je_stunde = _kopf(rohbytes)
     p = np.frombuffer(rohbytes[etx + 1 : etx + 1 + ny * nx * 2], dtype="<u2").reshape(ny, nx)
-    wert = (p & 0x0FFF).astype("f4") * 0.01
+    wert = (p & 0x0FFF).astype("f4") * (genauigkeit * je_stunde)
     wert[(p & 0x2000) != 0] = np.nan  # No-Data-/Clutter-Kennung
-    wert[wert > 200] = np.nan
+    wert[wert > 2400] = np.nan  # über 200 mm in 5 Minuten ist kein Niederschlag
     return wert
+
+
+def werte_an(rohbytes: bytes, indizes: np.ndarray) -> np.ndarray:
+    """Regenrate (mm/h) an einzelnen Gitterpunkten (flache Indizes, -1 = außerhalb), ohne das ganze Gitter
+    zu dekodieren; NaN ohne Messung. Für den Nowcast je Ort."""
+    etx, genauigkeit, je_stunde = _kopf(rohbytes)
+    roh = np.frombuffer(rohbytes, dtype="u1", offset=etx + 1)
+    ergebnis = np.full(indizes.shape, np.nan, dtype="f4")
+    gueltig = (indizes >= 0) & (indizes * 2 + 1 < roh.size)
+    i = indizes[gueltig]
+    p = roh[i * 2].astype(np.uint16) | (roh[i * 2 + 1].astype(np.uint16) << 8)
+    wert = (p & 0x0FFF).astype("f4") * (genauigkeit * je_stunde)
+    wert[(p & 0x2000) != 0] = np.nan
+    wert[wert > 2400] = np.nan
+    ergebnis[gueltig] = wert
+    return ergebnis
 
 
 def _render(wert: np.ndarray, idx: dict) -> bytes:

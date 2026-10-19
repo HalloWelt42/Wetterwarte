@@ -4,9 +4,9 @@
 sie um. `lade` holt die Bereiche über den Wetterdienst und ruft `baue` auf."""
 
 import asyncio
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
-from . import wetterdienst
+from . import lage, wetterdienst
 from .bereiche import Ergebnis
 from .models.ort import Ort
 from .providers.openmeteo import jetzt_index, viertel_index
@@ -32,6 +32,8 @@ ZURUECK_H = 6
 VORAUS_H = 48
 REGEN_SCHRITTE = 8  # 2 Stunden in Viertelstunden
 REGEN_SCHWELLE = 0.2  # mm/h, darunter gilt es als trocken
+RADAR_SCHRITT_MIN = 5
+RADAR_MINDESTENS = 12  # mindestens eine Stunde Radar, sonst zeigt die Kachel das Modell
 
 _SCHADSTOFFE = (
     ("pm2_5", "Feinstaub PM2,5", "µg/m³"),
@@ -145,23 +147,41 @@ def _tage(d: dict, tz: str, h: dict) -> list[Tag]:
     return tage
 
 
-def _regen(roh: dict) -> Regen | None:
-    mm = roh.get("minutely_15") or {}
-    if not mm.get("time"):
-        return None
-    i = viertel_index(mm["time"], roh["current"]["time"])
-    werte = [_zahl(w) * 4 for w in mm["precipitation"][i : i + REGEN_SCHRITTE]]  # mm je 15 min -> mm/h
+def _regen_aus(werte: list[float], schritt_min: int, quelle: str) -> Regen:
     nass = [w >= REGEN_SCHWELLE for w in werte]
     beginn = nass.index(True) if True in nass else None
     ende = None
     if beginn is not None and False in nass[beginn:]:
         ende = beginn + nass[beginn:].index(False)
     return Regen(
+        schritt_min=schritt_min,
         werte=[round(w, 2) for w in werte],
-        beginn_min=beginn * 15 if beginn is not None else None,
-        ende_min=ende * 15 if ende is not None else None,
+        beginn_min=beginn * schritt_min if beginn is not None else None,
+        ende_min=ende * schritt_min if ende is not None else None,
         max_mm_h=round(max(werte, default=0.0), 2),
+        quelle=quelle,  # type: ignore[arg-type]
     )
+
+
+def _regen_modell(roh: dict) -> Regen | None:
+    mm = roh.get("minutely_15") or {}
+    if not mm.get("time"):
+        return None
+    i = viertel_index(mm["time"], roh["current"]["time"])
+    werte = [_zahl(w) * 4 for w in mm["precipitation"][i : i + REGEN_SCHRITTE]]  # mm je 15 min -> mm/h
+    return _regen_aus(werte, 15, "modell")
+
+
+def _regen_radar(nowcast: dict) -> Regen | None:
+    """Radar-Nowcast ab dem laufenden 5-Minuten-Schritt; zu kurz oder lückenhaft: None (dann das Modell)."""
+    basis, werte = datetime.fromisoformat(nowcast["basis"]), []
+    for versatz, rate in zip(nowcast["versatz_min"], nowcast["werte"], strict=False):
+        if basis + timedelta(minutes=versatz + RADAR_SCHRITT_MIN) <= jetzt():
+            continue
+        if rate is None:
+            break
+        werte.append(float(rate))
+    return _regen_aus(werte, RADAR_SCHRITT_MIN, "radar") if len(werte) >= RADAR_MINDESTENS else None
 
 
 def _blitze(roh: dict) -> Blitze:
@@ -218,6 +238,7 @@ def baue(
     blitze: Ergebnis[dict],
     luft: Ergebnis[dict],
     pollen: Ergebnis[dict],
+    nowcast: Ergebnis[dict],
 ) -> Kompakt:
     tz = zone(o.zeitzone).key
     roh = basis.wert
@@ -228,13 +249,15 @@ def baue(
         jetzt_wert = _jetzt(roh, tz, h, i)
         stunden, idx = _stunden(h, tz, i)
         tage = _tage(roh["daily"], tz, h)
-        regen = _regen(roh)
+    regen = (_regen_radar(nowcast.wert) if nowcast.wert else None) or (_regen_modell(roh) if roh else None)
     return Kompakt(
         ort=KOrt(slug=o.slug, name=o.name, region=o.region, lat=o.lat, lon=o.lon, zeitzone=tz),
         zeit=jetzt(),
         bereiche={
             name: Bereich(status=e.status, stand=e.stand)
-            for name, e in (("basis", basis), ("warnungen", warnungen), ("blitze", blitze), ("luft", luft), ("pollen", pollen))
+            for name, e in (
+                ("basis", basis), ("warnungen", warnungen), ("blitze", blitze), ("luft", luft), ("pollen", pollen), ("nowcast", nowcast)
+            )
         },
         jetzt=jetzt_wert,
         stunden=stunden,
@@ -246,11 +269,17 @@ def baue(
         blitze=_blitze(blitze.wert) if blitze.wert else None,
         luft=_luft(luft.wert) if luft.wert else None,
         pollen=_pollen(pollen.wert) if pollen.wert else None,
+        lage=lage.ermittle(roh, nowcast.wert, warnungen.wert, blitze.wert, tz, jetzt()),
     )
 
 
 async def lade(o: Ort) -> Kompakt:
-    basis, warnungen, blitze, luft, pollen = await asyncio.gather(
-        wetterdienst.basis(o), wetterdienst.warnungen(o), wetterdienst.blitze(o), wetterdienst.luft(o), wetterdienst.pollen(o)
+    basis, warnungen, blitze, luft, pollen, nowcast = await asyncio.gather(
+        wetterdienst.basis(o),
+        wetterdienst.warnungen(o),
+        wetterdienst.blitze(o),
+        wetterdienst.luft(o),
+        wetterdienst.pollen(o),
+        wetterdienst.nowcast(o),
     )
-    return baue(o, basis, warnungen, blitze, luft, pollen)
+    return baue(o, basis, warnungen, blitze, luft, pollen, nowcast)

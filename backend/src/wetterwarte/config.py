@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     # Verzeichnis fuer den Offline-Kachel-Cache (themengetrennt je Anbieter). Dev: fest
     # im Backend-Ordner; Prod: Bind-Mount auf die externe SSD (/cache -> /mnt/data/...).
     kachel_cache_dir: str = str(_BACKEND / ".kachelcache")
+    # Kontakt im VAPID-Anspruch (sub) für Web Push: mailto: oder https:, die Push-Dienste verlangen eine Angabe.
+    push_kontakt: str = "https://github.com/HalloWelt42/Wetterwarte"
+    # Aktive Warnungen: der Melder prüft im Hintergrund in diesem Takt (Sekunden); 0 schaltet ihn ab.
+    melder_takt_s: int = 300
 
 
 settings = Settings()

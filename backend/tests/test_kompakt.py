@@ -26,7 +26,7 @@ def _fehlt():
 
 def test_baue_aus_echter_antwort():
     roh = json.loads((DATEN / "openmeteo_koeln.json").read_text())
-    k = kompakt.baue(_ort(), _ok(roh), _ok([]), _fehlt(), _fehlt(), _fehlt())
+    k = kompakt.baue(_ort(), _ok(roh), _ok([]), _fehlt(), _fehlt(), _fehlt(), _fehlt())
     assert k.jetzt is not None
     assert k.jetzt.zeit.utcoffset() is not None  # Zeiten mit Versatz
     assert str(k.jetzt.zeit.tzinfo) == "Europe/Berlin"
@@ -43,7 +43,7 @@ def test_baue_aus_echter_antwort():
 
 
 def test_warnquelle_fehlt_ist_nicht_keine_warnung():
-    k = kompakt.baue(_ort(), _fehlt(), _fehlt(), _fehlt(), _fehlt(), _fehlt())
+    k = kompakt.baue(_ort(), _fehlt(), _fehlt(), _fehlt(), _fehlt(), _fehlt(), _fehlt())
     assert k.warnungen is None
     assert k.bereiche["warnungen"].status == "fehlt"
     assert k.jetzt is None and k.stunden == []
@@ -54,7 +54,7 @@ def test_regen_beginn_und_ende():
         "time": [f"2026-10-19T{h:02d}:{m:02d}" for h in (17, 18, 19) for m in (0, 15, 30, 45)],
         "precipitation": [0, 0, 0.1, 0.4, 0.5, 0.2, 0, 0, 0, 0, 0, 0],
     }}
-    r = kompakt._regen(roh)
+    r = kompakt._regen_modell(roh)
     # laufende Viertelstunde ist 17:15 (Index 1): trocken, ab 17:30 nass (0,4 mm/h), ab 18:30 trocken
     assert r.beginn_min == 15 and r.ende_min == 75
     assert r.werte[0] == 0 and r.max_mm_h == 2.0
@@ -62,9 +62,27 @@ def test_regen_beginn_und_ende():
 
 def test_uv_hoechstwert_mit_uhrzeit_fuer_heute():
     roh = json.loads((DATEN / "openmeteo_koeln.json").read_text())
-    k = kompakt.baue(_ort(), _ok(roh), _ok([]), _fehlt(), _fehlt(), _fehlt())
+    k = kompakt.baue(_ort(), _ok(roh), _ok([]), _fehlt(), _fehlt(), _fehlt(), _fehlt())
     heute = k.tage[0]
     # Der Abruf deckt den ganzen heutigen Tag ab; im Oktober in Köln gibt es mittags UV über 0.
     assert heute.uv_max_zeit is not None
     assert 9 <= heute.uv_max_zeit.hour <= 16
     assert k.jetzt_index <= kompakt.ZURUECK_H  # die Telefonantwort bleibt bei 6 Stunden zurück
+
+
+def test_regen_aus_dem_radar_geht_vor(monkeypatch):
+    roh = json.loads((DATEN / "openmeteo_koeln.json").read_text())
+    monkeypatch.setattr(kompakt, "jetzt", lambda: JETZT)
+    # Analyse 17:50 UTC, Schritte alle 5 Minuten; die Schritte bis 18:00 sind vorbei, ab 18:20 regnet es
+    werte = [0.0] * 6 + [1.2] * 6 + [0.0] * 13
+    nowcast = _ok({"basis": "2026-10-19T17:50:00+00:00", "versatz_min": list(range(0, 125, 5)), "werte": werte})
+    k = kompakt.baue(_ort(), _ok(roh), _ok([]), _fehlt(), _fehlt(), _fehlt(), nowcast)
+    assert k.regen is not None and k.regen.quelle == "radar" and k.regen.schritt_min == 5
+    assert k.regen.beginn_min == 20 and k.regen.ende_min == 50
+    assert k.bereiche["nowcast"].status == "ok"
+
+
+def test_ohne_radar_zeigt_die_kachel_das_modell():
+    roh = json.loads((DATEN / "openmeteo_koeln.json").read_text())
+    k = kompakt.baue(_ort(), _ok(roh), _ok([]), _fehlt(), _fehlt(), _fehlt(), _ok(None))
+    assert k.regen is not None and k.regen.quelle == "modell"

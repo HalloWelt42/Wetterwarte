@@ -1,0 +1,193 @@
+{
+  "_hinweis": "Eine Wahrheit für aktive Warnungen (docs/WARNUNGEN.md): Arten, Klassen mit Schwellen und Rang, Vorlaufstufen, Einstellmöglichkeiten der Geräte und alle Sätze der Ansagen. Das Backend erkennt damit die Lage und setzt Meldungen aus Satzschlüsseln zusammen, die Oberfläche zeigt die Einstellungen und spielt die Klänge, tools/ansagen.py vertont jeden Satz einmal. Texte mit Ziffern sind die Anzeige; vertont wird dieselbe Form mit ausgeschriebenen Zahlen.",
+  "arten": [
+    {
+      "schluessel": "warnung",
+      "name": "Amtliche Warnungen",
+      "symbol": "fa-triangle-exclamation",
+      "beschreibung": "Warnungen des Deutschen Wetterdienstes, sobald sie erscheinen"
+    },
+    {
+      "schluessel": "niederschlag",
+      "name": "Regen und Schnee",
+      "symbol": "fa-cloud-rain",
+      "beschreibung": "Vorher gestaffelt bis 15 Minuten vor Beginn, aus Radar und Vorhersage",
+      "vorlaufstufen": [360, 180, 120, 60, 30, 15],
+      "horizont_min": 360
+    },
+    {
+      "schluessel": "gewitter",
+      "name": "Gewitter",
+      "symbol": "fa-cloud-bolt",
+      "beschreibung": "Vorhergesagte Gewitter und Blitze in der Nähe",
+      "vorlaufstufen": [180, 60, 15],
+      "horizont_min": 360
+    },
+    {
+      "schluessel": "wind",
+      "name": "Sturm",
+      "symbol": "fa-wind",
+      "beschreibung": "Böen ab der eingestellten Stärke",
+      "vorlaufstufen": [360, 120, 30],
+      "horizont_min": 720
+    }
+  ],
+  "klassen": {
+    "niederschlag": [
+      { "schluessel": "regen_leicht", "name": "Leichter Regen", "rang": 0, "ab": 0.2, "satz": "Es wird in deiner Region {zeit} leicht regnen.", "entwarnung": "entwarnung_regen" },
+      { "schluessel": "regen", "name": "Regen", "rang": 1, "ab": 2.5, "satz": "Es wird in deiner Region {zeit} regnen.", "entwarnung": "entwarnung_regen" },
+      { "schluessel": "regen_stark", "name": "Starker Regen", "rang": 2, "ab": 10, "satz": "Es wird in deiner Region {zeit} stark regnen.", "entwarnung": "entwarnung_regen" },
+      { "schluessel": "regen_sehr_stark", "name": "Sehr starker Regen", "rang": 3, "ab": 25, "satz": "Es wird in deiner Region {zeit} sehr stark regnen.", "entwarnung": "entwarnung_regen" },
+      { "schluessel": "schnee_leicht", "name": "Leichter Schneefall", "rang": 0, "ab": 0.2, "schnee": true, "satz": "Es wird in deiner Region {zeit} leicht schneien.", "entwarnung": "entwarnung_schnee" },
+      { "schluessel": "schnee", "name": "Schneefall", "rang": 1, "ab": 0.5, "schnee": true, "satz": "Es wird in deiner Region {zeit} schneien.", "entwarnung": "entwarnung_schnee" },
+      { "schluessel": "schnee_stark", "name": "Starker Schneefall", "rang": 2, "ab": 2.0, "schnee": true, "satz": "Es wird in deiner Region {zeit} stark schneien.", "entwarnung": "entwarnung_schnee" },
+      { "schluessel": "glatteis", "name": "Gefrierender Regen", "rang": 3, "ab": 0.2, "glatteis": true, "stufe": 3, "satz": "Es wird in deiner Region {zeit} gefrierenden Regen geben. Vorsicht, Glatteis.", "entwarnung": "entwarnung_glatteis" }
+    ],
+    "gewitter": [
+      { "schluessel": "gewitter", "name": "Gewitter", "rang": 0, "codes": [95], "stufe": 2, "satz": "Es wird in deiner Region {zeit} gewittern.", "entwarnung": "entwarnung_gewitter" },
+      { "schluessel": "gewitter_hagel", "name": "Gewitter mit Hagel", "rang": 1, "codes": [96, 99], "stufe": 3, "satz": "Es wird in deiner Region {zeit} ein Gewitter mit Hagel geben.", "entwarnung": "entwarnung_gewitter" }
+    ],
+    "wind": [
+      { "schluessel": "boeen_stuermisch", "name": "Stürmische Böen", "rang": 0, "ab": 65, "stufe": 2, "satz": "Es wird in deiner Region {zeit} stürmische Böen geben.", "entwarnung": "entwarnung_wind" },
+      { "schluessel": "sturmboeen", "name": "Sturmböen", "rang": 1, "ab": 75, "stufe": 2, "satz": "Es wird in deiner Region {zeit} Sturmböen geben.", "entwarnung": "entwarnung_wind" },
+      { "schluessel": "schwere_sturmboeen", "name": "Schwere Sturmböen", "rang": 2, "ab": 89, "stufe": 3, "satz": "Es wird in deiner Region {zeit} schwere Sturmböen geben.", "entwarnung": "entwarnung_wind" },
+      { "schluessel": "orkanartige_boeen", "name": "Orkanartige Böen", "rang": 3, "ab": 103, "stufe": 3, "satz": "Es wird in deiner Region {zeit} orkanartige Böen geben.", "entwarnung": "entwarnung_wind" },
+      { "schluessel": "orkanboeen", "name": "Orkanböen", "rang": 4, "ab": 118, "stufe": 4, "satz": "Es wird in deiner Region {zeit} Orkanböen geben.", "entwarnung": "entwarnung_wind" }
+    ]
+  },
+  "niederschlag_stufen": [
+    { "ab": 0, "stufe": 1 },
+    { "ab": 15, "stufe": 2 },
+    { "ab": 25, "stufe": 3 },
+    { "ab": 40, "stufe": 4 }
+  ],
+  "blitze": {
+    "_hinweis": "Blitze der letzten 15 Minuten bis 30 km; Rang steigt, je näher der nächste Einschlag ist.",
+    "fenster_min": 15,
+    "entfernungen": [
+      { "bis_km": 30, "rang": 0, "stufe": 1 },
+      { "bis_km": 20, "rang": 1, "stufe": 2 },
+      { "bis_km": 10, "rang": 2, "stufe": 2 },
+      { "bis_km": 5, "rang": 3, "stufe": 3 }
+    ]
+  },
+  "optionen": {
+    "vorlauf_min": [
+      { "wert": 60, "name": "1" },
+      { "wert": 120, "name": "2" },
+      { "wert": 180, "name": "3" },
+      { "wert": 360, "name": "6" }
+    ],
+    "niederschlag_ab": [
+      { "wert": 0, "name": "Alles" },
+      { "wert": 1, "name": "Ab mäßig" },
+      { "wert": 2, "name": "Nur stark" }
+    ],
+    "wind_ab": [
+      { "wert": 0, "name": "65" },
+      { "wert": 1, "name": "75" },
+      { "wert": 2, "name": "89" }
+    ],
+    "vorgabe": {
+      "arten": ["warnung", "niederschlag", "gewitter", "wind"],
+      "vorlauf_min": 180,
+      "niederschlag_ab": 0,
+      "wind_ab": 0,
+      "nachtruhe": { "an": true, "von": 22, "bis": 7, "ab_stufe": 3 }
+    }
+  },
+  "ansagen": {
+    "rolle": { "kennung": "zeit", "name": "Zeit", "stimme": "klon:8d6cfa8841bb408d9da44520889deb54" },
+    "pause_ms": 260,
+    "zeiten": [
+      { "min": 5, "text": "in wenigen Minuten" },
+      { "min": 15, "text": "in 15 Minuten" },
+      { "min": 30, "text": "in 30 Minuten" },
+      { "min": 45, "text": "in 45 Minuten" },
+      { "min": 60, "text": "in einer Stunde" },
+      { "min": 90, "text": "in anderthalb Stunden" },
+      { "min": 120, "text": "in 2 Stunden" },
+      { "min": 150, "text": "in zweieinhalb Stunden" },
+      { "min": 180, "text": "in 3 Stunden" },
+      { "min": 240, "text": "in 4 Stunden" },
+      { "min": 300, "text": "in 5 Stunden" },
+      { "min": 360, "text": "in 6 Stunden" }
+    ],
+    "reihen": {
+      "boeen": { "von": 50, "bis": 200, "schritt": 5, "muster": "Spitzenböen bis {zahl} Kilometer pro Stunde." },
+      "blitze": { "werte": [30, 25, 20, 15, 10, 5], "muster": "Ein Gewitter ist etwa {zahl} Kilometer entfernt.", "nah": { "bis_km": 3, "text": "Ein Gewitter ist ganz in der Nähe." } },
+      "ab": { "von": 0, "bis": 23, "schritt": 1, "muster": "Ab {zahl} Uhr." },
+      "bis": { "von": 0, "bis": 23, "schritt": 1, "muster": "Bis {zahl} Uhr." },
+      "ab_morgen": { "von": 0, "bis": 23, "schritt": 1, "muster": "Ab morgen {zahl} Uhr." },
+      "bis_morgen": { "von": 0, "bis": 23, "schritt": 1, "muster": "Bis morgen {zahl} Uhr." }
+    },
+    "saetze": {
+      "achtung": "Achtung.",
+      "warnung_1": "Amtliche Wetterwarnung für deine Region.",
+      "warnung_2": "Amtliche Warnung vor markantem Wetter für deine Region.",
+      "warnung_3": "Amtliche Unwetterwarnung für deine Region.",
+      "warnung_4": "Amtliche Warnung vor extremem Unwetter für deine Region.",
+      "warnung_einzelheiten": "Die Einzelheiten stehen in der Wetterwarte.",
+      "ab_sofort": "Ab sofort.",
+      "entwarnung_regen": "Entwarnung. Der angekündigte Regen bleibt aus.",
+      "entwarnung_schnee": "Entwarnung. Der angekündigte Schneefall bleibt aus.",
+      "entwarnung_glatteis": "Entwarnung. Der angekündigte gefrierende Regen bleibt aus.",
+      "entwarnung_gewitter": "Entwarnung. Das angekündigte Gewitter bleibt aus.",
+      "entwarnung_wind": "Entwarnung. Die angekündigten Sturmböen bleiben aus.",
+      "probe": "Hallo, hier ist die Wetterwarte. So klingen Warnungen auf diesem Gerät."
+    },
+    "dwd": [
+      "Gewitter",
+      "Starkes Gewitter",
+      "Schweres Gewitter mit Orkanböen",
+      "Schweres Gewitter mit extremen Orkanböen",
+      "Schweres Gewitter mit heftigem Starkregen",
+      "Schweres Gewitter mit Orkanböen und heftigem Starkregen",
+      "Schweres Gewitter mit extremen Orkanböen und heftigem Starkregen",
+      "Schweres Gewitter mit heftigem Starkregen und Hagel",
+      "Schweres Gewitter mit Orkanböen, heftigem Starkregen und Hagel",
+      "Schweres Gewitter mit extremen Orkanböen, heftigem Starkregen und Hagel",
+      "Schweres Gewitter mit extrem heftigem Starkregen und Hagel",
+      "Extremes Gewitter",
+      "Extremes Gewitter mit Orkanböen, extrem heftigem Starkregen und Hagel",
+      "Windböen",
+      "Sturmböen",
+      "Schwere Sturmböen",
+      "Orkanartige Böen",
+      "Orkanböen",
+      "Extreme Orkanböen",
+      "Starkwind",
+      "Sturm",
+      "Schwerer Sturm",
+      "Starkregen",
+      "Heftiger Starkregen",
+      "Extrem heftiger Starkregen",
+      "Dauerregen",
+      "Ergiebiger Dauerregen",
+      "Extrem ergiebiger Dauerregen",
+      "Leichter Schneefall",
+      "Schneefall",
+      "Starker Schneefall",
+      "Extrem starker Schneefall",
+      "Schneeverwehung",
+      "Starke Schneeverwehung",
+      "Extrem starke Schneeverwehung",
+      "Schneefall und Schneeverwehung",
+      "Starker Schneefall und Schneeverwehung",
+      "Extrem starker Schneefall und Schneeverwehung",
+      "Glätte",
+      "Glatteis",
+      "Extremes Glatteis",
+      "Frost",
+      "Strenger Frost",
+      "Nebel",
+      "Tauwetter",
+      "Starkes Tauwetter",
+      "Hitze",
+      "Starke Hitze",
+      "Extreme Hitze",
+      "Erhöhte UV-Intensität",
+      "Leiterseilschwingungen"
+    ]
+  }
+}

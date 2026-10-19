@@ -9,6 +9,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from .lage import Ereignis
+
 
 class KOrt(BaseModel):
     slug: str
@@ -79,14 +81,15 @@ class Tag(BaseModel):
 
 
 class Regen(BaseModel):
-    """Kurzfrist für 2 Stunden in Viertelstunden (mm/h), aus dem Vorhersagemodell."""
+    """Kurzfrist für rund 2 Stunden (mm/h): aus dem Radar-Nowcast in 5-Minuten-Schritten, wo es ihn gibt,
+    sonst aus dem Vorhersagemodell in Viertelstunden."""
 
     schritt_min: int = 15
     werte: list[float]
     beginn_min: int | None  # Minuten bis Regen (0 = regnet), None = trocken
     ende_min: int | None  # Minuten bis Regenende innerhalb der 2 Stunden
     max_mm_h: float
-    quelle: Literal["modell"] = "modell"
+    quelle: Literal["modell", "radar"] = "modell"
 
 
 class Warnung(BaseModel):
@@ -152,3 +155,4 @@ class Kompakt(BaseModel):
     blitze: Blitze | None
     luft: Luft | None
     pollen: Pollen | None
+    lage: list[Ereignis]  # kommende und laufende Ereignisse, höchste Stufe zuerst (lage.py)
