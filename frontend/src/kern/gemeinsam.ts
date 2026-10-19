@@ -60,7 +60,33 @@ export interface Wettercodes {
   sonst: { tag: string; nacht: string; text: string };
 }
 
+/** Aktive Warnungen (gemeinsam/meldungen.json): was die Oberfläche davon braucht. */
+export type Meldeart = "warnung" | "niederschlag" | "gewitter" | "wind";
+
+export interface Meldeoption {
+  wert: number;
+  name: string;
+}
+
+export interface Meldekatalog {
+  arten: { schluessel: Meldeart; name: string; symbol: string; beschreibung: string; vorlaufstufen?: number[] }[];
+  optionen: {
+    vorlauf_min: Meldeoption[];
+    niederschlag_ab: Meldeoption[];
+    wind_ab: Meldeoption[];
+    vorgabe: {
+      arten: Meldeart[];
+      vorlauf_min: number;
+      niederschlag_ab: number;
+      wind_ab: number;
+      nachtruhe: { an: boolean; von: number; bis: number; ab_stufe: number };
+    };
+  };
+  ansagen: { pause_ms: number; saetze: Record<string, string> };
+}
+
 export const telefonKatalog: TelefonKatalog = __TELEFON_KATALOG__;
+export const meldekatalog: Meldekatalog = __MELDUNGEN__;
 export const wettercodes: Wettercodes = __WETTERCODES__;
 
 /** Wert einer Kachel-Einstellung oder ihr Standard aus dem Katalog. */

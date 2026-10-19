@@ -12,15 +12,29 @@ export type Reiter = "karte" | "wetter" | "gesundheit" | "mehr";
 export const WISCHSEITEN: Reiter[] = ["karte", "wetter", "gesundheit"];
 const REITER: Reiter[] = [...WISCHSEITEN, "mehr"];
 
-export type Blatt = { art: "detail"; kachel: TelefonKachel } | { art: "warnungen" } | { art: "orte" } | { art: "schaukasten" };
+export type Blatt =
+  | { art: "detail"; kachel: TelefonKachel }
+  | { art: "warnungen" }
+  | { art: "orte" }
+  | { art: "schaukasten" }
+  | { art: "lage" } // Was kommt (Ziel einer Mitteilung)
+  | { art: "meldungen" }; // Einstellungen der Mitteilungen und Ansagen
+
+// Blätter, die die Adresse öffnen darf (?blatt=): Prüfen aller Kachelformen und die Ziele der Mitteilungen
+const BLAETTER_AUS_ADRESSE = ["schaukasten", "warnungen", "lage", "meldungen"] as const;
+type BlattAusAdresse = (typeof BLAETTER_AUS_ADRESSE)[number];
+
+function blattAusAdresse(wert: string | null): Blatt | null {
+  return BLAETTER_AUS_ADRESSE.includes(wert as BlattAusAdresse) ? ({ art: wert as BlattAusAdresse } as Blatt) : null;
+}
 
 const adresse = new URLSearchParams(location.search);
 
 export const ansicht = $state<{ reiter: Reiter; ort: string; blatt: Blatt | null }>({
   reiter: REITER.includes(adresse.get("ansicht") as Reiter) ? (adresse.get("ansicht") as Reiter) : "wetter",
   ort: adresse.get("ort") || lies<string>("telefon.ort", ""),
-  // ?blatt=schaukasten öffnet beim Start die Übersicht aller Kachelformen (auch zum Prüfen)
-  blatt: adresse.get("blatt") === "schaukasten" ? { art: "schaukasten" } : null,
+  // ?blatt= öffnet beim Start ein Blatt: schaukasten zum Prüfen, warnungen und lage beim Antippen einer Mitteilung
+  blatt: blattAusAdresse(adresse.get("blatt")),
 });
 
 export const profilAusAdresse = adresse.get("profil");
@@ -49,6 +63,15 @@ export function oeffne(blatt: Blatt): void {
 
 export function schliesse(): void {
   ansicht.blatt = null;
+}
+
+/** Antippen einer Mitteilung, während die App offen ist: der Service Worker navigiert, der Seitenaufbau übernimmt
+ *  Ort und Blatt aus der Adresse. Läuft die App weiter (gleiche Seite), kommt die Adresse über diese Funktion. */
+export function folgeAdresse(ziel: string): void {
+  const p = new URL(ziel, location.href).searchParams;
+  if (p.get("ort")) waehleOrt(p.get("ort")!);
+  const blatt = blattAusAdresse(p.get("blatt"));
+  if (blatt) ansicht.blatt = blatt;
 }
 
 /** Adresse nachführen (ohne neuen Verlaufseintrag). */

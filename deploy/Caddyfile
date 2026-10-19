@@ -1,0 +1,22 @@
+# Sichere Adresse der Wetterwarte (docs/WARNUNGEN.md): TLS mit dem Blattzertifikat der Hausstelle (mkcert auf dem Mac,
+# ./wetter zertifikat), dahinter das Frontend ohne TLS. Mitteilungen aufs Telefon (Web Push, Service Worker) gibt es nur
+# über HTTPS. Beim Zugriff per IP steht kein Servername im Handschlag, darum default_sni. Kein HSTS: unter einem
+# Rechnernamen würde es alle Ports des Pi auf HTTPS zwingen.
+{
+	admin off
+	auto_https off
+	default_sni {$WETTERWARTE_HAUPTADRESSE}
+}
+
+:443 {
+	tls /zertifikate/wetterwarte.pem /zertifikate/wetterwarte-schluessel.pem
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		-Server
+	}
+	# Blitz-WebSocket und lange Antworten gehen ungepuffert durch
+	reverse_proxy frontend:80 {
+		flush_interval -1
+	}
+}

@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import geraetedienst, kompakt, ortsdienst, push
 from ..ansagen import text
+from ..config import settings
 from ..db import get_session
 from ..models.geraet import Geraet
 from ..models.ort import Ort
@@ -30,8 +31,8 @@ async def _ort(slug: str) -> Ort:
 
 @router.get("/push/schluessel")
 async def schluessel() -> dict:
-    """Öffentlicher VAPID-Schlüssel für das Push-Abo des Browsers."""
-    return wrap({"schluessel": await push.oeffentlich()})
+    """Öffentlicher VAPID-Schlüssel für das Push-Abo des Browsers und die sichere Adresse der App (falls bekannt)."""
+    return wrap({"schluessel": await push.oeffentlich(), "sichere_adresse": settings.sichere_adresse})
 
 
 @router.post("/geraete", status_code=201)

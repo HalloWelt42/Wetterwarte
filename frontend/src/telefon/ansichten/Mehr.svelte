@@ -1,7 +1,7 @@
 <script lang="ts">
   import { profilSymbol } from "../../kern/profilsymbol";
   // Reiter Mehr (Entwurf mockups/telefon/mehr.html): Profil wählen, Schriftstufe und Nachtbetrieb für
-  // dieses Gerät, alle Kachelformen, Wechsel zur Desktop-Ansicht, Fassung und Datenquellen.
+  // dieses Gerät, Meldungen (Blatt), alle Kachelformen, Wechsel zur Desktop-Ansicht, Fassung und Datenquellen.
   // Nur, was am Telefon wirklich gewählt werden kann; eingerichtet wird am Rechner.
   import { orteState } from "../../kern/orte.svelte";
   import { OBERFLAECHE_FASSUNG } from "../../kern/fassung.svelte";
@@ -11,6 +11,8 @@
   import { geraet, setzeNacht, setzeStufe, zurDesktopAnsicht, type Nachtwahl, type Stufe } from "../geraet.svelte";
   import { profile, waehleProfil } from "../profil.svelte";
   import { standVon } from "../wetter.svelte";
+  import { konto } from "../meldungen/konto.svelte";
+  import { ansagen } from "../ansagen/ansagen.svelte";
 
   const STUFEN: { wert: Stufe; titel: string }[] = [
     { wert: "normal", titel: "Normal" },
@@ -22,6 +24,10 @@
     { wert: "auto", titel: "Nach Sonnenuntergang" },
     { wert: "an", titel: "An" },
   ];
+
+  const meldeStand = $derived(
+    `Mitteilungen ${konto.daten?.push ? "an" : "aus"}, Tonansagen ${ansagen.an ? "an" : "aus"}`,
+  );
 
   // Sonnenauf- und -untergang am gewählten Ort, nach denen sich "Nach Sonnenuntergang" richtet
   const ort = $derived(orteState.liste.find((o) => o.slug === ansicht.ort));
@@ -38,7 +44,7 @@
   <header class="kopf">
     <div class="kopf-zeile"><h1 class="seiten-titel">Mehr</h1></div>
   </header>
-  <main class="mehr-liste">
+  <main class="mehr-liste einstellungen">
     <section class="abschnitt">
       <h3>Profil</h3>
       {#if profile.liste.length}
@@ -85,6 +91,17 @@
     </section>
 
     <section class="abschnitt">
+      <h3>Meldungen</h3>
+      <div class="zeilen">
+        <button class="zeile" onclick={() => oeffne({ art: "meldungen" })}>
+          <span class="sym"><i class="fa-solid fa-bell"></i></span>
+          <span class="haupt"><b>Warnungen aufs Telefon</b><small>{meldeStand}</small></span>
+          <span class="rechts"><i class="fa-solid fa-chevron-right"></i></span>
+        </button>
+      </div>
+    </section>
+
+    <section class="abschnitt">
       <h3>Ansicht</h3>
       <div class="zeilen">
         <button class="zeile" onclick={() => oeffne({ art: "schaukasten" })}>
@@ -127,63 +144,5 @@
   }
   .mehr-liste {
     padding: 0 var(--rand);
-  }
-  :global(.tel) .mehr-liste button.zeile {
-    width: 100%;
-    padding: 6px 14px;
-    text-align: left;
-  }
-  :global(.tel) .mehr-liste .zeile .haupt small {
-    white-space: normal;
-    line-height: 1.25;
-  }
-  .rechts .fa-check {
-    color: var(--akzent);
-    font-size: var(--s19);
-  }
-  .rechts .fa-arrow-right {
-    color: var(--text-3);
-    font-size: var(--s15);
-  }
-  .hinweis-z {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin: 10px 8px 0;
-    font-size: var(--s15);
-    color: var(--text-3);
-    line-height: 1.35;
-  }
-  .hinweis-z i {
-    margin-top: 3px;
-  }
-  .einstellung + .einstellung {
-    margin-top: 18px;
-  }
-  .einst-kopf {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 4px 10px;
-    margin: 0 8px 8px;
-  }
-  .einst-kopf b {
-    font-weight: 700;
-  }
-  .einst-kopf small {
-    font-size: var(--s15);
-    color: var(--text-3);
-  }
-  :global(.tel) .segmente.nach-inhalt button {
-    flex: 1 1 auto;
-    padding: 4px 12px;
-    line-height: 1.15;
-  }
-  .einst-unter {
-    margin: 8px 8px 0;
-    font-size: var(--s15);
-    color: var(--text-2);
-    line-height: 1.35;
   }
 </style>

@@ -67,7 +67,7 @@ export interface Regen {
   beginn_min: number | null;
   ende_min: number | null;
   max_mm_h: number;
-  quelle: "modell";
+  quelle: "modell" | "radar";
 }
 
 export interface Warnung {
@@ -102,10 +102,27 @@ export interface Pollenart {
   uebermorgen: number;
 }
 
+/** Ein kommendes oder laufendes Wetterereignis (backend schemas/lage.py, docs/WARNUNGEN.md). */
+export interface Ereignis {
+  art: import("../kern/gemeinsam").Meldeart;
+  schluessel: string;
+  klasse: string;
+  rang: number;
+  stufe: number;
+  beginn: string | null;
+  laeuft: boolean;
+  vorlauf_min: number | null;
+  vorlaufstufe: number | null;
+  quelle: "radar" | "vorhersage" | "amtlich" | "blitze";
+  titel: string;
+  text: string;
+  bausteine: string[];
+}
+
 export interface Kompakt {
   ort: { slug: string; name: string; region: string; lat: number; lon: number; zeitzone: string };
   zeit: string;
-  bereiche: Record<"basis" | "warnungen" | "blitze" | "luft" | "pollen", Bereich>;
+  bereiche: Record<"basis" | "warnungen" | "blitze" | "luft" | "pollen", Bereich> & { nowcast?: Bereich };
   jetzt: Jetzt | null;
   stunden: Stunde[];
   jetzt_index: number;
@@ -115,4 +132,5 @@ export interface Kompakt {
   blitze: Blitze | null;
   luft: Luft | null;
   pollen: { region: string; arten: Pollenart[] } | null;
+  lage?: Ereignis[]; // fehlt im gemerkten Stand älterer Fassungen
 }

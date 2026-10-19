@@ -56,12 +56,26 @@ case "${1:-}" in
     rsync -az --delete \
       --exclude '.git' --exclude 'node_modules' --exclude '.venv' --exclude 'dist' \
       --exclude 'data' --exclude '.env' --exclude '.env.prod' --exclude '__pycache__' \
-      --exclude '.DS_Store' --exclude '.run' --exclude 'mockups' \
+      --exclude '.DS_Store' --exclude '.run' --exclude 'mockups' --exclude 'zertifikate' \
       -e ssh ./ "$PI_HOST:$PI_PFAD/" \
       && ssh "$PI_HOST" "cd '$PI_PFAD' && ./wetter prod-restart" \
       && echo "Deploy fertig." ;;
+  zertifikat)
+    # Blattzertifikat der Hausstelle (mkcert auf diesem Mac) für die sichere Adresse ausstellen und nach
+    # $PI_PFAD/zertifikate legen; danach ./wetter deploy (Dienst vorne). Namen über ZERT_NAMEN änderbar.
+    NAMEN="${ZERT_NAMEN:-192.168.178.49 raspberrypi-3.fritz.box raspberrypi-3 wetterwarte.fritz.box wetterwarte.local}"
+    command -v mkcert >/dev/null || { echo "mkcert fehlt auf diesem Rechner"; exit 1; }
+    ARBEIT="$(mktemp -d)"
+    trap 'rm -rf "$ARBEIT"' EXIT
+    # shellcheck disable=SC2086
+    (cd "$ARBEIT" && mkcert -cert-file wetterwarte.pem -key-file wetterwarte-schluessel.pem $NAMEN) || exit 1
+    cp "$(mkcert -CAROOT)/rootCA.pem" "$ARBEIT/"
+    ssh "$PI_HOST" "mkdir -p '$PI_PFAD/zertifikate'" \
+      && scp -q "$ARBEIT"/wetterwarte.pem "$ARBEIT"/wetterwarte-schluessel.pem "$ARBEIT"/rootCA.pem "$PI_HOST:$PI_PFAD/zertifikate/" \
+      && ssh "$PI_HOST" "chmod 644 '$PI_PFAD/zertifikate/wetterwarte.pem' '$PI_PFAD/zertifikate/rootCA.pem' && chmod 640 '$PI_PFAD/zertifikate/wetterwarte-schluessel.pem'" \
+      && echo "Zertifikat auf $PI_HOST:$PI_PFAD/zertifikate, $(openssl x509 -in "$ARBEIT/wetterwarte.pem" -noout -enddate)" ;;
   mockup)
     ./start-mockups.sh "${2:-start}" ;;
   *)
-    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs|deploy]" ;;
+    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs|zertifikat|deploy]" ;;
 esac

@@ -4,6 +4,7 @@ Jeder Satz hat einen Schlüssel, eine Anzeigeform mit Ziffern und eine Sprechfor
 Eine Meldung ist eine Folge von Satzschlüsseln: ihr Text ist die Verkettung der Anzeigeformen, ihre Ansage die
 Folge der vertonten Klänge. `alle()` zählt jeden Satz genau einmal auf (für die Vertonung und die Prüfung)."""
 
+import hashlib
 import re
 from dataclasses import dataclass
 from datetime import datetime
@@ -52,6 +53,17 @@ def kennung(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", klein).strip("_")
 
 
+SCHLUESSEL_LAENGE = 60  # so lang darf ein Klangschlüssel im Medienpool höchstens sein
+
+
+def dwd_schluessel(ereignis: str) -> str:
+    """Satzschlüssel eines Ereignisses des Wetterdienstes; lange Namen gekürzt und mit Prüfsumme eindeutig."""
+    k = kennung(ereignis)
+    if len(k) + 4 <= SCHLUESSEL_LAENGE:
+        return f"dwd_{k}"
+    return f"dwd_{k[: SCHLUESSEL_LAENGE - 13]}_{hashlib.sha1(k.encode()).hexdigest()[:8]}"
+
+
 def katalog() -> dict:
     return lies("meldungen.json")
 
@@ -84,7 +96,7 @@ def alle() -> dict[str, Satz]:
     for schluessel, text in a["saetze"].items():
         neu(schluessel, text)
     for ereignis in a["dwd"]:
-        neu(f"dwd_{kennung(ereignis)}", f"{ereignis}.")
+        neu(dwd_schluessel(ereignis), f"{ereignis}.")
     return saetze
 
 
@@ -128,7 +140,7 @@ def blitze(km: float) -> str:
 
 def dwd(ereignis: str) -> str:
     """Satz für ein Ereignis des Wetterdienstes, sonst der Hinweis auf die Einzelheiten."""
-    schluessel = f"dwd_{kennung(ereignis)}"
+    schluessel = dwd_schluessel(ereignis)
     return schluessel if schluessel in alle() else "warnung_einzelheiten"
 
 

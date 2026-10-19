@@ -464,6 +464,21 @@
 .tel .zeile .sym{ width: 30px; text-align: center; color: var(--text-2); font-size: var(--s19); flex: none; }
 .tel .zeile .mc{ width: 40px; height: 40px; }
 
+/* Einstellungen (Mehr, Blatt Meldungen): Kopf mit Name und Zusatz, Segmente oder Zeilen darunter, Hinweise */
+.tel .einstellungen button.zeile{ width: 100%; padding: 6px 14px; text-align: left; }
+.tel .einstellungen .zeile .haupt small{ white-space: normal; line-height: 1.25; }
+.tel .einstellungen .rechts .fa-check{ color: var(--akzent); font-size: var(--s19); }
+.tel .einstellungen .rechts .fa-arrow-right{ color: var(--text-3); font-size: var(--s15); }
+.tel .einstellung + .einstellung{ margin-top: 18px; }
+.tel .einst-kopf{ display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; margin: 0 8px 8px; }
+.tel .einst-kopf b{ font-weight: 700; }
+.tel .einst-kopf small{ font-size: var(--s15); color: var(--text-3); }
+.tel .segmente.nach-inhalt button{ flex: 1 1 auto; padding: 4px 12px; line-height: 1.15; }
+.tel .einst-unter{ margin: 8px 8px 0; font-size: var(--s15); color: var(--text-2); line-height: 1.35; }
+.tel .hinweis-z{ display: flex; align-items: flex-start; gap: 10px; margin: 10px 8px 0; font-size: var(--s15); color: var(--text-3); line-height: 1.35; }
+.tel .hinweis-z i{ margin-top: 3px; }
+.tel .hinweis-z.warn{ color: var(--text-2); }
+
 .tel .schalter{ width: 51px; height: 31px; border-radius: 16px; background: var(--flaeche-3); position: relative; flex: none; }
 .tel .schalter::after{ content: ""; position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 50%; background: var(--text); transition: left var(--schnell); }
 .tel .schalter.an{ background: var(--gut); }

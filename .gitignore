@@ -16,6 +16,9 @@ backend/.venv/
 # Frontend-Build
 frontend/dist/
 
+# Zertifikate der sicheren Adresse (./wetter zertifikat legt sie nur auf den Pi)
+zertifikate/
+
 # Laufzeit des Mockup-Viewers
 .run/
 

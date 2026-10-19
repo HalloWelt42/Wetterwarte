@@ -37,6 +37,8 @@ services:
       REDIS_URL: redis://redis:6379/0
       LIGHTNING_BASE: ${LIGHTNING_BASE:-http://192.168.178.49:8100}
       KACHEL_CACHE_DIR: /cache
+      # Die Oberfläche verweist ohne HTTPS dorthin (nur dort gibt es Mitteilungen aufs Telefon).
+      SICHERE_ADRESSE: https://${HAUPTADRESSE:-192.168.178.49}:${HTTPS_PORT:-8062}
     volumes:
       # Offline-Kachel-Cache auf der externen SSD (kann mehrere GB werden).
       - ${DATA_DIR:-./data}/kachelcache:/cache
@@ -59,3 +61,19 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  # Sichere Adresse (docs/WARNUNGEN.md): Caddy mit dem Zertifikat der Hausstelle vor dem Frontend. Das Zertifikat legt
+  # ./wetter zertifikat vom Mac aus nach ./zertifikate; ohne es startet nur dieser Dienst nicht, 8061 bleibt.
+  vorne:
+    image: caddy:2.11.6-alpine
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      - frontend
+    ports:
+      - "${HTTPS_PORT:-8062}:443"
+    environment:
+      WETTERWARTE_HAUPTADRESSE: ${HAUPTADRESSE:-192.168.178.49}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./zertifikate:/zertifikate:ro

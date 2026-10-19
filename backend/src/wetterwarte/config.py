@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     kachel_cache_dir: str = str(_BACKEND / ".kachelcache")
     # Kontakt im VAPID-Anspruch (sub) für Web Push: mailto: oder https:, die Push-Dienste verlangen eine Angabe.
     push_kontakt: str = "https://github.com/HalloWelt42/Wetterwarte"
+    # Sichere Adresse der App (HTTPS vor dem Frontend, docs/WARNUNGEN.md); die Oberfläche verweist dorthin, wenn
+    # sie ohne HTTPS geöffnet wurde, denn nur dort gibt es Mitteilungen. Leer: keine bekannt.
+    sichere_adresse: str = ""
     # Aktive Warnungen: der Melder prüft im Hintergrund in diesem Takt (Sekunden); 0 schaltet ihn ab.
     melder_takt_s: int = 300
 

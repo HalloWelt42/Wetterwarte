@@ -3,6 +3,7 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import fassungDatei from "../version.json";
 import telefonKatalog from "../gemeinsam/telefon-katalog.json";
 import wettercodes from "../gemeinsam/wettercodes.json";
+import meldungen from "../gemeinsam/meldungen.json";
 
 // Fassung der Oberfläche aus der einzigen Quelle (version.json); weicht die des Servers ab, lädt die Oberfläche neu
 // (src/lib/fassung.svelte.ts). Als Import zählt version.json zu den Abhängigkeiten der Konfiguration: ändert sie
@@ -36,6 +37,8 @@ export default defineConfig(({ mode }) => {
       // Mit dem Backend geteilte Dateien (gemeinsam/): einzige Wahrheit, beim Bau eingebaut.
       __TELEFON_KATALOG__: JSON.stringify(telefonKatalog),
       __WETTERCODES__: JSON.stringify(wettercodes),
+      // Meldearten, Einstellmöglichkeiten und Sätze der Ansagen (docs/WARNUNGEN.md)
+      __MELDUNGEN__: JSON.stringify(meldungen),
     },
     build: {
       rollupOptions: {
