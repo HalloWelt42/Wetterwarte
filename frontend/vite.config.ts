@@ -1,3 +1,4 @@
+import { readFileSync, writeFileSync } from "node:fs";
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import fassungDatei from "../version.json";
@@ -25,13 +26,37 @@ function telefonAdresse(): Plugin {
   };
 }
 
+// App-Symbol eingebettet statt verlinkt: Über die sichere Adresse (Hauszertifikat) holt das iPhone ein verlinktes
+// Symbol für den Home-Bildschirm nicht und zeigt nur den Anfangsbuchstaben; alle Apps mit Hauszertifikat sind
+// betroffen, die über http nicht. Eingebettet braucht es keinen Abruf. Quelle bleiben die PNG in public/
+// (tools/symbole.py); beim Bau werden apple-touch-icon in den Seiten und die Symbole "any" in den Manifesten zu
+// data:-Adressen.
+function symbolEinbetten(): Plugin {
+  const daten = (datei: string) => `data:image/png;base64,${readFileSync(new URL(`./public/${datei}`, import.meta.url)).toString("base64")}`;
+  return {
+    name: "symbol-einbetten",
+    apply: "build",
+    transformIndexHtml: (html) => html.replace('href="/apple-touch-icon.png"', `href="${daten("apple-touch-icon.png")}"`),
+    writeBundle(optionen) {
+      for (const name of ["telefon.webmanifest", "site.webmanifest"]) {
+        const ziel = `${optionen.dir}/${name}`;
+        const manifest = JSON.parse(readFileSync(ziel, "utf-8"));
+        for (const symbol of manifest.icons ?? []) {
+          if (symbol.purpose !== "maskable") symbol.src = daten(symbol.src.replace(/^\//, ""));
+        }
+        writeFileSync(ziel, JSON.stringify(manifest));
+      }
+    },
+  };
+}
+
 // Ports stammen aus der projekt-eindeutigen .env im Projektwurzelverzeichnis.
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "..", "");
   const frontendPort = Number(env.FRONTEND_PORT) || 6151;
   const backendPort = Number(env.BACKEND_PORT) || 6150;
   return {
-    plugins: [svelte(), telefonAdresse()],
+    plugins: [svelte(), telefonAdresse(), symbolEinbetten()],
     define: {
       __FASSUNG__: JSON.stringify(FASSUNG),
       // Mit dem Backend geteilte Dateien (gemeinsam/): einzige Wahrheit, beim Bau eingebaut.
