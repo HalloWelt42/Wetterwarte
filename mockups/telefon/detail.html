@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Wetterwarte - Telefon: Detailblätter</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/telefon/telefon.css" />
+    <style>
+      /* Zusatzstile Detailblätter (Vorschlag für telefon.css) */
+      .tel a.knopf-rund { text-decoration: none; }
+      .tel a.zeile { color: inherit; text-decoration: none; }
+      .tel .blatt-inhalt > .abschnitt:last-child { padding-bottom: 8px; }
+      /* In Blättern ist Platz: Zeilentexte brechen um statt abgeschnitten zu werden */
+      .tel .blatt .zeile .haupt b, .tel .blatt .zeile .haupt small { white-space: normal; }
+
+      /* Kopf eines Blatts: Symbol, großer Wert, Satz */
+      .tel .held { display: flex; align-items: center; gap: 14px; padding: 4px 8px 0; }
+      .tel .held > .mc { width: 88px; height: 88px; }
+      .tel .held-text { flex: 1; min-width: 0; }
+      .tel .riesen-zahl { display: flex; align-items: baseline; gap: 4px; font-size: calc(var(--s26) * 2.3); font-weight: 600; line-height: 0.95; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .tel .riesen-zahl small { font-size: var(--s22); font-weight: 600; color: var(--text-2); letter-spacing: 0; }
+      .tel .held-satz { font-size: var(--s19); font-weight: 600; margin-top: 6px; line-height: 1.2; }
+      .tel .held-unter { font-size: var(--s15); color: var(--text-2); margin-top: 4px; line-height: 1.35; }
+      .tel .held-unter b { color: var(--text); }
+      .tel .held-bild { position: relative; flex: none; }
+      .tel .held-bild > .mitte { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; line-height: 1; }
+
+      /* Tafel: Fläche für Diagramme und Gruppen */
+      .tel .tafel { background: var(--flaeche-2); border-radius: var(--radius); padding: 12px; }
+      .tel .tafel + .tafel, .tel .segmente + .tafel, .tel .segmente + .zeilen { margin-top: 6px; }
+      .tel .tafel-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: var(--s15); color: var(--text-2); margin-bottom: 10px; }
+      .tel .tafel-kopf b { color: var(--text); font-size: var(--s17); }
+      .tel .diagramm { height: 150px; }
+      .tel .diagramm.mittel { height: 110px; }
+      .tel .diagramm.flach { height: 64px; }
+      .tel .diagramm + .diagramm { margin-top: 10px; }
+      .tel .tafel-fuss { margin-top: 8px; font-size: var(--s15); color: var(--text-2); line-height: 1.35; }
+      .tel .achse { position: relative; height: calc(var(--s13) + 6px); margin-top: 6px; font-size: var(--s13); font-weight: 700; color: var(--text-3); }
+      .tel .achse span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+      .tel .achse span:first-child { transform: none; }
+      .tel .achse span:last-child { transform: translateX(-100%); }
+      .tel .monate { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; margin-top: 6px; text-align: center; font-size: var(--s13); font-weight: 700; color: var(--text-3); }
+      .tel .monate .an { color: var(--text); }
+
+      /* Gitter großer Werte */
+      .tel .werte-gitter { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      .tel .wg { background: var(--flaeche-2); border-radius: var(--radius); padding: 10px 12px 12px; min-width: 0; }
+      .tel .wg-kopf { display: flex; align-items: center; gap: 6px; font-size: var(--s13); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); line-height: 1.1; }
+      .tel .wg-wert { margin-top: 8px; display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 3px; font-size: calc(var(--s26) * 1.25); font-weight: 700; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+      .tel .wg-wert small { font-size: var(--s17); font-weight: 600; color: var(--text-2); letter-spacing: 0; }
+      .tel .wg-unter { margin-top: 5px; font-size: var(--s15); color: var(--text-2); line-height: 1.25; }
+      .tel .wg-unter b { color: var(--text); }
+      .tel .auf-inhalt .wg { background: var(--flaeche-3); }
+
+      /* Stundenliste */
+      .tel .stunde { gap: 10px; }
+      .tel .stunde .uhr { flex: none; width: 2.8em; font-weight: 700; font-variant-numeric: tabular-nums; }
+      .tel .stunde .temp { flex: none; width: 2.1em; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+      .tel .stunde .nass { flex: 1; min-width: 0; font-size: var(--s15); font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+      .tel .stunde .nass small { display: block; font-size: var(--s13); font-weight: 600; color: var(--text-3); }
+      .tel .stunde .matt { color: var(--text-3); }
+      .tel .stunde .wind-w { flex: none; display: flex; align-items: baseline; gap: 3px; font-size: var(--s15); font-weight: 700; color: var(--text-2); font-variant-numeric: tabular-nums; }
+      .tel .stunde .wind-w small { font-size: var(--s13); font-weight: 600; color: var(--text-3); }
+      .tel .pfeil-w { align-self: center; margin-right: 4px; color: var(--text-3); font-size: var(--s15); }
+      .tel .stunde.ereignis { min-height: 46px; }
+      .tel .ereignis-text { flex: 1; min-width: 0; color: var(--text-2); font-size: var(--s15); font-weight: 600; }
+
+      /* Aufklappbare Zeilen: Tage und Erklärungen */
+      .tel .auf > summary { list-style: none; cursor: pointer; }
+      .tel .auf > summary::-webkit-details-marker { display: none; }
+      .tel .auf > summary .fa-chevron-down { color: var(--text-3); font-size: var(--s15); transition: transform var(--schnell); }
+      .tel .auf[open] > summary .fa-chevron-down { transform: rotate(180deg); }
+      .tel .zeilen > .auf + .auf, .tel .zeilen > .zeile + .auf, .tel .zeilen > .auf + .zeile { box-shadow: inset 0 1px 0 var(--flaeche-3); }
+      .tel .auf-inhalt { padding: 2px 14px 14px; }
+      .tel .tag-z { display: grid; grid-template-columns: 5.4em 40px 1.7em minmax(0, 1fr) 1.7em 1em; align-items: center; gap: 8px; min-height: 60px; padding: 6px 14px; font-variant-numeric: tabular-nums; }
+      .tel .tag-z .mc { width: 40px; height: 40px; }
+      .tel .tag-z .tag b { display: block; font-weight: 700; }
+      .tel .tag-z .tag small { display: block; font-size: var(--s13); font-weight: 600; color: var(--text-3); }
+      .tel .tag-z .tag small .regen { font-weight: 700; color: var(--regen); }
+      .tel .tag-z .tag small .regen.matt { color: var(--text-3); }
+      .tel .tag-z .lo { text-align: right; font-weight: 700; color: var(--text-3); }
+      .tel .tag-z .hi { font-weight: 700; }
+      .tel .erkl > summary { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 6px 14px; color: var(--text-2); font-weight: 600; }
+      .tel .erkl > summary > span { flex: 1; min-width: 0; }
+      .tel .erkl > summary .fa-circle-info { width: 30px; flex: none; text-align: center; font-size: var(--s19); color: var(--akzent); }
+      .tel .erkl[open] > summary { color: var(--text); }
+      .tel .erkl p { margin: 0; padding: 0 14px 14px 56px; font-size: var(--s15); color: var(--text-2); line-height: 1.4; }
+
+      /* Weitere Bausteine in Blättern */
+      .tel .zeile .zahl-r { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .tel .zeile .zahl-r small { font-weight: 600; color: var(--text-3); font-size: var(--s15); }
+      .tel .farbpunkt { width: 14px; height: 14px; border-radius: 50%; flex: none; margin: 0 8px; }
+      .tel .zeile.schad { display: block; padding: 10px 14px 12px; }
+      .tel .schad-kopf { display: flex; align-items: baseline; gap: 8px; }
+      .tel .schad-kopf b { flex: 1; min-width: 0; font-weight: 700; }
+      .tel .schad-kopf span { font-size: var(--s15); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .tel .schad-kopf span small { font-size: var(--s13); font-weight: 600; color: var(--text-3); }
+      .tel .schad-unter sub { font-size: var(--s13); }
+      .tel .schad .bz-bahn { margin-top: 8px; }
+      .tel .schad-unter { margin-top: 5px; font-size: var(--s15); color: var(--text-3); }
+      .tel .wind-sp .sp { gap: 4px; }
+      .tel .wind-sp .fa-arrow-up { font-size: var(--s17); color: var(--text-2); margin: 3px 0; }
+      .tel .sp-boe { font-size: var(--s13); font-weight: 700; color: var(--text-3); }
+      .tel .abschnitt p b { color: var(--text); }
+      .tel [hidden] { display: none; }
+      /* Seite hinter dem Blatt: nimmt im Gerät denselben Platz ein wie sonst Rollfeld und Leiste */
+      .tel .hinter { display: contents; }
+      .tel .hinter[hidden] { display: none; }
+
+      /* Notizspalte: Liste der Blätter */
+      .notiz .blatt-liste { columns: 2; column-gap: 24px; }
+      .notiz .blatt-liste a { text-decoration: none; }
+      .notiz .blatt-liste a.an { color: #f3f5f7; font-weight: 700; }
+    </style>
+  </head>
+  <body class="tel-seite">
+    <div class="buehne">
+      <div class="buehne-spalte">
+        <div class="geraet tel">
+          <div class="statusleiste"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+          <div class="schale">
+            <!-- ============ Seite hinter dem Blatt: Wetter oder Gesundheit, je nachdem, wo die Kachel steht -->
+            <div class="hinter" data-seite="wetter">
+              <div class="rollfeld" inert>
+                <header class="kopf">
+                  <div class="kopf-zeile">
+                    <a class="kopf-ort" href="/mockups/telefon/orte.html" style="color: inherit; text-decoration: none"><span class="name">Köln</span><i class="fa-solid fa-chevron-down"></i></a>
+                    <span class="kopf-stand"><span class="frische"></span>vor 2 Min</span>
+                  </div>
+                  <div class="ort-punkte"><span class="an"></span><span></span><span></span><span></span><span></span></div>
+                </header>
+
+                <!-- ============ Raster: Telefon-Layout des Profils "Zuhause", Seite Wetter (Vorlage "vorlage.wetter" im Katalog) -->
+                <main class="raster">
+                  <!-- Jetzt 2x2 -->
+                  <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                    <div class="k-kopf"><span>Jetzt</span></div>
+                    <img class="mc mc-ecke" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                    <div class="k-fuss">
+                      <div class="wert riesig t-mild"><b>13°</b></div>
+                      <div class="zustand">Leicht bewölkt</div>
+                      <div class="unter">Gefühlt <b>11°</b> · H <b>15°</b> T <b>7°</b></div>
+                    </div>
+                  </a>
+
+                  <!-- Regen 1x1 -->
+                  <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 2; --y: 0">
+                    <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span></div>
+                    <div class="k-fuss">
+                      <div class="wert halb c-regen"><b>17</b><small>Uhr</small></div>
+                      <div class="unter">ab da <b>70 %</b></div>
+                    </div>
+                  </a>
+
+                  <!-- Wind 1x1 -->
+                  <a class="k" href="/mockups/telefon/detail.html#wind" style="--x: 2; --y: 1">
+                    <div class="k-kopf"><i class="fa-solid fa-wind entbehrlich-gross"></i><span>Wind</span></div>
+                    <div class="mikro-feld fest" data-mikro="kompass" data-grad="225" style="position: absolute; right: 8px; top: 8px; width: 40px; height: 40px"></div>
+                    <div class="k-fuss">
+                      <div class="wert"><b>14</b><small>km/h</small></div>
+                      <div class="unter">Böen <b>31</b><span class="entbehrlich"> · SW</span></div>
+                    </div>
+                  </a>
+
+                  <!-- Stunden 3x1: 6 Stunden -->
+                  <a class="k" href="/mockups/telefon/detail.html#stunden" style="--x: 0; --y: 2; --w: 3; --h: 1">
+                    <div class="k-kopf"><span>Stunden</span><span class="rechts">Regen ab 17 Uhr</span></div>
+                    <div class="spalten">
+                      <div class="sp"><span class="sp-zeit">Jetzt</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein"></span></div>
+                      <div class="sp"><span class="sp-zeit">15</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein"></span></div>
+                      <div class="sp"><span class="sp-zeit">16</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein">20 %</span></div>
+                      <div class="sp"><span class="sp-zeit">17</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein">70 %</span></div>
+                      <div class="sp"><span class="sp-zeit">18</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">11°</span><span class="sp-klein">80 %</span></div>
+                      <div class="sp"><span class="sp-zeit">19</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">10°</span><span class="sp-klein">60 %</span></div>
+                    </div>
+                  </a>
+
+                  <!-- Tage 3x2: 5 Tage mit Temperaturband -->
+                  <a class="k" href="/mockups/telefon/detail.html#tage" style="--x: 0; --y: 3; --w: 3; --h: 2">
+                    <div class="k-kopf"><span>5 Tage</span><span class="rechts">5° bis 17°</span></div>
+                    <div class="tage">
+                      <div class="tz"><span class="tag">Heute</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="lo">7°</span><span class="band"><span style="left: 17%; right: 17%"></span><i style="left: 67%"></i></span><span class="hi">15°</span></div>
+                      <div class="tz"><span class="tag">Di</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 33%"></span></span><span class="hi">13°</span></div>
+                      <div class="tz"><span class="tag">Mi</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="lo">6°</span><span class="band"><span style="left: 8%; right: 42%"></span></span><span class="hi">12°</span></div>
+                      <div class="tz"><span class="tag">Do</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="lo">5°</span><span class="band"><span style="left: 0%; right: 25%"></span></span><span class="hi">14°</span></div>
+                      <div class="tz entbehrlich"><span class="tag">Fr</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 0%"></span></span><span class="hi">17°</span></div>
+                    </div>
+                  </a>
+
+                  <!-- Sonne 2x1 -->
+                  <a class="k" href="/mockups/telefon/detail.html#sonne" style="--x: 0; --y: 5; --w: 2">
+                    <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>Sonne</span><span class="rechts">noch 4 h 07</span></div>
+                    <div class="mikro-feld" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="14:20" data-beschriften="1" style="margin-top: 4px"></div>
+                  </a>
+
+                  <!-- Mond 1x1 -->
+                  <a class="k" href="/mockups/telefon/detail.html#mond" style="--x: 2; --y: 5">
+                    <div class="k-kopf"><i class="fa-solid fa-moon entbehrlich-gross"></i><span>Mond</span></div>
+                    <div class="mikro-feld fest" data-mikro="mond" data-anteil="0.58" data-zunehmend="1" style="position: absolute; right: 10px; top: 10px; width: 38px; height: 38px"></div>
+                    <div class="k-fuss">
+                      <div class="wert halb"><b>58</b><small>%</small></div>
+                      <div class="unter">Vollmond</div>
+                      <div class="unter" style="margin-top: 0">in <b>7</b> Tagen</div>
+                    </div>
+                  </a>
+
+                  <!-- Messwert Luftdruck 2x1: Wert und 24 h gemessen -->
+                  <a class="k" href="/mockups/telefon/detail.html#druck" style="--x: 0; --y: 6; --w: 2">
+                    <div class="k-kopf"><i class="fa-solid fa-gauge"></i><span>Luftdruck</span><span class="rechts">24 h</span></div>
+                    <div style="display: flex; align-items: flex-end; gap: 8px; flex: 1; min-height: 0">
+                      <div>
+                        <div class="wert halb"><b>1018</b><i class="fa-solid fa-arrow-trend-up pfeil"></i></div>
+                        <div class="unter">hPa, steigt</div>
+                      </div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="1008.6,1009.1,1009.4,1010.2,1010.5,1011.3,1011.9,1012.4,1013.2,1013.6,1014.1,1014.9,1015.3,1015.8,1016.4,1016.7,1017.2,1017.5,1017.9,1018.2" data-farbe="--text-2" style="height: 100%"></div>
+                    </div>
+                  </a>
+
+                  <!-- Messwert Feuchte 1x1 -->
+                  <a class="k" href="/mockups/telefon/detail.html#feuchte" style="--x: 2; --y: 6">
+                    <div class="k-kopf"><i class="fa-solid fa-droplet entbehrlich-gross"></i><span>Feuchte</span></div>
+                    <div class="wert" style="margin-top: 6px"><b>72</b><small>%</small><i class="fa-solid fa-arrow-trend-down pfeil"></i></div>
+                    <div class="unter entbehrlich">fällt</div>
+                    <div class="mikro-feld" data-mikro="linie" data-werte="88,90,91,90,86,80,76,73,72" data-farbe="--regen" style="margin-top: 4px"></div>
+                  </a>
+
+                  <!-- Regenradar 3x2: letztes Radarbild um den Ort, Tippen öffnet die Karte -->
+                  <a class="k" href="/mockups/telefon/karte.html" style="--x: 0; --y: 7; --w: 3; --h: 2; padding: 0">
+                    <svg class="radar-bild" aria-hidden="true">
+                      <rect class="r-land" width="100%" height="100%" />
+                      <svg x="50%" y="50%" overflow="visible">
+                        <circle class="r-stadt" r="24" />
+                        <ellipse class="r-strasse" rx="44" ry="38" />
+                        <path class="r-strasse" d="M-260 18 L-44 4 M44 -8 L260 -44 M28 30 L130 260 M-26 -30 L-140 -260" />
+                        <path class="r-fluss" d="M78 260 C66 190 60 140 54 116 S30 62 18 30 S6 -10 10 -36 S0 -84 -12 -112 S-36 -176 -50 -260" />
+                        <!-- ZELLEN mittag -->
+                        <!-- Regengebiet im Westen -->
+                        <path class="r1" d="M-123.3 -41.3 C-119.7 -27.9 -116.5 -15.7 -114.3 -3.7 C-112.0 8.4 -108.0 23.9 -109.9 31.2 C-111.7 38.4 -121.7 35.8 -125.4 39.9 C-129.0 44.1 -129.5 49.5 -131.7 56.1 C-133.8 62.7 -134.5 73.8 -138.3 79.5 C-142.1 85.2 -147.9 92.3 -154.4 90.2 C-161.0 88.1 -171.1 78.0 -177.6 66.8 C-184.2 55.6 -188.4 35.7 -193.9 23.1 C-199.5 10.4 -207.1 1.9 -211.0 -9.3 C-214.9 -20.6 -216.8 -34.4 -217.6 -44.7 C-218.3 -55.0 -214.6 -60.1 -215.7 -71.1 C-216.8 -82.1 -224.2 -100.6 -224.2 -110.5 C-224.1 -120.4 -219.7 -127.6 -215.2 -130.4 C-210.7 -133.2 -203.3 -130.3 -197.1 -127.4 C-191.0 -124.4 -184.5 -117.1 -178.3 -112.8 C-172.1 -108.5 -167.0 -106.5 -159.9 -101.7 C-152.9 -96.9 -142.3 -94.1 -136.2 -84.0 C-130.1 -73.9 -127.0 -54.6 -123.3 -41.3 Z" />
+                        <path class="r2" d="M-128.5 -39.4 C-126.2 -29.3 -128.1 -20.1 -127.0 -10.9 C-125.8 -1.6 -120.7 10.2 -121.5 16.2 C-122.3 22.2 -128.8 22.3 -131.7 24.9 C-134.7 27.5 -137.3 27.7 -139.2 31.9 C-141.2 36.2 -140.9 45.3 -143.4 50.4 C-146.0 55.6 -149.8 62.7 -154.7 62.9 C-159.7 63.0 -168.2 59.8 -173.3 51.2 C-178.3 42.5 -181.5 21.9 -185.1 10.9 C-188.7 -0.2 -191.8 -6.5 -195.0 -15.2 C-198.1 -23.9 -203.3 -34.1 -204.1 -41.5 C-204.9 -48.9 -199.7 -52.0 -199.9 -59.6 C-200.1 -67.2 -204.9 -78.9 -205.3 -87.1 C-205.7 -95.4 -205.2 -105.5 -202.4 -109.1 C-199.6 -112.6 -193.5 -110.9 -188.6 -108.5 C-183.8 -106.1 -178.1 -99.4 -173.2 -94.6 C-168.4 -89.8 -165.0 -83.5 -159.6 -79.6 C-154.1 -75.7 -145.9 -78.1 -140.7 -71.4 C-135.5 -64.7 -130.8 -49.5 -128.5 -39.4 Z" />
+                        <!-- Schauer Südwest -->
+                        <path class="r1" d="M-120.0 68.4 C-118.1 72.0 -114.9 75.1 -113.7 78.6 C-112.4 82.2 -112.3 86.4 -112.6 89.7 C-113.0 93.1 -114.4 96.1 -115.7 98.7 C-117.1 101.3 -119.0 102.9 -120.7 105.5 C-122.3 108.1 -123.3 111.9 -125.6 114.1 C-128.0 116.4 -131.5 120.0 -134.8 119.2 C-138.1 118.4 -142.3 112.4 -145.4 109.4 C-148.5 106.3 -151.0 103.8 -153.6 101.0 C-156.3 98.1 -159.8 95.6 -161.4 92.3 C-162.9 89.0 -162.4 84.8 -163.1 81.2 C-163.7 77.6 -164.8 74.6 -165.4 70.9 C-166.1 67.3 -167.1 63.0 -166.8 59.3 C-166.6 55.6 -165.9 50.8 -163.8 48.7 C-161.6 46.5 -157.4 46.2 -154.1 46.5 C-150.8 46.7 -147.3 49.8 -144.0 50.3 C-140.7 50.7 -137.5 48.0 -134.3 49.2 C-131.2 50.3 -127.4 53.8 -125.1 57.0 C-122.7 60.2 -121.9 64.8 -120.0 68.4 Z" />
+                        <path class="r2" d="M-122.9 70.1 C-121.3 72.9 -118.1 75.2 -117.3 77.9 C-116.6 80.6 -117.6 83.8 -118.3 86.1 C-119.1 88.4 -120.7 89.8 -121.7 91.8 C-122.6 93.7 -123.1 95.5 -124.0 97.9 C-124.8 100.2 -125.2 104.1 -126.9 106.0 C-128.6 107.9 -131.7 110.1 -134.2 109.3 C-136.8 108.5 -139.8 103.4 -142.3 101.2 C-144.8 98.9 -147.1 97.9 -149.2 95.8 C-151.3 93.8 -154.1 91.3 -155.0 88.7 C-155.9 86.0 -154.3 82.6 -154.7 79.9 C-155.1 77.1 -156.6 75.0 -157.4 72.2 C-158.1 69.4 -159.4 65.7 -159.1 63.0 C-158.8 60.3 -157.6 57.2 -155.8 55.9 C-154.0 54.6 -150.8 55.0 -148.4 55.0 C-145.9 55.1 -143.8 56.3 -141.3 56.1 C-138.9 56.0 -136.1 53.1 -133.7 53.9 C-131.2 54.8 -128.5 58.5 -126.7 61.2 C-124.9 63.9 -124.4 67.3 -122.9 70.1 Z" />
+                        <!-- /ZELLEN -->
+                        <circle class="r-nachbar" cx="7" cy="-50" r="3" />
+                        <text class="neben" x="14" y="-45">Leverkusen</text>
+                        <circle class="r-ort" r="6" />
+                        <text x="12" y="5">Köln</text>
+                      </svg>
+                    </svg>
+                    <div class="radar-schleier"></div>
+                    <div class="k-kopf radar-kopf"><i class="fa-solid fa-satellite-dish"></i><span>Regenradar</span><span class="rechts">14:15 gemessen</span></div>
+                    <div class="unter radar-unter">Regen zieht von Westen heran</div>
+                  </a>
+
+                  <!-- Monatsvergleich 3x1 -->
+                  <a class="k" href="/mockups/telefon/detail.html#monat" style="--x: 0; --y: 9; --w: 3">
+                    <div class="k-kopf"><i class="fa-solid fa-chart-column"></i><span>Oktober bisher</span><span class="rechts">zu 1991 bis 2020</span></div>
+                    <div style="display: flex; align-items: flex-end; gap: 12px; flex: 1; min-height: 0">
+                      <div style="flex: none">
+                        <div class="wert halb t-heiss"><b>+1,4°</b></div>
+                        <div class="unter">wärmer als üblich</div>
+                      </div>
+                      <div class="mikro-feld" data-mikro="abweichung" data-werte="1.8,0.6,2.1,-0.4,1.2,2.6,0.9,1.7,-0.3,1.4" data-jetzt="9" data-achse="Jan|Mai|Okt" style="height: 100%"></div>
+                    </div>
+                  </a>
+                </main>
+              </div>
+              <nav class="leiste" inert>
+                <a href="/mockups/telefon/karte.html"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+                <a class="an" href="/mockups/telefon/wetter.html" aria-current="page"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+                <a href="/mockups/telefon/gesundheit.html"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+                <a href="/mockups/telefon/mehr.html"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+              </nav>
+            </div>
+            <div class="hinter" data-seite="gesundheit" hidden>
+              <div class="rollfeld" inert>
+                <header class="kopf">
+                  <div class="kopf-zeile">
+                    <a class="kopf-ort" href="/mockups/telefon/orte.html" style="color: inherit; text-decoration: none"><span class="name">Köln</span><i class="fa-solid fa-chevron-down"></i></a>
+                    <span class="kopf-stand"><span class="frische"></span>vor 2 Min</span>
+                  </div>
+                  <div class="ort-punkte"><span class="an"></span><span></span><span></span><span></span><span></span></div>
+                </header>
+
+                <!-- ============ Raster: Telefon-Layout des Profils "Zuhause", Seite Gesundheit (Vorlage "vorlage.gesundheit" im Katalog) -->
+                <main class="raster">
+                  <!-- UV 3x1: Wert, Tageskurve, Höchstwert mit Uhrzeit -->
+                  <a class="k" href="/mockups/telefon/detail.html#uv" style="--x: 0; --y: 0; --w: 3">
+                    <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>UV</span><span class="rechts">Höchstwert 2,4 um 13 Uhr</span></div>
+                    <div class="k-reihe">
+                      <div class="k-block">
+                        <div class="wert dick"><b>2</b></div>
+                        <div class="unter">gering</div>
+                      </div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="0,0.2,0.7,1.4,2.0,2.4,2.2,1.6,0.9,0.3,0" data-farbe="--sonne" data-flaeche="1" data-jetzt="6"></div>
+                    </div>
+                  </a>
+
+                  <!-- Luft 3x2: Index als Ring mit Wort, vier Schadstoffe als Balken (Anteil am Richtwert) -->
+                  <a class="k" href="/mockups/telefon/detail.html#luft" style="--x: 0; --y: 1; --w: 3; --h: 2">
+                    <div class="k-kopf"><i class="fa-solid fa-lungs"></i><span>Luft</span><span class="rechts">µg/m³</span></div>
+                    <div class="k-reihe mitte" style="gap: 14px">
+                      <div class="k-block" style="display: flex; flex-direction: column; align-items: center">
+                        <div class="ringwert" style="width: 112px">
+                          <div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div>
+                          <b>28</b>
+                        </div>
+                        <div class="zustand" style="margin-top: 6px">gut</div>
+                        <div class="unter" style="margin-top: 0">kaum belastet</div>
+                      </div>
+                      <div class="k-block dehnen balken-stapel" style="align-self: stretch">
+                        <div class="balken-z"><span class="bz-lab">NO<sub>2</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">12</span></div>
+                        <div class="balken-z"><span class="bz-lab">O<sub>3</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">48</span></div>
+                        <div class="balken-z"><span class="bz-lab">PM<sub>2,5</sub></span><span class="bz-bahn"><span style="width: 47%; background: var(--gut)"></span></span><span class="bz-wert">7</span></div>
+                        <div class="balken-z"><span class="bz-lab">PM<sub>10</sub></span><span class="bz-bahn"><span style="width: 31%; background: var(--gut)"></span></span><span class="bz-wert">14</span></div>
+                      </div>
+                    </div>
+                    <div class="unter entbehrlich">Morgen <b>18</b>, sehr gut</div>
+                  </a>
+
+                  <!-- Pollen 3x3: alle acht Arten heute und morgen, gewählte Allergien (Gräser, Birke) zuerst und hinterlegt -->
+                  <a class="k" href="/mockups/telefon/detail.html#pollen" style="--x: 0; --y: 3; --w: 3; --h: 3">
+                    <div class="k-kopf"><i class="fa-solid fa-seedling"></i><span>Pollen</span><span class="rechts">fast keine</span></div>
+                    <div class="pollen-tafel">
+                      <div class="pt-zeile pt-kopf"><span></span><span>Heute</span><span>Morgen</span></div>
+                      <div class="pt-zeile allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Gräser</span><span class="punkte p1"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      <div class="pt-zeile allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Birke</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      <div class="pt-zeile"><span class="art">Ambrosia</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      <div class="pt-zeile"><span class="art">Beifuß</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      <div class="pt-zeile"><span class="art">Erle</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      <div class="pt-zeile"><span class="art">Esche</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      <div class="pt-zeile"><span class="art">Hasel</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      <div class="pt-zeile"><span class="art">Roggen</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                    </div>
+                  </a>
+
+                  <!-- Messwert gefühlt 2x1: Wert links, Verlauf 24 h rechts, Tendenzpfeil -->
+                  <a class="k" href="/mockups/telefon/detail.html#gefuehlt" style="--x: 0; --y: 6; --w: 2">
+                    <div class="k-kopf"><i class="fa-solid fa-temperature-half"></i><span>Gefühlt</span><span class="rechts">24 h</span></div>
+                    <div class="k-reihe">
+                      <div class="k-block">
+                        <div class="wert halb t-mild"><b>11°</b><i class="fa-solid fa-arrow-trend-up pfeil"></i></div>
+                        <div class="unter">Wind kühlt</div>
+                      </div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="12.4,12.1,11.3,10.2,9.1,8.2,7.4,6.9,6.3,5.8,5.4,5.0,4.7,4.5,5.1,6.2,7.8,9.1,10.2,11.0" data-farbe="temp"></div>
+                    </div>
+                  </a>
+
+                  <!-- Messwert Feuchte 1x1 (wie auf der Wetterseite) -->
+                  <a class="k" href="/mockups/telefon/detail.html#feuchte" style="--x: 2; --y: 6">
+                    <div class="k-kopf"><i class="fa-solid fa-droplet entbehrlich-gross"></i><span>Feuchte</span></div>
+                    <div class="wert" style="margin-top: 6px"><b>72</b><small>%</small><i class="fa-solid fa-arrow-trend-down pfeil"></i></div>
+                    <div class="unter entbehrlich">fällt</div>
+                    <div class="mikro-feld" data-mikro="linie" data-werte="88,90,91,90,86,80,76,73,72" data-farbe="--regen" style="margin-top: 4px"></div>
+                  </a>
+                </main>
+              </div>
+              <nav class="leiste" inert>
+                <a href="/mockups/telefon/karte.html"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+                <a href="/mockups/telefon/wetter.html"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+                <a class="an" href="/mockups/telefon/gesundheit.html" aria-current="page"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+                <a href="/mockups/telefon/mehr.html"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+              </nav>
+            </div>
+
+            <!-- Tippen auf die Abdunkelung schließt das Blatt wie der Knopf -->
+            <a class="abdunkeln" href="/mockups/telefon/wetter.html" aria-label="Blatt schließen" data-schliessen></a>
+
+            <!-- ================================================================ Jetzt -->
+            <section class="blatt voll" data-blatt="jetzt" data-name="Jetzt" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Jetzt<small>Köln · Stand 14:18</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                    <div class="held-text">
+                      <div class="riesen-zahl t-mild">13°</div>
+                      <div class="held-satz">Leicht bewölkt</div>
+                      <div class="held-unter">Gefühlt <b>11°</b> · Hoch <b>15°</b> · Tief <b>7°</b></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Messwerte</h3>
+                  <div class="werte-gitter">
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-temperature-half"></i>Gefühlt</div><div class="wg-wert">11°</div><div class="wg-unter">Wind kühlt</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-droplet"></i>Feuchte</div><div class="wg-wert">72<small>%</small></div><div class="wg-unter">fällt seit dem Morgen</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-water"></i>Taupunkt</div><div class="wg-wert">8°</div><div class="wg-unter">angenehm</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-gauge"></i>Luftdruck</div><div class="wg-wert">1018<small>hPa</small></div><div class="wg-unter"><i class="fa-solid fa-arrow-trend-up"></i> steigt</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">14<small>km/h</small></div><div class="wg-unter">aus Südwest</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Böen</div><div class="wg-wert">31<small>km/h</small></div><div class="wg-unter">am Abend bis 42</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-eye"></i>Sicht</div><div class="wg-wert">24<small>km</small></div><div class="wg-unter">sehr gut</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-cloud"></i>Bewölkung</div><div class="wg-wert">40<small>%</small></div><div class="wg-unter">nimmt zu</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV-Index</div><div class="wg-wert">2</div><div class="wg-unter">gering</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen heute</div><div class="wg-wert">2,5<small>mm</small></div><div class="wg-unter">ab 17 Uhr erwartet</div></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Gefühlte Temperatur</span><i class="fa-solid fa-chevron-down"></i></summary><p>So warm oder kalt fühlt es sich draußen an. Wind kühlt zusätzlich, feuchte Wärme wirkt wärmer, als das Thermometer zeigt.</p></details>
+                    <details class="auf erkl" open><summary><i class="fa-solid fa-circle-info"></i><span>Taupunkt</span><i class="fa-solid fa-chevron-down"></i></summary><p>Bis zu dieser Temperatur müsste die Luft abkühlen, damit sich Tau oder Nebel bildet. Liegen Taupunkt und Temperatur nah beieinander, fühlt es sich feucht an.</p></details>
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Sicht</span><i class="fa-solid fa-chevron-down"></i></summary><p>Wie weit man waagerecht sehen kann. Unter 1 km spricht man von Nebel.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Regen -->
+            <section class="blatt voll" data-blatt="regen" data-name="Regen" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Regen<small>Köln · nächste 2 Stunden</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" />
+                    <div class="held-text">
+                      <div class="riesen-zahl c-regen">17<small>Uhr</small></div>
+                      <div class="held-satz">Regenbeginn, 70 %</div>
+                      <div class="held-unter">Bis etwa 16 Uhr trocken, dann erste Tropfen. Bis Mitternacht <b>2,5 mm</b>.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Nächste 2 Stunden</h3>
+                  <div class="tafel">
+                    <div class="tafel-kopf"><b>Kurzfristvorhersage</b><span>je 5 Minuten · Skala bis 1 mm/h</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="balken" data-werte="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.1,0.1,0.2,0.3" data-max="1" data-achse="Jetzt|+1 h|+2 h"></div>
+                    <div class="tafel-fuss">Höchstens <b>0,3 mm/h</b> gegen 16:20, das ist sehr leichter Regen.</div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Danach · Stundenvorhersage</h3>
+                  <div class="zeilen">
+                    <div class="zeile stunde"><span class="uhr">17:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-mild">13°</span><span class="nass"><span class="c-regen">70 %</span><small>0,3 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(50deg)"></i>19<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">18:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">11°</span><span class="nass"><span class="c-regen">80 %</span><small>1,2 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(60deg)"></i>22<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">19:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="c-regen">60 %</span><small>0,8 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(70deg)"></i>20<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">20:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="c-regen">40 %</span><small>0,2 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>18<small>km/h</small></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Quelle</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-satellite-dish"></i></span><div class="haupt"><b>Radar 14:15</b><small>Kurzfristvorhersage, alle 5 Minuten neu</small></div></div>
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Was ist die Kurzfristvorhersage?</span><i class="fa-solid fa-chevron-down"></i></summary><p>Das gemessene Radarbild wird in die Zukunft weitergeschoben. Das ist für die nächsten 2 Stunden genauer als jede Stundenvorhersage. Danach gilt die Stundenvorhersage.</p></details>
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Was heißt 70 %?</span><i class="fa-solid fa-chevron-down"></i></summary><p>In 7 von 10 vergleichbaren Lagen regnet es in dieser Stunde mindestens 0,1 mm. Wie viel, steht darunter in mm.</p></details>
+                    <a class="zeile" href="/mockups/telefon/karte.html"><span class="sym"><i class="fa-solid fa-map-location-dot"></i></span><div class="haupt"><b>Auf der Karte ansehen</b><small>Regenradar mit Abspielleiste</small></div><span class="rechts"><i class="fa-solid fa-chevron-right"></i></span></a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Wind -->
+            <section class="blatt voll" data-blatt="wind" data-name="Wind" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Wind<small>Köln · Stand 14:18</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="mikro-feld fest held-bild" data-mikro="kompass" data-grad="225" style="width: 150px; height: 150px"></div>
+                    <div class="held-text">
+                      <div class="riesen-zahl">14<small>km/h</small></div>
+                      <div class="held-satz">aus Südwest</div>
+                      <div class="held-unter">Böen <b>31 km/h</b></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Stärke</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-wind"></i></span><div class="haupt"><b>Stärke 3: schwache Brise</b><small>Blätter und dünne Zweige bewegen sich</small></div></div>
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-wind"></i></span><div class="haupt"><b>Böen Stärke 5: frische Brise</b><small>am Abend bis 42 km/h</small></div></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Verlauf</h3>
+                  <div class="segmente" role="tablist"><button class="an" data-zeige="w24">24 h</button><button data-zeige="w7">7 Tage</button></div>
+                  <div class="tafel" data-tafel="w24">
+                    <div class="tafel-kopf"><b>Wind in km/h</b><span>12 bis 24</span></div>
+                    <div class="mikro-feld diagramm flach" data-mikro="linie" data-werte="14,15,17,19,22,20,18,16,14,13,12,12,13,14,16,18,20,22,24,24,22,21,20,20,19" data-farbe="--text-2" data-flaeche="1" data-jetzt="0"></div>
+                    <div class="spalten wind-sp" style="margin-top: 12px">
+                      <div class="sp"><span class="sp-zeit">Jetzt</span><i class="fa-solid fa-arrow-up" style="transform: rotate(45deg)"></i><span class="sp-wert">14</span><span class="sp-boe">31</span></div>
+                      <div class="sp"><span class="sp-zeit">17</span><i class="fa-solid fa-arrow-up" style="transform: rotate(50deg)"></i><span class="sp-wert">19</span><span class="sp-boe">38</span></div>
+                      <div class="sp"><span class="sp-zeit">20</span><i class="fa-solid fa-arrow-up" style="transform: rotate(80deg)"></i><span class="sp-wert">18</span><span class="sp-boe">34</span></div>
+                      <div class="sp"><span class="sp-zeit">23</span><i class="fa-solid fa-arrow-up" style="transform: rotate(90deg)"></i><span class="sp-wert">13</span><span class="sp-boe">25</span></div>
+                      <div class="sp"><span class="sp-zeit">02</span><i class="fa-solid fa-arrow-up" style="transform: rotate(60deg)"></i><span class="sp-wert">13</span><span class="sp-boe">24</span></div>
+                      <div class="sp"><span class="sp-zeit">05</span><i class="fa-solid fa-arrow-up" style="transform: rotate(50deg)"></i><span class="sp-wert">18</span><span class="sp-boe">33</span></div>
+                      <div class="sp"><span class="sp-zeit">08</span><i class="fa-solid fa-arrow-up" style="transform: rotate(70deg)"></i><span class="sp-wert">24</span><span class="sp-boe">44</span></div>
+                      <div class="sp"><span class="sp-zeit">11</span><i class="fa-solid fa-arrow-up" style="transform: rotate(90deg)"></i><span class="sp-wert">21</span><span class="sp-boe">40</span></div>
+                    </div>
+                    <div class="tafel-fuss">Oben Wind, darunter Böen in km/h. Der Pfeil zeigt, wohin der Wind weht.</div>
+                  </div>
+                  <div class="zeilen" data-tafel="w7" hidden>
+                    <div class="zeile"><div class="haupt"><b>Heute</b><small>aus Südwest</small></div><span class="rechts"><span class="zahl-r">22 <small>km/h</small></span><span class="zahl-r"><small>Böen</small> 42</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Dienstag 20.10.</b><small>aus West</small></div><span class="rechts"><span class="zahl-r">24 <small>km/h</small></span><span class="zahl-r"><small>Böen</small> 48</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Mittwoch 21.10.</b><small>aus Nordwest</small></div><span class="rechts"><span class="zahl-r">13 <small>km/h</small></span><span class="zahl-r"><small>Böen</small> 30</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Donnerstag 22.10.</b><small>aus Ost</small></div><span class="rechts"><span class="zahl-r">8 <small>km/h</small></span><span class="zahl-r"><small>Böen</small> 20</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Freitag 23.10.</b><small>aus Südost</small></div><span class="rechts"><span class="zahl-r">10 <small>km/h</small></span><span class="zahl-r"><small>Böen</small> 22</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Samstag 24.10.</b><small>aus Süd</small></div><span class="rechts"><span class="zahl-r">12 <small>km/h</small></span><span class="zahl-r"><small>Böen</small> 26</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Sonntag 25.10.</b><small>aus Südwest</small></div><span class="rechts"><span class="zahl-r">16 <small>km/h</small></span><span class="zahl-r"><small>Böen</small> 35</span></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Beaufort</span><i class="fa-solid fa-chevron-down"></i></summary><p>Windstärke in 13 Stufen von 0 (Stille) bis 12 (Orkan), benannt nach dem, was man draußen sieht. Stufe 3 ab 12 km/h, Sturm ab Stufe 8.</p></details>
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Böen</span><i class="fa-solid fa-chevron-down"></i></summary><p>Kurze Windstöße von wenigen Sekunden. Sie liegen meist deutlich über dem mittleren Wind und entscheiden, ob Äste brechen.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Stunden -->
+            <section class="blatt voll" data-blatt="stunden" data-name="Stunden" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Stunden<small>Köln · nächste 48 Stunden</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="tafel">
+                    <div class="tafel-kopf"><b>Nächste 24 Stunden</b><span>8° bis 14° · Regen ab 17 Uhr</span></div>
+                    <div class="mikro-feld diagramm" data-mikro="linie" data-werte="13.4,13.9,13.6,12.6,11.2,10.4,10.1,9.8,9.4,9.1,8.9,8.7,8.4,8.2,8.1,8.0,8.1,8.3,8.8,9.7,10.8,11.9,12.6,13.0,13.1" data-farbe="temp" data-beschriften="3" data-jetzt="0" style="margin: 0 10px"></div>
+                    <div class="mikro-feld diagramm flach" data-mikro="balken" data-werte="0,0,0,0.3,1.2,0.8,0.2,0,0,0,0,0,0,0,0.2,0.4,0.9,1.4,1.6,1.1,0.8,0.3,0.1,0,0" data-max="2" data-achse="Jetzt|18|22|02|06|10|14" style="margin: 0 10px"></div>
+                    <div class="tafel-fuss">Säulen: Regen in mm je Stunde, am meisten Dienstag um 8 Uhr mit 1,6 mm.</div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Heute, Montag 19.10. · 10 Stunden</h3>
+                  <div class="zeilen">
+                    <div class="zeile stunde"><span class="uhr">Jetzt</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="temp t-mild">13°</span><span class="nass"><span class="matt">5 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(45deg)"></i>14<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">15:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="temp t-mild">14°</span><span class="nass"><span class="matt">5 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(45deg)"></i>15<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">16:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="temp t-mild">14°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(45deg)"></i>17<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">17:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-mild">13°</span><span class="nass"><span class="c-regen">70 %</span><small>0,3 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(50deg)"></i>19<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">18:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">11°</span><span class="nass"><span class="c-regen">80 %</span><small>1,2 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(60deg)"></i>22<small>km/h</small></span></div>
+                    <div class="zeile stunde ereignis"><span class="uhr">18:27</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/sunset.svg" alt="" /><span class="ereignis-text">Sonnenuntergang</span></div>
+                    <div class="zeile stunde"><span class="uhr">19:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="c-regen">60 %</span><small>0,8 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(70deg)"></i>20<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">20:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="c-regen">40 %</span><small>0,2 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>18<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">21:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>16<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">22:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="matt">15 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(90deg)"></i>14<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">23:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="matt">10 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(90deg)"></i>13<small>km/h</small></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Dienstag 20.10. · 24 Stunden</h3>
+                  <div class="zeilen">
+                    <div class="zeile stunde"><span class="uhr">00:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="matt">10 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>12<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">01:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="matt">15 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(70deg)"></i>12<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">02:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(60deg)"></i>13<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">03:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="c-regen">30 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(60deg)"></i>14<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">04:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="c-regen">50 %</span><small>0,2 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(55deg)"></i>16<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">05:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="c-regen">60 %</span><small>0,4 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(50deg)"></i>18<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">06:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="c-regen">70 %</span><small>0,9 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(50deg)"></i>20<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">07:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="c-regen">80 %</span><small>1,4 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(60deg)"></i>22<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">08:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="c-regen">85 %</span><small>1,6 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(70deg)"></i>24<small>km/h</small></span></div>
+                    <div class="zeile stunde ereignis"><span class="uhr">08:09</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/sunrise.svg" alt="" /><span class="ereignis-text">Sonnenaufgang</span></div>
+                    <div class="zeile stunde"><span class="uhr">09:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="c-regen">80 %</span><small>1,1 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>24<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">10:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">11°</span><span class="nass"><span class="c-regen">70 %</span><small>0,8 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>22<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">11:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-mild">12°</span><span class="nass"><span class="c-regen">55 %</span><small>0,3 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(90deg)"></i>21<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">12:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="temp t-mild">13°</span><span class="nass"><span class="c-regen">40 %</span><small>0,1 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(90deg)"></i>20<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">13:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="temp t-mild">13°</span><span class="nass"><span class="c-regen">30 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(90deg)"></i>20<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">14:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="temp t-mild">13°</span><span class="nass"><span class="c-regen">30 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(90deg)"></i>19<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">15:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-mild">12°</span><span class="nass"><span class="c-regen">50 %</span><small>0,2 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>19<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">16:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-mild">12°</span><span class="nass"><span class="c-regen">65 %</span><small>0,6 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>20<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">17:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">11°</span><span class="nass"><span class="c-regen">70 %</span><small>0,9 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(80deg)"></i>21<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">18:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="c-regen">70 %</span><small>0,7 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(90deg)"></i>20<small>km/h</small></span></div>
+                    <div class="zeile stunde ereignis"><span class="uhr">18:25</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/sunset.svg" alt="" /><span class="ereignis-text">Sonnenuntergang</span></div>
+                    <div class="zeile stunde"><span class="uhr">19:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="c-regen">50 %</span><small>0,3 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(100deg)"></i>18<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">20:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="c-regen">30 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(110deg)"></i>16<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">21:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(120deg)"></i>15<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">22:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="matt">15 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(120deg)"></i>14<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">23:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="matt">10 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(130deg)"></i>13<small>km/h</small></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Mittwoch 21.10. · 14 Stunden</h3>
+                  <div class="zeilen">
+                    <div class="zeile stunde"><span class="uhr">00:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="matt">10 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(130deg)"></i>12<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">01:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /><span class="temp t-kuehl">7°</span><span class="nass"><span class="matt">10 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(130deg)"></i>11<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">02:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">7°</span><span class="nass"><span class="matt">15 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(140deg)"></i>11<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">03:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">7°</span><span class="nass"><span class="matt">15 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(140deg)"></i>10<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">04:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">7°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(140deg)"></i>10<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">05:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">6°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(140deg)"></i>10<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">06:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">6°</span><span class="nass"><span class="matt">25 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(140deg)"></i>11<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">07:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /><span class="temp t-kuehl">6°</span><span class="nass"><span class="matt">25 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(140deg)"></i>11<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">08:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="temp t-kuehl">7°</span><span class="nass"><span class="matt">25 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(140deg)"></i>12<small>km/h</small></span></div>
+                    <div class="zeile stunde ereignis"><span class="uhr">08:10</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/sunrise.svg" alt="" /><span class="ereignis-text">Sonnenaufgang</span></div>
+                    <div class="zeile stunde"><span class="uhr">09:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="temp t-kuehl">8°</span><span class="nass"><span class="c-regen">30 %</span><small>0,1 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(135deg)"></i>12<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">10:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="temp t-kuehl">9°</span><span class="nass"><span class="c-regen">30 %</span><small>0,1 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(135deg)"></i>13<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">11:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="temp t-kuehl">10°</span><span class="nass"><span class="matt">25 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(130deg)"></i>13<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">12:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="temp t-kuehl">11°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(130deg)"></i>12<small>km/h</small></span></div>
+                    <div class="zeile stunde"><span class="uhr">13:00</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="temp t-kuehl">11°</span><span class="nass"><span class="matt">20 %</span><small>0 mm</small></span><span class="wind-w"><i class="fa-solid fa-arrow-up pfeil-w" style="transform: rotate(130deg)"></i>12<small>km/h</small></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Regen in % und mm</span><i class="fa-solid fa-chevron-down"></i></summary><p>Die Prozentzahl sagt, wie wahrscheinlich es in dieser Stunde regnet. Die Millimeter sagen, wie viel: 1 mm ist 1 Liter auf den Quadratmeter.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Tage -->
+            <section class="blatt voll" data-blatt="tage" data-name="Tage" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">7 Tage<small>Köln · 5° bis 17°</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <h3>Diese Woche · Tag antippen für mehr</h3>
+                  <div class="zeilen">
+                    <details class="auf">
+                      <summary class="tag-z"><span class="tag"><b>Heute</b><small>19.10. · <span class="regen">70 %</span></small></span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="lo">7°</span><span class="band"><span style="left: 17%; right: 17%"></span><i style="left: 67%"></i></span><span class="hi">15°</span><i class="fa-solid fa-chevron-down"></i></summary>
+                      <div class="auf-inhalt werte-gitter">
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen</div><div class="wg-wert">2,5<small>mm</small></div><div class="wg-unter">70 %, ab 17 Uhr</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">22<small>km/h</small></div><div class="wg-unter">Südwest, Böen 42</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Sonne</div><div class="wg-wert">3,5<small>Stunden</small></div><div class="wg-unter">08:07 bis 18:27</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV</div><div class="wg-wert">2</div><div class="wg-unter">gering</div></div>
+                      </div>
+                    </details>
+                    <details class="auf" open>
+                      <summary class="tag-z"><span class="tag"><b>Dienstag</b><small>20.10. · <span class="regen">90 %</span></small></span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 33%"></span></span><span class="hi">13°</span><i class="fa-solid fa-chevron-down"></i></summary>
+                      <div class="auf-inhalt werte-gitter">
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen</div><div class="wg-wert">9,5<small>mm</small></div><div class="wg-unter">90 %, vor allem morgens</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">24<small>km/h</small></div><div class="wg-unter">West, Böen 48</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Sonne</div><div class="wg-wert">0,5<small>Stunden</small></div><div class="wg-unter">08:09 bis 18:25</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV</div><div class="wg-wert">1</div><div class="wg-unter">gering</div></div>
+                      </div>
+                    </details>
+                    <details class="auf">
+                      <summary class="tag-z"><span class="tag"><b>Mittwoch</b><small>21.10. · <span class="regen">30 %</span></small></span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="lo">6°</span><span class="band"><span style="left: 8%; right: 42%"></span></span><span class="hi">12°</span><i class="fa-solid fa-chevron-down"></i></summary>
+                      <div class="auf-inhalt werte-gitter">
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen</div><div class="wg-wert">0,2<small>mm</small></div><div class="wg-unter">30 %, vormittags</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">13<small>km/h</small></div><div class="wg-unter">Nordwest, Böen 30</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Sonne</div><div class="wg-wert">1,5<small>Stunden</small></div><div class="wg-unter">08:10 bis 18:23</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV</div><div class="wg-wert">1</div><div class="wg-unter">gering</div></div>
+                      </div>
+                    </details>
+                    <details class="auf">
+                      <summary class="tag-z"><span class="tag"><b>Donnerstag</b><small>22.10. · <span class="regen matt">10 %</span></small></span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="lo">5°</span><span class="band"><span style="left: 0%; right: 25%"></span></span><span class="hi">14°</span><i class="fa-solid fa-chevron-down"></i></summary>
+                      <div class="auf-inhalt werte-gitter">
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen</div><div class="wg-wert">0<small>mm</small></div><div class="wg-unter">10 %, trocken</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">8<small>km/h</small></div><div class="wg-unter">Ost, Böen 20</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Sonne</div><div class="wg-wert">5<small>Stunden</small></div><div class="wg-unter">08:12 bis 18:21</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV</div><div class="wg-wert">2</div><div class="wg-unter">gering</div></div>
+                      </div>
+                    </details>
+                    <details class="auf">
+                      <summary class="tag-z"><span class="tag"><b>Freitag</b><small>23.10. · <span class="regen matt">0 %</span></small></span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 0%"></span></span><span class="hi">17°</span><i class="fa-solid fa-chevron-down"></i></summary>
+                      <div class="auf-inhalt werte-gitter">
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen</div><div class="wg-wert">0<small>mm</small></div><div class="wg-unter">trocken</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">10<small>km/h</small></div><div class="wg-unter">Südost, Böen 22</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Sonne</div><div class="wg-wert">8,5<small>Stunden</small></div><div class="wg-unter">08:14 bis 18:19</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV</div><div class="wg-wert">2</div><div class="wg-unter">gering</div></div>
+                      </div>
+                    </details>
+                    <details class="auf">
+                      <summary class="tag-z"><span class="tag"><b>Samstag</b><small>24.10. · <span class="regen matt">20 %</span></small></span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="lo">9°</span><span class="band"><span style="left: 33%; right: 8%"></span></span><span class="hi">16°</span><i class="fa-solid fa-chevron-down"></i></summary>
+                      <div class="auf-inhalt werte-gitter">
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen</div><div class="wg-wert">0,1<small>mm</small></div><div class="wg-unter">20 %, abends</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">12<small>km/h</small></div><div class="wg-unter">Süd, Böen 26</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Sonne</div><div class="wg-wert">4<small>Stunden</small></div><div class="wg-unter">08:15 bis 18:17</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV</div><div class="wg-wert">2</div><div class="wg-unter">gering</div></div>
+                      </div>
+                    </details>
+                    <details class="auf">
+                      <summary class="tag-z"><span class="tag"><b>Sonntag</b><small>25.10. · <span class="regen">50 %</span></small></span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 25%"></span></span><span class="hi">14°</span><i class="fa-solid fa-chevron-down"></i></summary>
+                      <div class="auf-inhalt werte-gitter">
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-umbrella"></i>Regen</div><div class="wg-wert">1,8<small>mm</small></div><div class="wg-unter">50 %, nachmittags</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-wind"></i>Wind</div><div class="wg-wert">16<small>km/h</small></div><div class="wg-unter">Südwest, Böen 35</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Sonne</div><div class="wg-wert">1<small>Stunden</small></div><div class="wg-unter">07:17 bis 17:15, Winterzeit</div></div>
+                        <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>UV</div><div class="wg-wert">1</div><div class="wg-unter">gering</div></div>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Was zeigt der Balken?</span><i class="fa-solid fa-chevron-down"></i></summary><p>Die Spanne von Tief bis Hoch des Tages, gemessen an der ganzen Woche (5° bis 17°). Der Punkt heute ist die Temperatur jetzt.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ UV -->
+            <section class="blatt voll" data-blatt="uv" data-name="UV" data-seite="gesundheit" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">UV-Index<small>Köln · Stand 14:00</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/gesundheit.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="held-bild" style="width: 150px; height: 130px">
+                      <div class="mikro-feld" data-mikro="bogen" data-wert="2" data-max="11" style="position: absolute; inset: 0"></div>
+                      <div class="mitte"><div class="riesen-zahl">2</div></div>
+                    </div>
+                    <div class="held-text">
+                      <div class="held-satz">Gering</div>
+                      <div class="held-unter">Heute höchstens <b>2,4</b> um 13 Uhr. Kein Schutz nötig.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Tageskurve</h3>
+                  <div class="segmente"><button class="an" data-zeige="uv-heute">Heute</button><button data-zeige="uv-morgen">Morgen</button></div>
+                  <div class="tafel" data-tafel="uv-heute">
+                    <div class="tafel-kopf"><b>Höchstwert 2,4</b><span>um 13 Uhr</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="0,0.2,0.7,1.4,2.0,2.4,2.2,1.6,0.9,0.3,0" data-farbe="--sonne" data-flaeche="1" data-jetzt="6"></div>
+                    <div class="achse"><span style="left: 0%">08</span><span style="left: 20%">10</span><span style="left: 40%">12</span><span style="left: 60%">14</span><span style="left: 80%">16</span><span style="left: 100%">18</span></div>
+                  </div>
+                  <div class="tafel" data-tafel="uv-morgen" hidden>
+                    <div class="tafel-kopf"><b>Höchstwert 1,1</b><span>um 13 Uhr, bedeckt</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="0,0.1,0.3,0.6,0.9,1.1,1.0,0.7,0.4,0.1,0" data-farbe="--sonne" data-flaeche="1" data-jetzt="-1"></div>
+                    <div class="achse"><span style="left: 0%">08</span><span style="left: 20%">10</span><span style="left: 40%">12</span><span style="left: 60%">14</span><span style="left: 80%">16</span><span style="left: 100%">18</span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Stufen</h3>
+                  <div class="zeilen">
+                    <div class="zeile an"><span class="farbpunkt" style="background: var(--gut)"></span><div class="haupt"><b>0 bis 2 · gering</b><small>kein Schutz nötig</small></div></div>
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--w1)"></span><div class="haupt"><b>3 bis 5 · mäßig</b><small>mittags Schatten, Sonnencreme</small></div></div>
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--w2)"></span><div class="haupt"><b>6 bis 7 · hoch</b><small>Hut, Sonnenbrille, Creme</small></div></div>
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--w3)"></span><div class="haupt"><b>8 bis 10 · sehr hoch</b><small>mittags drinnen bleiben</small></div></div>
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--w4)"></span><div class="haupt"><b>ab 11 · extrem</b><small>Sonne meiden</small></div></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>UV-Index</span><i class="fa-solid fa-chevron-down"></i></summary><p>Misst, wie stark die Sonne die Haut schädigen kann. Er hängt vom Sonnenstand und von den Wolken ab, nicht von der Temperatur. Im Herbst bleibt er in Köln meist unter 3.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Luft -->
+            <section class="blatt voll" data-blatt="luft" data-name="Luft" data-seite="gesundheit" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Luftqualität<small>Köln · Stand 14:00</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/gesundheit.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="held-bild" style="width: 120px; height: 120px">
+                      <div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut" style="position: absolute; inset: 0"></div>
+                      <div class="mitte"><div class="riesen-zahl" style="font-size: calc(var(--s26) * 1.6)">28</div></div>
+                    </div>
+                    <div class="held-text">
+                      <div class="held-satz">Gut</div>
+                      <div class="held-unter">Morgen <b>18</b>, sehr gut: Regen wäscht Staub aus der Luft.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Schadstoffe</h3>
+                  <div class="zeilen">
+                    <div class="zeile schad"><div class="schad-kopf"><b>Stickstoffdioxid</b><span>12 <small>von 25</small></span></div><div class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></div><div class="schad-unter">NO<sub>2</sub>, vor allem aus dem Verkehr</div></div>
+                    <div class="zeile schad"><div class="schad-kopf"><b>Ozon</b><span>48 <small>von 100</small></span></div><div class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></div><div class="schad-unter">O<sub>3</sub>, entsteht bei Sonne</div></div>
+                    <div class="zeile schad"><div class="schad-kopf"><b>Feinstaub PM2,5</b><span>7 <small>von 15</small></span></div><div class="bz-bahn"><span style="width: 47%; background: var(--gut)"></span></div><div class="schad-unter">sehr feine Teilchen</div></div>
+                    <div class="zeile schad"><div class="schad-kopf"><b>Feinstaub PM10</b><span>14 <small>von 45</small></span></div><div class="bz-bahn"><span style="width: 31%; background: var(--gut)"></span></div><div class="schad-unter">gröbere Teilchen</div></div>
+                  </div>
+                  <p>Werte in µg je m³ Luft. Der Balken zeigt den Anteil am Richtwert für die Gesundheit.</p>
+                </div>
+                <div class="abschnitt">
+                  <h3>Letzte 24 Stunden</h3>
+                  <div class="tafel">
+                    <div class="tafel-kopf"><b>Index 24 bis 34</b><span>immer gut</span></div>
+                    <div class="mikro-feld diagramm flach" data-mikro="linie" data-werte="34,33,31,30,29,28,27,26,26,25,25,24,25,27,30,32,33,31,30,29,28,28,27,28,28" data-farbe="--gut"></div>
+                    <div class="achse"><span style="left: 0%">-24 h</span><span style="left: 50%">-12 h</span><span style="left: 100%">jetzt</span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Stufen</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--gut)"></span><div class="haupt"><b>0 bis 25 · sehr gut</b></div></div>
+                    <div class="zeile an"><span class="farbpunkt" style="background: var(--gut)"></span><div class="haupt"><b>26 bis 50 · gut</b></div></div>
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--w1)"></span><div class="haupt"><b>51 bis 75 · mäßig</b><small>Empfindliche draußen ruhiger</small></div></div>
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--w2)"></span><div class="haupt"><b>76 bis 100 · schlecht</b><small>Anstrengung draußen meiden</small></div></div>
+                    <div class="zeile"><span class="farbpunkt" style="background: var(--w3)"></span><div class="haupt"><b>über 100 · sehr schlecht</b></div></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Luftqualitätsindex</span><i class="fa-solid fa-chevron-down"></i></summary><p>Fasst die Schadstoffe zu einer Zahl zusammen. Maßgeblich ist der Stoff, der seinem Richtwert am nächsten kommt. Kleiner ist besser.</p></details>
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Feinstaub</span><i class="fa-solid fa-chevron-down"></i></summary><p>Winzige Teilchen aus Verkehr, Heizungen und Landwirtschaft. Die Zahl hinter PM ist die größte Teilchengröße in Tausendstel Millimetern.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Pollen -->
+            <section class="blatt voll" data-blatt="pollen" data-name="Pollen" data-seite="gesundheit" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Pollen<small>Köln · Vorhersage heute und morgen</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/gesundheit.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="segmente"><button class="an" data-zeige="p-heute">Heute</button><button data-zeige="p-morgen">Morgen</button></div>
+                  <div data-tafel="p-heute">
+                    <h3 style="margin-top: 16px">Deine Allergien</h3>
+                    <div class="zeilen">
+                      <div class="zeile"><span class="sym"><i class="fa-solid fa-seedling"></i></span><div class="haupt"><b>Gräser</b><small>Ausklang der Saison</small></div><span class="rechts"><span class="punkte p1"><span></span><span></span><span></span></span>gering</span></div>
+                      <div class="zeile"><span class="sym"><i class="fa-solid fa-tree"></i></span><div class="haupt"><b>Birke</b><small>wieder ab März</small></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                    </div>
+                    <h3 style="margin-top: 16px">Weitere</h3>
+                    <div class="zeilen">
+                      <div class="zeile"><div class="haupt"><b>Ambrosia</b></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                      <div class="zeile"><div class="haupt"><b>Beifuß</b></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                      <div class="zeile"><div class="haupt"><b>Erle</b></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                      <div class="zeile"><div class="haupt"><b>Esche</b></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                      <div class="zeile"><div class="haupt"><b>Hasel</b></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                      <div class="zeile"><div class="haupt"><b>Roggen</b></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                    </div>
+                  </div>
+                  <div data-tafel="p-morgen" hidden>
+                    <h3 style="margin-top: 16px">Deine Allergien</h3>
+                    <div class="zeilen">
+                      <div class="zeile"><span class="sym"><i class="fa-solid fa-seedling"></i></span><div class="haupt"><b>Gräser</b><small>Regen bindet die Pollen</small></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                      <div class="zeile"><span class="sym"><i class="fa-solid fa-tree"></i></span><div class="haupt"><b>Birke</b><small>wieder ab März</small></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                    </div>
+                    <h3 style="margin-top: 16px">Weitere</h3>
+                    <div class="zeilen">
+                      <div class="zeile"><div class="haupt"><b>Alle anderen Arten</b><small>Ambrosia, Beifuß, Erle, Esche, Hasel, Roggen</small></div><span class="rechts"><span class="punkte"><span></span><span></span><span></span></span>keine</span></div>
+                    </div>
+                  </div>
+                  <p>Deine Allergien stehen oben. Ausgewählt werden sie am Desktop in der Pollen-Kachel.</p>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Belastungsstufen</span><i class="fa-solid fa-chevron-down"></i></summary><p>Keine, gering, mittel, hoch: wie viele Pollen einer Art in der Luft erwartet werden. Ein Punkt heißt gering, drei Punkte hoch.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Sonne -->
+            <section class="blatt voll" data-blatt="sonne" data-name="Sonne" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Sonne<small>Köln · Montag 19. Oktober</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="tafel">
+                    <div class="tafel-kopf"><b>Noch 4 Stunden 7 Minuten hell</b><span>Untergang 18:27</span></div>
+                    <div class="mikro-feld diagramm" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="14:20" data-beschriften="1"></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Heute</h3>
+                  <div class="werte-gitter">
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-arrow-up"></i>Aufgang</div><div class="wg-wert">08:07</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-arrow-down"></i>Untergang</div><div class="wg-wert">18:27</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-clock"></i>Tageslänge</div><div class="wg-wert">10<small>Stunden</small> 20<small>Minuten</small></div><div class="wg-unter">3 Minuten kürzer als gestern</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-sun"></i>Höchststand</div><div class="wg-wert">13:17</div><div class="wg-unter">29° über dem Horizont</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-camera"></i>Goldene Stunde</div><div class="wg-wert">17:43</div><div class="wg-unter">bis Untergang</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-moon"></i>Dämmerung</div><div class="wg-wert">19:01</div><div class="wg-unter">dann dunkel</div></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Nächste Tage · Aufgang und Untergang</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><div class="haupt"><b>Dienstag 20.10.</b><small>10 Stunden 16 Minuten</small></div><span class="rechts"><span class="zahl-r">08:09</span><span class="zahl-r">18:25</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Mittwoch 21.10.</b><small>10 Stunden 13 Minuten</small></div><span class="rechts"><span class="zahl-r">08:10</span><span class="zahl-r">18:23</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Donnerstag 22.10.</b><small>10 Stunden 9 Minuten</small></div><span class="rechts"><span class="zahl-r">08:12</span><span class="zahl-r">18:21</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Freitag 23.10.</b><small>10 Stunden 5 Minuten</small></div><span class="rechts"><span class="zahl-r">08:14</span><span class="zahl-r">18:19</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Samstag 24.10.</b><small>10 Stunden 2 Minuten</small></div><span class="rechts"><span class="zahl-r">08:15</span><span class="zahl-r">18:17</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Sonntag 25.10.</b><small>9 Stunden 58 Minuten · Winterzeit</small></div><span class="rechts"><span class="zahl-r">07:17</span><span class="zahl-r">17:15</span></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Dämmerung</span><i class="fa-solid fa-chevron-down"></i></summary><p>Nach Sonnenuntergang bleibt es noch eine Weile hell genug, um draußen ohne Licht zu lesen. Gezeigt ist das Ende dieser bürgerlichen Dämmerung.</p></details>
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Goldene Stunde</span><i class="fa-solid fa-chevron-down"></i></summary><p>Die Zeit vor Sonnenuntergang, in der die Sonne tief steht und warmes, weiches Licht gibt.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Mond -->
+            <section class="blatt voll" data-blatt="mond" data-name="Mond" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Mond<small>Köln · heute</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="mikro-feld fest held-bild" data-mikro="mond" data-anteil="0.58" data-zunehmend="1" style="width: 116px; height: 116px"></div>
+                    <div class="held-text">
+                      <div class="riesen-zahl">58<small>%</small></div>
+                      <div class="held-satz">Zunehmender Mond</div>
+                      <div class="held-unter">Voll in <b>7 Tagen</b></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Heute</h3>
+                  <div class="werte-gitter">
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-arrow-up"></i>Aufgang</div><div class="wg-wert">15:21</div></div>
+                    <div class="wg"><div class="wg-kopf"><i class="fa-solid fa-arrow-down"></i>Untergang</div><div class="wg-wert">00:47</div><div class="wg-unter">in der Nacht zu Dienstag</div></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Nächste Phasen</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/moon-full.svg" alt="" /><div class="haupt"><b>Vollmond</b><small>in 7 Tagen</small></div><span class="rechts">Montag 26.10.</span></div>
+                    <div class="zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/moon-last-quarter.svg" alt="" /><div class="haupt"><b>Letztes Viertel</b><small>in 13 Tagen</small></div><span class="rechts">Sonntag 1.11.</span></div>
+                    <div class="zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/moon-new.svg" alt="" /><div class="haupt"><b>Neumond</b><small>in 21 Tagen</small></div><span class="rechts">Montag 9.11.</span></div>
+                    <div class="zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/moon-first-quarter.svg" alt="" /><div class="haupt"><b>Erstes Viertel</b><small>in 29 Tagen</small></div><span class="rechts">Dienstag 17.11.</span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Was heißt 58 %?</span><i class="fa-solid fa-chevron-down"></i></summary><p>So viel der sichtbaren Mondscheibe ist von der Sonne beleuchtet. Zunehmend heißt: Der helle Teil wächst bis zum Vollmond.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Luftdruck -->
+            <section class="blatt" data-blatt="druck" data-name="Luftdruck" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Luftdruck<small>Köln · auf Meereshöhe</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="held-text">
+                      <div class="riesen-zahl">1018<small>hPa</small></div>
+                      <div class="held-satz"><i class="fa-solid fa-arrow-trend-up"></i> Steigt</div>
+                      <div class="held-unter"><b>+9,6 hPa</b> in 24 Stunden, <b>+1,1</b> in 3 Stunden</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <div class="segmente"><button class="an" data-zeige="d24">24 h</button><button data-zeige="d7">7 Tage</button></div>
+                  <div class="tafel" data-tafel="d24">
+                    <div class="tafel-kopf"><b>Gemessen</b><span>1008,6 bis 1018,2</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="1008.6,1009.1,1009.4,1010.2,1010.5,1011.3,1011.9,1012.4,1013.2,1013.6,1014.1,1014.9,1015.3,1015.8,1016.4,1016.7,1017.2,1017.5,1017.9,1018.2" data-farbe="--text-2"></div>
+                    <div class="achse"><span style="left: 0%">-24 h</span><span style="left: 50%">-12 h</span><span style="left: 100%">jetzt</span></div>
+                  </div>
+                  <div class="tafel" data-tafel="d7" hidden>
+                    <div class="tafel-kopf"><b>Tagesmittel</b><span>1004 bis 1016</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="1013,1007,1004,1009,1014,1010,1016" data-farbe="--text-2"></div>
+                    <div class="achse"><span style="left: 0%">Di</span><span style="left: 50%">Fr</span><span style="left: 100%">heute</span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Luftdruck auf Meereshöhe</span><i class="fa-solid fa-chevron-down"></i></summary><p>Der gemessene Druck wird auf Meereshöhe umgerechnet, damit Orte vergleichbar sind. Üblich sind um 1013 hPa. Steigt er, wird es meist ruhiger, fällt er rasch, kommt oft Wind und Regen.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Gefühlt -->
+            <section class="blatt" data-blatt="gefuehlt" data-name="Gefühlt" data-seite="gesundheit" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Gefühlte Temperatur<small>Köln · Stand 14:18</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/gesundheit.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="held-text">
+                      <div class="riesen-zahl t-mild">11°</div>
+                      <div class="held-satz"><i class="fa-solid fa-arrow-trend-up"></i> Steigt noch leicht</div>
+                      <div class="held-unter">Gemessen <b>13°</b>, der Wind mit <b>14 km/h</b> kühlt um 2°</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <div class="segmente"><button class="an" data-zeige="g24">24 h</button><button data-zeige="g7">7 Tage</button></div>
+                  <div class="tafel" data-tafel="g24">
+                    <div class="tafel-kopf"><b>Verlauf</b><span>4,5° bis 12,4°</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="12.4,12.1,11.3,10.2,9.1,8.2,7.4,6.9,6.3,5.8,5.4,5.0,4.7,4.5,5.1,6.2,7.8,9.1,10.2,11.0" data-farbe="temp"></div>
+                    <div class="achse"><span style="left: 0%">-24 h</span><span style="left: 50%">-12 h</span><span style="left: 100%">jetzt</span></div>
+                  </div>
+                  <div class="tafel" data-tafel="g7" hidden>
+                    <div class="tafel-kopf"><b>Höchstwert je Tag</b><span>9° bis 14°</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="14,12,9,11,13,12,11" data-farbe="temp" data-minmax="1" data-jetzt="-1"></div>
+                    <div class="achse"><span style="left: 0%">Di</span><span style="left: 50%">Fr</span><span style="left: 100%">heute</span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Gefühlte Temperatur</span><i class="fa-solid fa-chevron-down"></i></summary><p>So warm oder kalt fühlt es sich draußen an. Wind kühlt zusätzlich, feuchte Wärme wirkt wärmer, als das Thermometer zeigt.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Feuchte -->
+            <section class="blatt" data-blatt="feuchte" data-name="Feuchte" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Luftfeuchte<small>Köln · Stand 14:18</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="held-text">
+                      <div class="riesen-zahl c-regen">72<small>%</small></div>
+                      <div class="held-satz">Relative Feuchte</div>
+                      <div class="held-unter">Taupunkt <b>8°</b> · <b>8,2 g</b> Wasser je m³ Luft</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <div class="segmente"><button class="an" data-zeige="f24">24 h</button><button data-zeige="f7">7 Tage</button></div>
+                  <div class="tafel" data-tafel="f24">
+                    <div class="tafel-kopf"><b>Gemessen</b><span>72 bis 91 %</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="84,85,86,87,88,89,90,90,91,91,91,90,90,89,90,91,90,86,80,76,74,73,72,72,72" data-farbe="--regen"></div>
+                    <div class="achse"><span style="left: 0%">-24 h</span><span style="left: 50%">-12 h</span><span style="left: 100%">jetzt</span></div>
+                  </div>
+                  <div class="tafel" data-tafel="f7" hidden>
+                    <div class="tafel-kopf"><b>Tagesmittel</b><span>79 bis 91 %</span></div>
+                    <div class="mikro-feld diagramm mittel" data-mikro="linie" data-werte="84,88,91,86,79,83,81" data-farbe="--regen"></div>
+                    <div class="achse"><span style="left: 0%">Di</span><span style="left: 50%">Fr</span><span style="left: 100%">heute</span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Relative Feuchte</span><i class="fa-solid fa-chevron-down"></i></summary><p>Wie viel Wasserdampf die Luft enthält, gemessen an dem, was sie bei dieser Temperatur höchstens halten kann. Bei 100 % bildet sich Nebel oder Tau.</p></details>
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Taupunkt</span><i class="fa-solid fa-chevron-down"></i></summary><p>Bis zu dieser Temperatur müsste die Luft abkühlen, damit Tau entsteht. Er sagt besser als die Prozentzahl, wie schwül es sich anfühlt.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================ Monatsvergleich -->
+            <section class="blatt voll" data-blatt="monat" data-name="Monatsvergleich" hidden>
+              <div class="blatt-griff"></div>
+              <div class="blatt-kopf">
+                <div class="blatt-titel">Monatsvergleich<small>Köln · zu 1991 bis 2020</small></div>
+                <a class="knopf-rund flaeche" href="/mockups/telefon/wetter.html" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></a>
+              </div>
+              <div class="blatt-inhalt">
+                <div class="abschnitt">
+                  <div class="held">
+                    <div class="held-text">
+                      <div class="riesen-zahl t-heiss">+1,4°</div>
+                      <div class="held-satz">Oktober bisher wärmer als üblich</div>
+                      <div class="held-unter">Mittel bis heute <b>13,0°</b>, üblich <b>11,6°</b></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Temperatur je Monat · 2026</h3>
+                  <div class="tafel">
+                    <div class="mikro-feld diagramm" data-mikro="abweichung" data-werte="1.8,0.6,2.1,-0.4,1.2,2.6,0.9,1.7,-0.3,1.4" data-jetzt="9"></div>
+                    <div class="monate"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span class="an">O</span></div>
+                    <div class="tafel-fuss">Säulen nach oben: wärmer, nach unten: kühler als im Mittel. 8 von 10 Monaten waren wärmer.</div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Niederschlag</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-umbrella"></i></span><div class="haupt"><b>Oktober bisher</b><small>üblich bis heute 41 mm</small></div><span class="rechts"><span class="zahl-r">38 <small>mm</small></span></span></div>
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-calendar"></i></span><div class="haupt"><b>Jahr bisher</b><small>üblich bis heute 668 mm</small></div><span class="rechts"><span class="zahl-r">642 <small>mm</small></span></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Monate einzeln</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><div class="haupt"><b>Januar</b></div><span class="rechts"><span class="zahl-r t-heiss">+1,8°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Februar</b></div><span class="rechts"><span class="zahl-r t-heiss">+0,6°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>März</b></div><span class="rechts"><span class="zahl-r t-heiss">+2,1°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>April</b></div><span class="rechts"><span class="zahl-r t-frost">-0,4°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Mai</b></div><span class="rechts"><span class="zahl-r t-heiss">+1,2°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Juni</b></div><span class="rechts"><span class="zahl-r t-heiss">+2,6°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>Juli</b></div><span class="rechts"><span class="zahl-r t-heiss">+0,9°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>August</b></div><span class="rechts"><span class="zahl-r t-heiss">+1,7°</span></span></div>
+                    <div class="zeile"><div class="haupt"><b>September</b></div><span class="rechts"><span class="zahl-r t-frost">-0,3°</span></span></div>
+                    <div class="zeile an"><div class="haupt"><b>Oktober</b><small>bis zum 19.</small></div><span class="rechts"><span class="zahl-r t-heiss">+1,4°</span></span></div>
+                  </div>
+                </div>
+                <div class="abschnitt">
+                  <h3>Begriffe</h3>
+                  <div class="zeilen">
+                    <details class="auf erkl"><summary><i class="fa-solid fa-circle-info"></i><span>Klimamittel 1991 bis 2020</span><i class="fa-solid fa-chevron-down"></i></summary><p>Der Durchschnitt aus 30 Jahren für denselben Zeitraum. Plus heißt wärmer als dieser Durchschnitt, Minus kühler.</p></details>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="wischleiste"></div>
+        </div>
+        <div class="geraet-unter">Detailblatt <b data-blatt-name>Stunden</b> über der abgedunkelten <span data-seite-name>Wetterseite</span>. Schließen per Knopf, Wischen nach unten oder Tippen daneben.</div>
+      </div>
+
+      <div class="notiz">
+        <h1>Detailblätter</h1>
+        <p>Tippen auf eine Kachel öffnet ihr Blatt von unten, über der Seite, auf der die Kachel steht. Es zeigt die volle Information der Kachel, fürs Telefon gestaltet. Am Telefon wird nur angezeigt, nichts bearbeitet.</p>
+        <h2>Blätter</h2>
+        <ul class="blatt-liste">
+          <li><a href="#jetzt">Jetzt</a></li>
+          <li><a href="#regen">Regen</a></li>
+          <li><a href="#wind">Wind</a></li>
+          <li><a href="#stunden">Stunden</a></li>
+          <li><a href="#tage">Tage</a></li>
+          <li><a href="#uv">UV</a></li>
+          <li><a href="#luft">Luft</a></li>
+          <li><a href="#pollen">Pollen</a></li>
+          <li><a href="#sonne">Sonne</a></li>
+          <li><a href="#mond">Mond</a></li>
+          <li><a href="#druck">Luftdruck</a></li>
+          <li><a href="#gefuehlt">Gefühlt</a></li>
+          <li><a href="#feuchte">Feuchte</a></li>
+          <li><a href="#monat">Monatsvergleich</a></li>
+        </ul>
+        <h2>Aufbau</h2>
+        <ul>
+          <li><b>Griff</b>, Kopf mit Titel, Ort und Stand, runder <b>Schließen-Knopf</b> (44 px). Der Inhalt rollt, der Kopf bleibt.</li>
+          <li>Oben der <b>große Wert</b>, darunter größere Mikrodiagramme, Listen und <b>Segmente</b> für Heute/Morgen oder 24 h/7 Tage.</li>
+          <li>Kurze Blätter (Luftdruck, Gefühlt, Feuchte) sind nur so hoch wie ihr Inhalt, die Seite bleibt oben sichtbar.</li>
+          <li>UV, Luft, Pollen und Gefühlt liegen über der <b>Gesundheitsseite</b>, alle anderen über der Wetterseite. Schließen führt zurück auf diese Seite.</li>
+          <li>Fachbegriffe als Zeile mit <b>(i)</b>: Antippen blendet einen kurzen Text ein. Nichts hängt am Überfahren.</li>
+        </ul>
+        <h2>Regeln</h2>
+        <ul>
+          <li>Schrift aus der Skala (13, 15, 17 px und größer), alle drei Schriftstufen. Berührflächen ab 44 px.</li>
+          <li>Welches Blatt offen ist, steht im Anker der Adresse, ohne Anker das Stundenblatt.</li>
+        </ul>
+      </div>
+    </div>
+    <script src="/mockups/telefon/mikro.js"></script>
+    <script src="/mockups/telefon/entwurf.js"></script>
+    <script>
+      // Entwurf: Das Blatt aus dem Anker der Adresse zeigen (ohne Anker: Stunden), dahinter die Seite der
+      // Kachel (Wetter oder Gesundheit), Segmente umschalten.
+      (() => {
+        const blaetter = [...document.querySelectorAll(".blatt[data-blatt]")];
+        const name = document.querySelector("[data-blatt-name]");
+        const seitenName = document.querySelector("[data-seite-name]");
+        function zeige() {
+          const gewuenscht = location.hash.slice(1);
+          const ziel = blaetter.find((b) => b.dataset.blatt === gewuenscht) || blaetter.find((b) => b.dataset.blatt === "stunden");
+          blaetter.forEach((b) => (b.hidden = b !== ziel));
+          const seite = ziel.dataset.seite || "wetter";
+          document.querySelectorAll(".hinter").forEach((h) => (h.hidden = h.dataset.seite !== seite));
+          document.querySelector("[data-schliessen]").href = `/mockups/telefon/${seite}.html`;
+          seitenName.textContent = seite === "gesundheit" ? "Gesundheitsseite" : "Wetterseite";
+          ziel.querySelector(".blatt-inhalt").scrollTop = 0;
+          name.textContent = ziel.dataset.name;
+          document.querySelectorAll(".notiz .blatt-liste a").forEach((a) => a.classList.toggle("an", a.getAttribute("href") === "#" + ziel.dataset.blatt));
+          window.mikroNeu?.();
+        }
+        document.querySelectorAll(".tel .segmente").forEach((seg) => {
+          const knoepfe = [...seg.querySelectorAll("button[data-zeige]")];
+          const bereich = seg.parentElement;
+          knoepfe.forEach((k) =>
+            k.addEventListener("click", () => {
+              knoepfe.forEach((x) => x.classList.toggle("an", x === k));
+              knoepfe.forEach((x) => (bereich.querySelector(`[data-tafel="${x.dataset.zeige}"]`).hidden = x !== k));
+              window.mikroNeu?.();
+            }),
+          );
+        });
+        window.addEventListener("hashchange", zeige);
+        zeige();
+      })();
+    </script>
+  </body>
+</html>

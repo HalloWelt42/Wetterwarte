@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Wetterwarte - Telefon: Mehr</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/telefon/telefon.css" />
+    <style>
+      /* Zusatzstile Mehr (Vorschlag für telefon.css) */
+      .tel .seiten-titel { margin: 0; padding-left: 6px; font-size: var(--s26); font-weight: 700; line-height: 1.1; }
+      .tel .mehr-liste { padding: 0 var(--rand); }
+      .tel a.zeile { color: inherit; text-decoration: none; }
+      .tel button.zeile { width: 100%; padding: 6px 14px; text-align: left; }
+      .tel .zeile .rechts .fa-check { color: var(--akzent); font-size: var(--s19); }
+      .tel .zeile .rechts .fa-arrow-right { color: var(--text-3); font-size: var(--s15); }
+      .tel .zeile.danke .sym { color: var(--gefahr); }
+      .tel .mehr-liste .zeile .haupt small { white-space: normal; line-height: 1.25; }
+      .tel .hinweis-z { display: flex; align-items: flex-start; gap: 10px; margin: 10px 8px 0; font-size: var(--s15); color: var(--text-3); line-height: 1.35; }
+      .tel .hinweis-z i { margin-top: 3px; }
+      .tel .einstellung + .einstellung { margin-top: 18px; }
+      .tel .einst-kopf { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; margin: 0 8px 8px; }
+      .tel .einst-kopf b { font-weight: 700; }
+      .tel .einst-kopf small { font-size: var(--s15); color: var(--text-3); }
+      .tel .segmente.nach-inhalt button { flex: 1 1 auto; padding: 4px 12px; line-height: 1.15; }
+      .tel .einst-unter { margin: 8px 8px 0; font-size: var(--s15); color: var(--text-2); }
+    </style>
+  </head>
+  <body class="tel-seite">
+    <div class="buehne">
+      <div class="buehne-spalte">
+        <div class="geraet tel">
+          <div class="statusleiste"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+          <div class="schale">
+            <div class="rollfeld">
+              <header class="kopf">
+                <div class="kopf-zeile"><h1 class="seiten-titel">Mehr</h1></div>
+              </header>
+              <main class="mehr-liste">
+                <!-- Profil -->
+                <div class="abschnitt">
+                  <h3>Profil</h3>
+                  <div class="zeilen">
+                    <a class="zeile an" href="/mockups/telefon/wetter.html" aria-current="true"><span class="sym"><i class="fa-solid fa-house"></i></span><span class="haupt"><b>Zuhause</b><small>Startprofil</small></span><span class="rechts"><i class="fa-solid fa-check"></i></span></a>
+                    <button class="zeile"><span class="sym"><i class="fa-solid fa-seedling"></i></span><span class="haupt"><b>Garten</b></span></button>
+                    <button class="zeile"><span class="sym"><i class="fa-solid fa-suitcase-rolling"></i></span><span class="haupt"><b>Reise</b></span></button>
+                    <a class="zeile" href="/mockups/telefon/unwetter.html"><span class="sym"><i class="fa-solid fa-cloud-bolt"></i></span><span class="haupt"><b>Unwetter</b></span></a>
+                  </div>
+                  <p class="hinweis-z"><i class="fa-solid fa-desktop"></i><span>Die Telefon-Layouts der Seiten werden am Desktop eingerichtet.</span></p>
+                </div>
+
+                <!-- Anzeige -->
+                <div class="abschnitt">
+                  <h3>Anzeige</h3>
+                  <div class="einstellung">
+                    <div class="einst-kopf"><b>Schriftstufe</b><small>nur dieses Gerät</small></div>
+                    <div class="segmente" data-wahl="stufe"><button class="an" data-wert="normal">Normal</button><button data-wert="gross">Groß</button><button data-wert="sehr-gross">Sehr groß</button></div>
+                  </div>
+                  <div class="einstellung">
+                    <div class="einst-kopf"><b>Nachtbetrieb</b><small>nur Rot, gedämpft</small></div>
+                    <div class="segmente nach-inhalt" data-wahl="nacht"><button data-wert="aus">Aus</button><button class="an" data-wert="abends">Nach Sonnenuntergang</button><button data-wert="an">An</button></div>
+                    <div class="einst-unter">Standard: mit dem Sonnenuntergang am gewählten Ort, heute in Köln ab 18:27 Uhr.</div>
+                  </div>
+                </div>
+
+                <!-- Ansicht -->
+                <div class="abschnitt">
+                  <h3>Ansicht</h3>
+                  <div class="zeilen">
+                    <a class="zeile" href="/mockups/dashboard.html"><span class="sym"><i class="fa-solid fa-desktop"></i></span><span class="haupt"><b>Zur Desktop-Ansicht</b><small>Dieses Gerät merkt sich die Wahl</small></span><span class="rechts"><i class="fa-solid fa-arrow-right"></i></span></a>
+                  </div>
+                </div>
+
+                <!-- Hilfe -->
+                <div class="abschnitt">
+                  <h3>Hilfe</h3>
+                  <div class="zeilen">
+                    <a class="zeile" href="/mockups/hilfe.html"><span class="sym"><i class="fa-solid fa-circle-question"></i></span><span class="haupt"><b>Hilfe</b><small>Kacheln, Karte und Nachtbetrieb erklärt</small></span><span class="rechts"><i class="fa-solid fa-chevron-right"></i></span></a>
+                  </div>
+                </div>
+
+                <!-- Über -->
+                <div class="abschnitt">
+                  <h3>Über</h3>
+                  <div class="zeilen">
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-code-branch"></i></span><span class="haupt"><b>Fassung</b><small>lädt nach dem Ausrollen von selbst neu</small></span><span class="rechts zahl">0.47.0</span></div>
+                    <div class="zeile"><span class="sym"><i class="fa-solid fa-database"></i></span><span class="haupt"><b>Datenquellen</b><small>Deutscher Wetterdienst, außerhalb Deutschlands offene Wettermodelle. Karte © OpenStreetMap-Mitwirkende.</small></span></div>
+                  </div>
+                </div>
+
+                <div class="abschnitt">
+                  <div class="zeilen">
+                    <button class="zeile danke"><span class="sym"><i class="fa-solid fa-heart"></i></span><span class="haupt"><b>Danke sagen</b><small>Privates Projekt, ohne Werbung und ohne Tracking</small></span><span class="rechts"><i class="fa-solid fa-chevron-right"></i></span></button>
+                  </div>
+                </div>
+              </main>
+            </div>
+            <nav class="leiste">
+              <a href="/mockups/telefon/karte.html"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+              <a href="/mockups/telefon/wetter.html"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+              <a href="/mockups/telefon/gesundheit.html"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+              <a class="an" href="/mockups/telefon/mehr.html" aria-current="page"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+            </nav>
+          </div>
+          <div class="wischleiste"></div>
+        </div>
+        <div class="geraet-unter">Reiter <b>Mehr</b>: Profil, Schrift und Nachtbetrieb wählen. Die Schalter hier wirken im Entwurf wirklich.</div>
+      </div>
+
+      <div class="notiz">
+        <h1>Mehr</h1>
+        <p>Alles, was am Telefon gewählt werden kann. Eingerichtet wird am Desktop, deshalb gibt es hier nur diese Wahlmöglichkeiten.</p>
+        <h2>Abschnitte</h2>
+        <ul>
+          <li><b>Profil</b>: Zuhause, Garten, Reise, Unwetter. Das gewählte ist hinterlegt und abgehakt, das Gerät merkt sich die Wahl.</li>
+          <li><b>Anzeige</b>: Schriftstufe Normal, Groß, Sehr groß und Nachtbetrieb Aus, Nach Sonnenuntergang, An, beide als Segmente und je Gerät gespeichert.</li>
+          <li>Nachtbetrieb ist ab Werk <b>Nach Sonnenuntergang am gewählten Ort</b>: er schaltet mit dem Untergang dort ein und mit dem Aufgang aus, deshalb ist das Segment vorgewählt.</li>
+          <li><b>Ansicht</b>: Zur Desktop-Ansicht, die Wahl bleibt auf diesem Gerät.</li>
+          <li><b>Hilfe</b>, <b>Über</b> mit Fassung und Datenquellen, <b>Danke sagen</b>.</li>
+          <li>Die Orte stehen nicht hier: sie öffnen sich beim Tippen auf den Ortsnamen im Kopf jeder Seite.</li>
+        </ul>
+        <h2>Regeln</h2>
+        <ul>
+          <li>Keine Einstellungen, die es nicht gibt. Telefon-Layouts der Seiten und Allergien werden am Desktop gewählt.</li>
+          <li>Ganze Zeilen und Segmente sind Berührflächen mit mindestens 44 px.</li>
+          <li>Im Entwurf schalten die Segmente Schriftstufe und Nachtbetrieb des Rahmens um, wie die Knöpfe unten rechts.</li>
+        </ul>
+      </div>
+    </div>
+    <script src="/mockups/telefon/mikro.js"></script>
+    <script src="/mockups/telefon/entwurf.js"></script>
+    <script>
+      // Entwurf: Segmente bedienen dieselbe Schriftstufe und denselben Nachtbetrieb wie die Entwurfsleiste.
+      (() => {
+        const geraet = document.querySelector(".geraet.tel");
+        const stufe = document.querySelector('[data-wahl="stufe"]');
+        const nacht = document.querySelector('[data-wahl="nacht"]');
+        const markiere = (seg, wert) => seg.querySelectorAll("button").forEach((b) => b.classList.toggle("an", b.dataset.wert === wert));
+        stufe.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => document.querySelector(`[data-stufe-knopf="${b.dataset.wert}"]`)?.click()));
+        nacht.querySelectorAll("button").forEach((b) =>
+          b.addEventListener("click", () => {
+            const sollNacht = b.dataset.wert === "an"; // um 14:20 ist "Nach Sonnenuntergang" noch Tag
+            if (sollNacht !== (geraet.dataset.modus === "nacht")) document.querySelector("[data-nacht-knopf]")?.click();
+            markiere(nacht, b.dataset.wert);
+          }),
+        );
+        new MutationObserver(() => {
+          markiere(stufe, geraet.dataset.stufe || "normal");
+          const istNacht = geraet.dataset.modus === "nacht";
+          const gewaehlt = nacht.querySelector(".an")?.dataset.wert;
+          if (istNacht && gewaehlt !== "an") markiere(nacht, "an");
+          if (!istNacht && gewaehlt === "an") markiere(nacht, "aus");
+        }).observe(geraet, { attributes: true, attributeFilter: ["data-stufe", "data-modus"] });
+      })();
+    </script>
+  </body>
+</html>

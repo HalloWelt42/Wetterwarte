@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Wetterwarte - Telefon: Kacheln</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/telefon/telefon.css" />
+    <style>
+      /* ================================================================ Galerie (nur Entwurf)
+         Die ganze Galerie ist selbst ein .tel: dadurch greifen Schriftstufe und Nachtbetrieb der
+         Entwurfsleiste auch auf die Erklärtexte. Jedes Muster ist ein eigenes .tel mit Raster. */
+      .tel.galerie {
+        --gal-grund: #0b0d10;
+        --gal-flaeche: #111419;
+        min-height: 100vh;
+        padding: 40px 32px 120px;
+        background: var(--gal-grund);
+        color: var(--text-2);
+        font-size: var(--s17);
+        line-height: 1.45;
+        user-select: text;
+      }
+      .tel.galerie[data-modus="nacht"] { --gal-grund: #060101; --gal-flaeche: #0d0303; }
+      .tel .gal-inhalt { max-width: 1280px; margin: 0 auto; }
+      .tel .gal-kopf h1 { margin: 0 0 8px; color: var(--text); font-size: var(--s26); font-weight: 700; line-height: 1.2; }
+      .tel .gal-kopf p { margin: 0 0 14px; max-width: 780px; }
+      .tel .gal-hinweis { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 16px; border-radius: 20px; background: var(--flaeche-2); color: var(--text); font-weight: 600; font-size: var(--s15); }
+      .tel .gal-hinweis i { color: var(--text-3); }
+      .tel .gal-sprung { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+      .tel .gal-sprung a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 22px; background: var(--gal-flaeche); color: var(--text-2); text-decoration: none; font-weight: 600; }
+      .tel .gal-familie { margin-top: 48px; }
+      .tel .gal-familie > h2 { margin: 0 0 4px; color: var(--text); font-size: var(--s22); font-weight: 700; line-height: 1.25; }
+      .tel .gal-familie > p { margin: 0 0 14px; max-width: 780px; }
+      .tel .gal-typ { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; margin-top: 14px; padding: 22px; border-radius: 20px; background: var(--gal-flaeche); }
+      .tel .gal-info h3 { margin: 0 0 6px; color: var(--text); font-size: var(--s19); line-height: 1.25; }
+      .tel .gal-info dl { margin: 6px 0 0; }
+      .tel .gal-info dt { margin-top: 12px; font-size: var(--s13); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
+      .tel .gal-info dd { margin: 2px 0 0; }
+      .tel.galerie code { font-family: ui-monospace, monospace; font-size: var(--s15); color: var(--text); background: var(--flaeche-2); padding: 1px 7px; border-radius: 6px; overflow-wrap: anywhere; }
+      .tel .gal-muster { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; min-width: 0; }
+      .tel .gal-probe { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+      .tel .gal-probe figcaption { font-size: var(--s15); color: var(--text-3); padding-left: 4px; line-height: 1.3; }
+      .tel .gal-probe figcaption b { color: var(--text); }
+      .tel.muster { width: max-content; padding: 12px; border-radius: 22px; }
+
+      /* Bausteine: Mikrodiagramme einzeln mit Parametern */
+      .tel .gal-bausteine { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+      .tel .gal-baustein { min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 20px; background: var(--gal-flaeche); }
+      .tel .gal-baustein h3 { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; color: var(--text); font-size: var(--s19); line-height: 1.25; }
+      .tel .gal-baustein h3 small { font-size: var(--s15); font-weight: 600; color: var(--text-3); }
+      .tel .gal-baustein p { margin: 0; }
+      .tel .gal-buehne { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; padding: 12px; border-radius: 16px; }
+      .tel .gal-flaeche { display: flex; flex-direction: column; padding: var(--innen); border-radius: var(--radius); background: var(--flaeche); }
+      .tel .gal-flaeche > .mikro-feld { flex: 1; }
+      .tel .gal-flaeche-titel { font-size: var(--s13); font-weight: 700; color: var(--text-3); margin-bottom: 4px; white-space: nowrap; }
+      .tel .gal-param { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 7px 12px; margin: 0; font-size: var(--s15); line-height: 1.35; }
+      .tel .gal-param dd { margin: 0; }
+      .tel .gal-merke { font-size: var(--s15); color: var(--text-3); }
+
+      @media (max-width: 760px) {
+        .tel .gal-typ { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+      }
+      /* Am Telefon selbst: Feld wie in der App aus der Bildschirmbreite (bei 375 Punkten 117 px) */
+      @media (max-width: 500px) {
+        .tel.galerie { padding: 24px 0 110px; }
+        .tel .gal-kopf, .tel .gal-familie > h2, .tel .gal-familie > p, .tel .gal-info { padding: 0 16px; }
+        .tel .gal-typ { padding: 18px 0; border-radius: 0; }
+        .tel.galerie .tel.muster { --feld: calc((100vw - 2 * var(--rand) - 2 * var(--fuge)) / 3); padding: var(--rand); border-radius: 0; }
+        .tel .gal-probe figcaption { padding-left: 16px; }
+        .tel .gal-bausteine { grid-template-columns: minmax(0, 1fr); }
+        .tel .gal-baustein { border-radius: 0; padding: 18px 16px; }
+      }
+    </style>
+  </head>
+  <body class="tel-seite">
+    <div class="tel galerie">
+      <div class="gal-inhalt">
+        <!-- ================================================================ Kopf -->
+        <header class="gal-kopf">
+          <h1>Telefon-Kacheln</h1>
+          <p>Alle 16 Kacheltypen der Telefonansicht in jeder erlaubten Größe, jede Größe als eigene Form mit einem dicken Wert und Mikrodiagrammen, wo sie etwas zeigen. Beispieldaten: Köln, Montag 19. Oktober 2026, 14:20 Uhr.</p>
+          <span class="gal-hinweis"><i class="fa-solid fa-ruler-combined"></i>alle Größen in echter Größe, Feld 122 px</span>
+          <nav class="gal-sprung">
+            <a href="#jetzt-familie">Jetzt</a>
+            <a href="#vorhersage">Vorhersage</a>
+            <a href="#himmel">Wind und Himmel</a>
+            <a href="#gesundheit">Gesundheit</a>
+            <a href="#unwetter">Unwetter</a>
+            <a href="#rueckblick">Rückblick</a>
+            <a href="#bausteine">Bausteine</a>
+          </nav>
+        </header>
+
+        <!-- ================================================================ Familie Jetzt -->
+        <section class="gal-familie" id="jetzt-familie">
+          <h2>Jetzt</h2>
+          <p>Was gerade ist: aktuelle Lage, einzelne Messwerte und der heutige Tag.</p>
+
+          <!-- ---------------------------------------------------------- jetzt -->
+          <div class="gal-typ" id="typ-jetzt">
+            <div class="gal-info">
+              <h3>Jetzt</h3>
+              <code>jetzt</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.jetzt</code>, <code>kompakt.heute</code></dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><span>Jetzt</span></div>
+                      <img class="mc mc-ecke" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                      <div class="k-fuss">
+                        <div class="wert dick t-mild"><b>13°</b></div>
+                        <div class="unter">gefühlt <b>11°</b></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><span>Jetzt</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="wert dick t-mild"><b>13°</b></div>
+                        <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                        <div class="k-block ans-ende zeilen-klein"><div>H <b>15°</b></div><div>T <b>7°</b></div></div>
+                      </div>
+                      <div class="unter"><b>Leicht bewölkt</b></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><span>Jetzt</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="wert dick t-mild"><b>13°</b></div>
+                        <img class="mc mittel" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                        <div class="kz-reihe ans-ende">
+                          <div class="kz"><b>11°</b><small>gefühlt</small></div>
+                          <div class="kz"><b>15°</b><small>Hoch</small></div>
+                          <div class="kz"><b>7°</b><small>Tief</small></div>
+                        </div>
+                      </div>
+                      <div class="unter"><b>Leicht bewölkt</b></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                      <div class="k-kopf"><span>Jetzt</span></div>
+                      <img class="mc mc-ecke" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                      <div class="k-fuss">
+                        <div class="wert dick t-mild"><b>13°</b></div>
+                        <div class="zustand">Leicht bewölkt</div>
+                        <div class="kz-reihe" style="margin-top: 8px">
+                          <div class="kz"><b>11°</b><small>gefühlt</small></div>
+                          <div class="kz"><b>15°</b><small>Hoch</small></div>
+                          <div class="kz"><b>7°</b><small>Tief</small></div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#jetzt" style="--x: 0; --y: 0; --w: 3; --h: 2">
+                      <div class="k-kopf"><span>Jetzt</span></div>
+                      <div class="k-reihe mitte">
+                        <img class="mc gross" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+                        <div class="wert riesig t-mild"><b>13°</b></div>
+                        <div class="k-block ans-ende liste-klein">
+                          <div><i class="fa-solid fa-droplet"></i><b>72 %</b></div>
+                          <div><i class="fa-solid fa-wind"></i><b>14</b> km/h SW</div>
+                          <div><i class="fa-solid fa-umbrella"></i><b>70 %</b> ab 17</div>
+                        </div>
+                      </div>
+                      <div class="zustand">Leicht bewölkt</div>
+                      <div class="kz-reihe" style="margin-top: 6px">
+                        <div class="kz"><b>11°</b><small>gefühlt</small></div>
+                        <div class="kz"><b>15°</b><small>Hoch</small></div>
+                        <div class="kz"><b>7°</b><small>Tief</small></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b></figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- messwert -->
+          <div class="gal-typ" id="typ-messwert">
+            <div class="gal-info">
+              <h3>Messwert</h3>
+              <code>messwert</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>Wert: gefühlt, Feuchte, Taupunkt, Luftdruck, Sicht, Bewölkung, Regen heute, Böen. Der Titel ist der Name des Werts.</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.jetzt</code>, Archiv-Verlauf (24 h stündlich, 7 Tage täglich)</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter und Gesundheit</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <!-- Luftdruck mit Tendenz -->
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#druck" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><span>Luftdruck</span></div>
+                      <div class="wert" style="margin-top: 6px"><b>1018</b><i class="fa-solid fa-arrow-trend-up pfeil"></i></div>
+                      <div class="unter">hPa, steigt</div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="1008.6,1010.2,1011.3,1012.4,1013.6,1014.9,1015.8,1016.7,1017.5,1018.2" data-farbe="--text-2" style="margin-top: 4px"></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Luftdruck</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#druck" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-gauge"></i><span>Luftdruck</span><span class="rechts">24 h</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert halb"><b>1018</b><i class="fa-solid fa-arrow-trend-up pfeil"></i></div>
+                          <div class="unter">hPa, steigt</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="linie" data-werte="1008.6,1009.1,1009.4,1010.2,1010.5,1011.3,1011.9,1012.4,1013.2,1013.6,1014.1,1014.9,1015.3,1015.8,1016.4,1016.7,1017.2,1017.5,1017.9,1018.2" data-farbe="--text-2"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> Luftdruck</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#druck" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-gauge"></i><span>Luftdruck</span><span class="rechts">7 Tage</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert halb"><b>1018</b><i class="fa-solid fa-arrow-trend-up pfeil"></i></div>
+                          <div class="unter">hPa, steigt</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="linie" data-werte="1021,1016,1009,1004,1006,1010,1018" data-farbe="--text-2"></div>
+                        <div class="k-block zeilen-klein"><div>Hoch <b>1021</b></div><div>Tief <b>1004</b></div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> Luftdruck</figcaption>
+              </figure>
+
+              <!-- Feuchte -->
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#feuchte" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-droplet entbehrlich-gross"></i><span>Feuchte</span></div>
+                      <div class="wert" style="margin-top: 6px"><b>72</b><small>%</small><i class="fa-solid fa-arrow-trend-down pfeil"></i></div>
+                      <div class="unter entbehrlich">fällt</div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="88,90,91,90,86,80,76,73,72" data-farbe="--regen" style="margin-top: 4px"></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Feuchte</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#feuchte" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-droplet"></i><span>Feuchte</span><span class="rechts">24 h</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert halb"><b>72</b><small>%</small><i class="fa-solid fa-arrow-trend-down pfeil"></i></div>
+                          <div class="unter">fällt</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="linie" data-werte="76,79,82,84,86,87,88,89,90,91,91,90,88,86,83,80,77,75,73,72" data-farbe="--regen" data-flaeche="1"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> Feuchte</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#feuchte" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-droplet"></i><span>Feuchte</span><span class="rechts">7 Tage</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert halb"><b>72</b><small>%</small><i class="fa-solid fa-arrow-trend-down pfeil"></i></div>
+                          <div class="unter">fällt</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="linie" data-werte="76,81,89,93,88,80,72" data-farbe="--regen" data-flaeche="1"></div>
+                        <div class="k-block zeilen-klein"><div>Hoch <b>93 %</b></div><div>Tief <b>72 %</b></div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> Feuchte</figcaption>
+              </figure>
+
+              <!-- Weitere Werte, je 1x1 -->
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#gefuehlt" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-temperature-half entbehrlich-gross"></i><span>Gefühlt</span></div>
+                      <div class="wert t-mild" style="margin-top: 6px"><b>11°</b></div>
+                      <div class="unter entbehrlich">Wind kühlt</div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="8,7,6,6,5,5,6,8,10,11" data-farbe="temp" style="margin-top: 4px"></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> gefühlt</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#taupunkt" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-temperature-low entbehrlich-gross"></i><span>Taupunkt</span></div>
+                      <div class="wert" style="margin-top: 6px"><b>8°</b></div>
+                      <div class="unter entbehrlich">angenehm</div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="6.8,7,7.2,7.5,7.8,8,8.1,8.1,8,8.1" data-farbe="--text-2" style="margin-top: 4px"></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Taupunkt</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#sicht" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-eye entbehrlich-gross"></i><span>Sicht</span></div>
+                      <div class="wert" style="margin-top: 6px"><b>24</b><small>km</small></div>
+                      <div class="unter entbehrlich">gute Sicht</div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="12,9,6,4,5,9,15,20,23,24" data-farbe="--text-2" style="margin-top: 4px"></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Sicht</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#bewoelkung" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-cloud entbehrlich-gross"></i><span>Wolken</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="wert"><b>40</b><small>%</small></div>
+                        <div class="mikro-feld fest ans-ende" data-mikro="ring" data-wert="40" data-max="100" data-farbe="--text-2" style="width: 34px; height: 34px; align-self: center"></div>
+                      </div>
+                      <div class="unter entbehrlich-gross">leicht bewölkt</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Bewölkung</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#regen-heute" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-cloud-rain entbehrlich-gross"></i><span>Regen</span></div>
+                      <div class="wert c-regen" style="margin-top: 6px"><b>0,4</b><small>mm</small></div>
+                      <div class="unter">heute</div>
+                      <div class="mikro-feld" data-mikro="balken" data-werte="0,0,0,0,0,0,0.1,0.2,0.1,0,0,0,0,0,0" data-max="0.4" style="margin-top: 4px"></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Regen heute</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#boeen" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-wind entbehrlich-gross"></i><span>Böen</span></div>
+                      <div class="wert" style="margin-top: 6px"><b>31</b><small>km/h</small></div>
+                      <div class="unter entbehrlich">aus Südwest</div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="18,17,16,15,15,17,20,24,27,29,31" data-farbe="--text-2" style="margin-top: 4px"></div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Böen</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- heute -->
+          <div class="gal-typ" id="typ-heute">
+            <div class="gal-info">
+              <h3>Heute</h3>
+              <code>heute</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.heute</code></dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#heute" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-calendar-day"></i><span>Heute</span><span class="rechts"><i class="fa-solid fa-sun"></i> bis 18:27</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="spanne" style="flex: 1">
+                          <div class="wert halb" style="color: var(--text-2)"><b>7°</b></div>
+                          <span class="band"><span style="left: 0%; right: 0%"></span><i style="left: 75%"></i><em class="entbehrlich" style="left: 75%">13°</em></span>
+                          <div class="wert halb t-mild"><b>15°</b></div>
+                        </div>
+                      </div>
+                      <div class="unter"><i class="fa-solid fa-umbrella c-regen"></i> <b>70 %</b> ab 17 Uhr</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#heute" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-calendar-day"></i><span>Heute</span><span class="rechts">Mo 19. Oktober</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="spanne" style="flex: 1">
+                          <div class="wert halb" style="color: var(--text-2)"><b>7°</b></div>
+                          <span class="band"><span style="left: 0%; right: 0%"></span><i style="left: 75%"></i><em class="entbehrlich" style="left: 75%">jetzt 13°</em></span>
+                          <div class="wert halb t-mild"><b>15°</b></div>
+                        </div>
+                      </div>
+                      <div class="unter" style="display: flex; gap: 16px">
+                        <span><i class="fa-solid fa-umbrella c-regen"></i> <b>70 %</b> ab 17 Uhr</span>
+                        <span class="ans-ende"><i class="fa-solid fa-sun c-sonne"></i> bis <b>18:27</b></span>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b></figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ Familie Vorhersage -->
+        <section class="gal-familie" id="vorhersage">
+          <h2>Vorhersage</h2>
+          <p>Was kommt: die nächsten Stunden, die nächsten Tage und der Regen der nächsten zwei Stunden.</p>
+
+          <!-- ---------------------------------------------------------- stunden -->
+          <div class="gal-typ" id="typ-stunden">
+            <div class="gal-info">
+              <h3>Stunden</h3>
+              <code>stunden</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.stunden</code> (24 Stunden)</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#stunden" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><span>Stunden</span><span class="rechts">Regen ab 17</span></div>
+                      <div class="spalten">
+                        <div class="sp"><span class="sp-zeit">Jetzt</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein entbehrlich-gross"></span></div>
+                        <div class="sp"><span class="sp-zeit">15</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein entbehrlich-gross"></span></div>
+                        <div class="sp"><span class="sp-zeit">16</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein entbehrlich-gross">20 %</span></div>
+                        <div class="sp"><span class="sp-zeit">17</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein entbehrlich-gross">70 %</span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> 4 Stunden</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#stunden" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><span>Stunden</span><span class="rechts">Regen ab 17 Uhr</span></div>
+                      <div class="spalten">
+                        <div class="sp"><span class="sp-zeit">Jetzt</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein entbehrlich-gross"></span></div>
+                        <div class="sp"><span class="sp-zeit">15</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein entbehrlich-gross"></span></div>
+                        <div class="sp"><span class="sp-zeit">16</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /><span class="sp-wert t-mild">14°</span><span class="sp-klein entbehrlich-gross">20 %</span></div>
+                        <div class="sp"><span class="sp-zeit">17</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="sp-wert t-mild">13°</span><span class="sp-klein entbehrlich-gross">70 %</span></div>
+                        <div class="sp"><span class="sp-zeit">18</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">11°</span><span class="sp-klein entbehrlich-gross">80 %</span></div>
+                        <div class="sp"><span class="sp-zeit">19</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="sp-wert t-kuehl">10°</span><span class="sp-klein entbehrlich-gross">60 %</span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> 6 Stunden</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#stunden" style="--x: 0; --y: 0; --w: 3; --h: 2">
+                      <div class="k-kopf"><span>12 Stunden</span><span class="rechts">Regen ab 17 Uhr</span></div>
+                      <div class="spalten fest" style="height: 32px; margin-top: 6px">
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /></div>
+                        <div class="sp"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /></div>
+                      </div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="13.4,13.9,14.1,13.2,11.6,10.6,10.2,9.9,9.6,9.3,9.1,8.9" data-farbe="temp" data-beschriften="2" data-jetzt="0" style="margin: 0 calc(100% / 24 - 4px)"></div>
+                      <div class="mikro-feld fest" data-mikro="balken" data-werte="0,0,0,0.3,1.2,0.9,0.6,0.3,0.1,0,0,0" data-max="2" style="height: 26px; margin-top: 4px"></div>
+                      <div class="spalten fest" style="margin-top: 3px">
+                        <span class="sp-zeit" style="color: var(--text)">14</span><span class="sp-zeit">15</span><span class="sp-zeit">16</span><span class="sp-zeit">17</span><span class="sp-zeit">18</span><span class="sp-zeit">19</span><span class="sp-zeit">20</span><span class="sp-zeit">21</span><span class="sp-zeit">22</span><span class="sp-zeit">23</span><span class="sp-zeit">0</span><span class="sp-zeit">1</span>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b> 12 Stunden</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#stunden" style="--x: 0; --y: 0; --w: 3; --h: 3">
+                      <div class="k-kopf"><span>24 Stunden</span><span class="rechts">Regen ab 17 Uhr</span></div>
+                      <div class="achse-n" style="--n: 24; height: 30px; margin-top: 8px">
+                        <span style="--i: 0"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /></span>
+                        <span style="--i: 3"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /></span>
+                        <span style="--i: 6"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /></span>
+                        <span style="--i: 9"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-night.svg" alt="" /></span>
+                        <span style="--i: 12"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-night.svg" alt="" /></span>
+                        <span style="--i: 15"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /></span>
+                        <span style="--i: 18"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /></span>
+                        <span style="--i: 21"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" /></span>
+                      </div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="13.4,13.9,14.1,13.2,11.6,10.6,10.2,9.9,9.6,9.3,9.1,8.9,8.6,8.4,8.3,8.2,8.1,8.2,8.8,9.7,10.8,11.7,12.3,12.8" data-farbe="temp" data-beschriften="3" data-jetzt="0" style="margin: 0 calc(100% / 48 - 4px)"></div>
+                      <div class="mikro-feld fest" data-mikro="balken" data-werte="0,0,0,0.3,1.2,0.9,0.6,0.3,0.1,0,0,0,0,0.1,0.4,0.8,1.1,1.3,0.9,0.4,0.1,0,0,0" data-max="2" style="height: 30px; margin-top: 4px"></div>
+                      <div class="achse-n" style="--n: 24; height: calc(var(--s13) * 1.1); margin-top: 3px">
+                        <span class="sp-klein" style="--i: 0"></span>
+                        <span class="sp-klein" style="--i: 3">70 %</span>
+                        <span class="sp-klein" style="--i: 6">50 %</span>
+                        <span class="sp-klein" style="--i: 9">10 %</span>
+                        <span class="sp-klein" style="--i: 12">30 %</span>
+                        <span class="sp-klein" style="--i: 15">60 %</span>
+                        <span class="sp-klein" style="--i: 18">60 %</span>
+                        <span class="sp-klein" style="--i: 21">40 %</span>
+                      </div>
+                      <div class="achse-n wind-pfeil" style="--n: 24; height: calc(var(--s15) * 1.1 + var(--s13) * 1.1 + 2px); margin-top: 8px">
+                        <span style="--i: 0"><i class="fa-solid fa-arrow-up" style="rotate: 45deg"></i><b>14</b></span>
+                        <span style="--i: 3"><i class="fa-solid fa-arrow-up" style="rotate: 50deg"></i><b>18</b></span>
+                        <span style="--i: 6"><i class="fa-solid fa-arrow-up" style="rotate: 70deg"></i><b>17</b></span>
+                        <span style="--i: 9"><i class="fa-solid fa-arrow-up" style="rotate: 60deg"></i><b>13</b></span>
+                        <span style="--i: 12"><i class="fa-solid fa-arrow-up" style="rotate: 30deg"></i><b>11</b></span>
+                        <span style="--i: 15"><i class="fa-solid fa-arrow-up" style="rotate: 20deg"></i><b>14</b></span>
+                        <span style="--i: 18"><i class="fa-solid fa-arrow-up" style="rotate: 30deg"></i><b>19</b></span>
+                        <span style="--i: 21"><i class="fa-solid fa-arrow-up" style="rotate: 50deg"></i><b>21</b></span>
+                      </div>
+                      <div class="achse-n" style="--n: 24; height: calc(var(--s13) * 1.1); margin-top: 4px">
+                        <span class="sp-zeit" style="--i: 0; color: var(--text)">14</span>
+                        <span class="sp-zeit" style="--i: 3">17</span>
+                        <span class="sp-zeit" style="--i: 6">20</span>
+                        <span class="sp-zeit" style="--i: 9">23</span>
+                        <span class="sp-zeit" style="--i: 12">2</span>
+                        <span class="sp-zeit" style="--i: 15">5</span>
+                        <span class="sp-zeit" style="--i: 18">8</span>
+                        <span class="sp-zeit" style="--i: 21">11</span>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×3</b> 24 Stunden mit Wind</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- tage -->
+          <div class="gal-typ" id="typ-tage">
+            <div class="gal-info">
+              <h3>Tage</h3>
+              <code>tage</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.tage</code> (7 Tage)</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#tage" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><span>Morgen</span></div>
+                      <img class="mc mc-ecke klein" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" />
+                      <div class="k-fuss">
+                        <div class="wert dick t-mild"><b>13°</b><small>/8°</small></div>
+                        <div class="unter"><i class="fa-solid fa-umbrella c-regen"></i> <b>80 %</b></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> morgen</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#tage" style="--x: 0; --y: 0; --w: 1; --h: 3">
+                      <div class="k-kopf"><span>5 Tage</span></div>
+                      <div class="tage-schmal">
+                        <div><div class="ts-tag">Heute</div><div class="ts-zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><b class="t-mild">15°</b><small class="entbehrlich">7°</small></div></div>
+                        <div><div class="ts-tag">Di</div><div class="ts-zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><b class="t-mild">13°</b><small class="entbehrlich">8°</small></div></div>
+                        <div><div class="ts-tag">Mi</div><div class="ts-zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><b class="t-mild">12°</b><small class="entbehrlich">6°</small></div></div>
+                        <div><div class="ts-tag">Do</div><div class="ts-zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><b class="t-mild">14°</b><small class="entbehrlich">5°</small></div></div>
+                        <div><div class="ts-tag">Fr</div><div class="ts-zeile"><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><b class="t-warm">17°</b><small class="entbehrlich">8°</small></div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×3</b> 5 Tage schmal</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#tage" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                      <div class="k-kopf"><span>4 Tage</span></div>
+                      <div class="tage">
+                        <div class="tz vier"><span class="tag">Heute</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="regen entbehrlich">70 %</span><span class="lo">7°</span><span class="hi">15°</span></div>
+                        <div class="tz vier"><span class="tag">Di</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="regen entbehrlich">80 %</span><span class="lo">8°</span><span class="hi">13°</span></div>
+                        <div class="tz vier"><span class="tag">Mi</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="regen entbehrlich">20 %</span><span class="lo">6°</span><span class="hi">12°</span></div>
+                        <div class="tz vier"><span class="tag">Do</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="regen entbehrlich">10 %</span><span class="lo">5°</span><span class="hi">14°</span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b> 4 Tage ohne Band</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#tage" style="--x: 0; --y: 0; --w: 3; --h: 2">
+                      <div class="k-kopf"><span>5 Tage</span><span class="rechts">5° bis 17°</span></div>
+                      <div class="tage">
+                        <div class="tz"><span class="tag">Heute</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="lo">7°</span><span class="band"><span style="left: 17%; right: 17%"></span><i style="left: 67%"></i></span><span class="hi">15°</span></div>
+                        <div class="tz"><span class="tag">Di</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 33%"></span></span><span class="hi">13°</span></div>
+                        <div class="tz"><span class="tag">Mi</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="lo">6°</span><span class="band"><span style="left: 8%; right: 42%"></span></span><span class="hi">12°</span></div>
+                        <div class="tz"><span class="tag">Do</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="lo">5°</span><span class="band"><span style="left: 0%; right: 25%"></span></span><span class="hi">14°</span></div>
+                        <div class="tz entbehrlich"><span class="tag">Fr</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 0%"></span></span><span class="hi">17°</span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b> 5 Tage mit Band</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#tage" style="--x: 0; --y: 0; --w: 3; --h: 3">
+                      <div class="k-kopf"><span>7 Tage</span><span class="rechts">5° bis 17°</span></div>
+                      <div class="tage">
+                        <div class="tz mit-regen"><span class="tag">Heute</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" /><span class="regen">70 %</span><span class="lo">7°</span><span class="band"><span style="left: 17%; right: 17%"></span><i style="left: 67%"></i></span><span class="hi">15°</span></div>
+                        <div class="tz mit-regen"><span class="tag">Di</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/rain.svg" alt="" /><span class="regen">80 %</span><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 33%"></span></span><span class="hi">13°</span></div>
+                        <div class="tz mit-regen"><span class="tag">Mi</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" /><span class="regen">20 %</span><span class="lo">6°</span><span class="band"><span style="left: 8%; right: 42%"></span></span><span class="hi">12°</span></div>
+                        <div class="tz mit-regen"><span class="tag">Do</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="regen">10 %</span><span class="lo">5°</span><span class="band"><span style="left: 0%; right: 25%"></span></span><span class="hi">14°</span></div>
+                        <div class="tz mit-regen"><span class="tag">Fr</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" /><span class="regen"></span><span class="lo">8°</span><span class="band"><span style="left: 25%; right: 0%"></span></span><span class="hi">17°</span></div>
+                        <div class="tz mit-regen"><span class="tag">Sa</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" /><span class="regen">10 %</span><span class="lo">9°</span><span class="band"><span style="left: 33%; right: 8%"></span></span><span class="hi">16°</span></div>
+                        <div class="tz mit-regen entbehrlich"><span class="tag">So</span><img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day-drizzle.svg" alt="" /><span class="regen">40 %</span><span class="lo">10°</span><span class="band"><span style="left: 42%; right: 25%"></span></span><span class="hi">14°</span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×3</b> 7 Tage mit Band und Regen</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- regen -->
+          <div class="gal-typ" id="typ-regen">
+            <div class="gal-info">
+              <h3>Regen</h3>
+              <code>regen</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.regen</code>: Kurzfrist 2 h in 5-Minuten-Säulen; ohne Regen in 2 h der Beginn aus <code>kompakt.heute</code></dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <!-- trocken bis 17 Uhr -->
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span></div>
+                      <div class="k-fuss">
+                        <div class="vor">trocken bis</div>
+                        <div class="wert c-regen"><b>17</b><small>Uhr</small></div>
+                        <div class="unter entbehrlich">dann <b>70 %</b></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> trocken</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span><span class="rechts">2 h</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="vor">trocken bis</div>
+                          <div class="wert halb c-regen"><b>17</b><small>Uhr</small></div>
+                          <div class="unter entbehrlich">dann <b>70 %</b></div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="balken" data-werte="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" data-max="4"><div class="im-feld">kein Regen</div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> trocken</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span><span class="rechts">nächste 2 h</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="vor">trocken bis</div>
+                          <div class="wert halb c-regen"><b>17</b><small>Uhr</small></div>
+                          <div class="unter entbehrlich">dann <b>70 %</b></div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="balken" data-werte="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" data-max="4" data-achse="jetzt|+1 h|+2 h"><div class="im-feld mit-achse">kein Regen in 2 h</div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> trocken</figcaption>
+              </figure>
+
+              <!-- Regen in 25 Min (Gewitterlage) -->
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span></div>
+                      <div class="k-fuss">
+                        <div class="vor">beginnt in</div>
+                        <div class="wert c-regen"><b>25</b><small>Min</small></div>
+                        <div class="unter entbehrlich">bis <b>12</b> mm/h</div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Regen in 25 Min</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span><span class="rechts">2 h</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="vor">beginnt in</div>
+                          <div class="wert halb c-regen"><b>25</b><small>Min</small></div>
+                          <div class="unter entbehrlich">kräftig</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="balken" data-werte="0,0,0,0,0,0.4,1.5,4.2,8.6,12,9.8,6.4,4,2.6,1.8,1.2,0.8,0.6,0.4,0.3,0.2,0.1,0,0" data-max="12"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> Regen in 25 Min</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#regen" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-umbrella"></i><span>Regen</span><span class="rechts">nächste 2 h</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="vor">beginnt in</div>
+                          <div class="wert halb c-regen"><b>25</b><small>Min</small></div>
+                          <div class="unter entbehrlich">bis <b>12</b> mm/h</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="balken" data-werte="0,0,0,0,0,0.4,1.5,4.2,8.6,12,9.8,6.4,4,2.6,1.8,1.2,0.8,0.6,0.4,0.3,0.2,0.1,0,0" data-max="12" data-achse="jetzt|+1 h|+2 h"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> Regen in 25 Min</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ Familie Wind und Himmel -->
+        <section class="gal-familie" id="himmel">
+          <h2>Wind und Himmel</h2>
+          <p>Wind, Sonne und Mond.</p>
+
+          <!-- ---------------------------------------------------------- wind -->
+          <div class="gal-typ" id="typ-wind">
+            <div class="gal-info">
+              <h3>Wind</h3>
+              <code>wind</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.jetzt</code> (Wind, Böen, Richtung)</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#wind" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-wind entbehrlich-gross"></i><span>Wind</span></div>
+                      <div class="mikro-feld fest" data-mikro="kompass" data-grad="225" style="position: absolute; right: 8px; top: 8px; width: 40px; height: 40px"></div>
+                      <div class="k-fuss">
+                        <div class="wert"><b>14</b><small>km/h</small></div>
+                        <div class="unter">Böen <b>31</b><span class="entbehrlich"> · SW</span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#wind" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-wind"></i><span>Wind</span><span class="rechts">aus Südwest</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert dick"><b>14</b><small>km/h</small></div>
+                          <div class="unter">Böen <b>31</b> km/h</div>
+                        </div>
+                        <div class="mikro-feld fest ans-ende" data-mikro="kompass" data-grad="225" style="aspect-ratio: 1"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#wind" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-wind"></i><span>Wind</span><span class="rechts">Stärke 3</span></div>
+                      <div class="mikro-feld" data-mikro="kompass" data-grad="225" style="margin: 6px 0"></div>
+                      <div class="k-reihe fest">
+                        <div class="wert halb"><b>14</b><small>km/h</small></div>
+                        <div class="kz ans-ende" style="text-align: right"><b>31 km/h</b><small>Böen</small></div>
+                      </div>
+                      <div class="unter">schwach, aus Südwest</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b></figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- sonne -->
+          <div class="gal-typ" id="typ-sonne">
+            <div class="gal-info">
+              <h3>Sonne</h3>
+              <code>sonne</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.sonne</code> (Auf- und Untergang, Tageslänge)</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter und Gesundheit</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#sonne" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>Sonne</span></div>
+                      <div class="mikro-feld" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="14:20" style="margin: 2px 0"></div>
+                      <div class="wert"><b>18:27</b></div>
+                      <div class="unter">Untergang</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> nächstes Ereignis</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#sonne" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>Sonne</span></div>
+                      <div class="mikro-feld" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="14:20" data-beschriften="1" style="margin-top: 2px">
+                        <div class="im-bogen"><small>noch</small><b>4 h 07</b></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#sonne" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>Sonne</span></div>
+                      <div class="k-reihe">
+                        <div class="mikro-feld" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="14:20" data-beschriften="1" style="margin-top: 2px">
+                          <div class="im-bogen"><small>noch</small><b>4 h 07</b></div>
+                        </div>
+                        <div class="k-block" style="padding-bottom: 2px">
+                          <div class="kz"><b class="gross">10 h 20</b><small>Tageslänge</small></div>
+                          <div class="unter entbehrlich"><b>3 Min</b> kürzer als gestern</div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b></figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- mond -->
+          <div class="gal-typ" id="typ-mond">
+            <div class="gal-info">
+              <h3>Mond</h3>
+              <code>mond</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd>gerechnet im Gerät (<code>kern/rechnen</code>): Anteil, Phase, Vollmond, Auf- und Untergang</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#mond" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-moon entbehrlich-gross"></i><span>Mond</span></div>
+                      <div class="mikro-feld fest" data-mikro="mond" data-anteil="0.58" data-zunehmend="1" style="position: absolute; right: 10px; top: 10px; width: 40px; height: 40px"></div>
+                      <div class="k-fuss">
+                        <div class="wert"><b>58</b><small>%</small></div>
+                        <div class="unter">zunehmend</div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#mond" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-moon"></i><span>Mond</span><span class="rechts auf-unter"><i class="fa-solid fa-arrow-up"></i>16:12<i class="fa-solid fa-arrow-down"></i>0:04</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="mikro-feld fest" data-mikro="mond" data-anteil="0.58" data-zunehmend="1" style="height: 100%; aspect-ratio: 1"></div>
+                        <div class="k-block">
+                          <div class="wert halb"><b>58</b><small>%</small></div>
+                          <div class="unter">zunehmend</div>
+                          <div class="unter entbehrlich-gross">Vollmond <b>26.10.</b></div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ Familie Gesundheit -->
+        <section class="gal-familie" id="gesundheit">
+          <h2>Gesundheit</h2>
+          <p>UV, Luftqualität und Pollen. Sie stehen auf der eigenen Seite Gesundheit; gezeigt ist Köln im Oktober: kaum Pollen, UV gering, gute Luft.</p>
+
+          <!-- ---------------------------------------------------------- uv -->
+          <div class="gal-typ" id="typ-uv">
+            <div class="gal-info">
+              <h3>UV</h3>
+              <code>uv</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.uv</code> (jetzt und Tageskurve)</dd>
+                <dt>Seiten</dt>
+                <dd>Gesundheit</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#uv" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>UV</span></div>
+                      <div class="ringwert" style="flex: 1 1 0; min-height: 0; margin: 2px auto -6px">
+                        <div class="mikro-feld" data-mikro="bogen" data-wert="2" data-max="11"></div>
+                        <b>2</b>
+                      </div>
+                      <div class="unter" style="text-align: center">gering</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#uv" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>UV</span><span class="rechts">Spitze 2,4 um 13 Uhr</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert dick"><b>2</b></div>
+                          <div class="unter">gering</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="linie" data-werte="0,0.2,0.7,1.4,2.0,2.4,2.2,1.6,0.9,0.3,0" data-farbe="--sonne" data-flaeche="1" data-jetzt="6"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#uv" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>UV</span><span class="rechts">Höchstwert 2,4 um 13 Uhr</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert dick"><b>2</b></div>
+                          <div class="unter">gering</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="linie" data-werte="0,0.2,0.7,1.4,2.0,2.4,2.2,1.6,0.9,0.3,0" data-farbe="--sonne" data-flaeche="1" data-jetzt="6"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> Tageskurve, Höchstwert</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#uv" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-sun"></i><span>UV</span><span class="rechts">jetzt</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="ringwert" style="width: 96px">
+                          <div class="mikro-feld" data-mikro="bogen" data-wert="2" data-max="11"></div>
+                          <b>2</b>
+                        </div>
+                        <div class="k-block dehnen">
+                          <div class="zustand">gering</div>
+                          <div class="k-hinweis">kein Schutz nötig</div>
+                        </div>
+                      </div>
+                      <div class="mikro-feld" data-mikro="linie" data-werte="0,0.2,0.7,1.4,2.0,2.4,2.2,1.6,0.9,0.3,0" data-farbe="--sonne" data-flaeche="1" data-jetzt="6" style="flex: none; height: 52px; margin-top: 6px"></div>
+                      <div class="unter">Höchstwert <b>2,4</b> um 13 Uhr</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b> Bogen und Tageskurve</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- luft -->
+          <div class="gal-typ" id="typ-luft">
+            <div class="gal-info">
+              <h3>Luft</h3>
+              <code>luft</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.luft</code> (Index, Stufe, Schadstoffe in µg/m³)</dd>
+                <dt>Seiten</dt>
+                <dd>Gesundheit</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#luft" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-lungs"></i><span>Luft</span></div>
+                      <div class="ringwert" style="flex: 1 1 0; min-height: 0; margin: 4px auto 0">
+                        <div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div>
+                        <b>28</b>
+                      </div>
+                      <div class="unter" style="text-align: center">gut</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#luft" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-lungs"></i><span>Luft</span><span class="rechts">gut</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="ringwert" style="height: 100%">
+                          <div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div>
+                          <b>28</b>
+                        </div>
+                        <div class="k-block dehnen" style="display: flex; flex-direction: column; gap: 8px">
+                          <div class="balken-z"><span class="bz-lab">NO<sub>2</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">12</span></div>
+                          <div class="balken-z"><span class="bz-lab">O<sub>3</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">48</span></div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#luft" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-lungs"></i><span>Luft</span><span class="rechts">µg/m³</span></div>
+                      <div class="k-reihe mitte" style="margin-top: 4px">
+                        <div class="ringwert" style="height: 100%">
+                          <div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div>
+                          <b>28</b>
+                        </div>
+                        <div class="k-block dehnen">
+                          <div class="zustand">gut</div>
+                          <div class="unter">kaum belastet</div>
+                        </div>
+                      </div>
+                      <div style="display: flex; flex-direction: column; gap: 7px; margin-top: 10px">
+                        <div class="balken-z"><span class="bz-lab">NO<sub>2</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">12</span></div>
+                        <div class="balken-z"><span class="bz-lab">O<sub>3</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">48</span></div>
+                        <div class="balken-z"><span class="bz-lab">PM<sub>2,5</sub></span><span class="bz-bahn"><span style="width: 47%; background: var(--gut)"></span></span><span class="bz-wert">7</span></div>
+                        <div class="balken-z"><span class="bz-lab">PM<sub>10</sub></span><span class="bz-bahn"><span style="width: 31%; background: var(--gut)"></span></span><span class="bz-wert">14</span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b></figcaption>
+              </figure>
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#luft" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-lungs"></i><span>Luft</span><span class="rechts">µg/m³</span></div>
+                      <div class="k-reihe mitte">
+                        <div class="ringwert" style="height: 100%">
+                          <div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div>
+                          <b>28</b>
+                        </div>
+                        <div class="k-block">
+                          <div class="zustand">gut</div>
+                          <div class="unter entbehrlich-gross">kaum belastet</div>
+                        </div>
+                        <div class="k-block dehnen balken-stapel">
+                          <div class="balken-z"><span class="bz-lab">NO<sub>2</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">12</span></div>
+                          <div class="balken-z"><span class="bz-lab">O<sub>3</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">48</span></div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> Ring, Wort, zwei Schadstoffe</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#luft" style="--x: 0; --y: 0; --w: 3; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-lungs"></i><span>Luft</span><span class="rechts">µg/m³</span></div>
+                      <div class="k-reihe mitte" style="gap: 14px">
+                        <div class="k-block" style="display: flex; flex-direction: column; align-items: center">
+                          <div class="ringwert" style="width: 112px">
+                            <div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div>
+                            <b>28</b>
+                          </div>
+                          <div class="zustand" style="margin-top: 6px">gut</div>
+                          <div class="unter" style="margin-top: 0">kaum belastet</div>
+                        </div>
+                        <div class="k-block dehnen balken-stapel" style="align-self: stretch">
+                          <div class="balken-z"><span class="bz-lab">NO<sub>2</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">12</span></div>
+                          <div class="balken-z"><span class="bz-lab">O<sub>3</sub></span><span class="bz-bahn"><span style="width: 48%; background: var(--gut)"></span></span><span class="bz-wert">48</span></div>
+                          <div class="balken-z"><span class="bz-lab">PM<sub>2,5</sub></span><span class="bz-bahn"><span style="width: 47%; background: var(--gut)"></span></span><span class="bz-wert">7</span></div>
+                          <div class="balken-z"><span class="bz-lab">PM<sub>10</sub></span><span class="bz-bahn"><span style="width: 31%; background: var(--gut)"></span></span><span class="bz-wert">14</span></div>
+                        </div>
+                      </div>
+                      <div class="unter entbehrlich">Morgen <b>18</b>, sehr gut</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b> Ring und vier Schadstoffe</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- pollen -->
+          <div class="gal-typ" id="typ-pollen">
+            <div class="gal-info">
+              <h3>Pollen</h3>
+              <code>pollen</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>Allergien (hier Gräser und Birke): stehen zuerst und sind hervorgehoben</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.pollen</code> (Arten mit Stufe heute und morgen)</dd>
+                <dt>Seiten</dt>
+                <dd>Gesundheit</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#pollen" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-seedling"></i><span>Pollen</span></div>
+                      <div class="k-fuss">
+                        <div class="zustand"><i class="fa-solid fa-hand-dots entbehrlich-gross" style="font-size: 0.8em; color: var(--akzent)"></i> Gräser</div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px"><span class="punkte p1"><span></span><span></span><span></span></span><span class="unter" style="margin: 0">gering</span></div>
+                        <div class="unter entbehrlich-gross">sonst keine</div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> stärkste Art</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#pollen" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-seedling"></i><span>Pollen</span><span class="rechts">heute</span></div>
+                      <div class="zeilen-k">
+                        <div class="zk allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Gräser</span><span class="zk-rechts"><span class="punkte p1"><span></span><span></span><span></span></span><span class="stufe">gering</span></span></div>
+                        <div class="zk allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Birke</span><span class="zk-rechts"><span class="punkte"><span></span><span></span><span></span></span><span class="stufe matt">keine</span></span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> zwei Arten</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#pollen" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-seedling"></i><span>Pollen</span><span class="rechts">heute</span></div>
+                      <div class="zeilen-k">
+                        <div class="zk allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Gräser</span><span class="zk-rechts"><span class="punkte p1"><span></span><span></span><span></span></span><span class="stufe">gering</span></span></div>
+                        <div class="zk allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Birke</span><span class="zk-rechts"><span class="punkte"><span></span><span></span><span></span></span><span class="stufe matt">keine</span></span></div>
+                        <div class="zk"><span class="art">Beifuß</span><span class="zk-rechts"><span class="punkte"><span></span><span></span><span></span></span><span class="stufe matt">keine</span></span></div>
+                        <div class="zk"><span class="art">Ambrosia</span><span class="zk-rechts"><span class="punkte"><span></span><span></span><span></span></span><span class="stufe matt">keine</span></span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b> vier, Allergien zuerst</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#pollen" style="--x: 0; --y: 0; --w: 1; --h: 3">
+                      <div class="k-kopf"><i class="fa-solid fa-seedling"></i><span>Pollen</span></div>
+                      <div class="pollen-schmal">
+                        <div class="ps allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Gräser</span><span class="punkte p1"><span></span><span></span><span></span></span></div>
+                        <div class="ps allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Birke</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="ps"><span class="art">Beifuß</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="ps"><span class="art">Ambrosia</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="ps"><span class="art">Roggen</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="ps"><span class="art">Erle</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="ps entbehrlich"><span class="art">Hasel</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×3</b> bis sieben</figcaption>
+              </figure>
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#pollen" style="--x: 0; --y: 0; --w: 3; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-seedling"></i><span>Pollen</span><span class="rechts">heute</span></div>
+                      <div class="zeilen-k zwei-spalten">
+                        <div class="zk allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Gräser</span><span class="punkte p1"><span></span><span></span><span></span></span></div>
+                        <div class="zk allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Birke</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="zk"><span class="art">Ambrosia</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="zk"><span class="art">Beifuß</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="zk"><span class="art">Erle</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="zk"><span class="art">Esche</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="zk"><span class="art">Hasel</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="zk"><span class="art">Roggen</span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b> alle acht heute</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#pollen" style="--x: 0; --y: 0; --w: 3; --h: 3">
+                      <div class="k-kopf"><i class="fa-solid fa-seedling"></i><span>Pollen</span><span class="rechts">fast keine</span></div>
+                      <div class="pollen-tafel">
+                        <div class="pt-zeile pt-kopf"><span></span><span>Heute</span><span>Morgen</span></div>
+                        <div class="pt-zeile allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Gräser</span><span class="punkte p1"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="pt-zeile allergie"><span class="art"><i class="fa-solid fa-hand-dots"></i>Birke</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="pt-zeile"><span class="art">Ambrosia</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="pt-zeile"><span class="art">Beifuß</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="pt-zeile"><span class="art">Erle</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="pt-zeile"><span class="art">Esche</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="pt-zeile"><span class="art">Hasel</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                        <div class="pt-zeile"><span class="art">Roggen</span><span class="punkte"><span></span><span></span><span></span></span><span class="punkte"><span></span><span></span><span></span></span></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×3</b> alle acht heute und morgen</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ Familie Unwetter -->
+        <section class="gal-familie" id="unwetter">
+          <h2>Unwetter</h2>
+          <p>Warnungen, Blitze und Radar. Gezeigt ist eine Gewitterlage am selben Nachmittag; ruhig heißt "Keine Warnungen", ein Ausfall der Quelle "Warnlage unbekannt", nie dasselbe Bild.</p>
+
+          <!-- ---------------------------------------------------------- warnungen -->
+          <div class="gal-typ" id="typ-warnungen">
+            <div class="gal-info">
+              <h3>Warnungen</h3>
+              <code>warnungen</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.warnungen</code> (Stufe, Ereignis, von, bis; bei Ausfall <code>status: fehlt</code>)</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k stufe-2" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation entbehrlich-gross"></i><span>Warnlage</span></div>
+                      <div class="k-reihe">
+                        <span class="stufe-marke riesig">2</span>
+                        <div class="anzahl ans-ende"><b>3</b><small>aktiv</small></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Stufe 2, drei Warnungen</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation entbehrlich-gross"></i><span>Warnlage</span></div>
+                      <div class="k-reihe">
+                        <span class="stufe-marke riesig ruhig"><i class="fa-solid fa-check"></i></span>
+                        <div class="anzahl ans-ende"><b>0</b><small>aktiv</small></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> ruhig</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation entbehrlich-gross"></i><span>Warnlage</span></div>
+                      <div class="k-reihe">
+                        <span class="stufe-marke riesig unbekannt">?</span>
+                      </div>
+                      <div class="unter">unbekannt</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b> Quelle fehlt</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k stufe-2" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation"></i><span>Warnungen</span><span class="rechts">+2<span class="entbehrlich-gross"> weitere</span></span></div>
+                      <div class="k-reihe mitte">
+                        <span class="stufe-marke gross">2</span>
+                        <div class="k-block dehnen"><div class="titel-2">Starkes Gewitter</div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> Stufe und Ereignis</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation"></i><span>Warnungen</span><span class="rechts">Stand 14:18</span></div>
+                      <div class="k-reihe mitte">
+                        <span class="stufe-marke gross ruhig"><i class="fa-solid fa-check"></i></span>
+                        <div class="k-block dehnen"><div class="titel-2">Keine Warnungen</div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b> ruhig</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k stufe-2" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation"></i><span>Warnungen</span><span class="rechts">+2 weitere</span></div>
+                      <div class="k-reihe mitte">
+                        <span class="stufe-marke gross">2</span>
+                        <div class="k-block dehnen">
+                          <div class="titel-1">Starkes Gewitter</div>
+                          <div class="unter">heute 15 bis 19 Uhr</div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> oberste Warnung</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation"></i><span>Warnungen</span><span class="rechts">Stand 14:18</span></div>
+                      <div class="k-reihe mitte">
+                        <span class="stufe-marke gross ruhig"><i class="fa-solid fa-check"></i></span>
+                        <div class="k-block dehnen">
+                          <div class="titel-1">Keine Warnungen</div>
+                          <div class="unter">für Köln</div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> ruhig</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#warnungen" style="--x: 0; --y: 0; --w: 3; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-triangle-exclamation"></i><span>Warnungen</span><span class="rechts">3 für Köln</span></div>
+                      <div class="warn-liste">
+                        <div class="warn-zeile stufe-2"><span class="stufe-marke">2</span><div class="wz-txt"><div class="wz-titel">Starkes Gewitter</div><div class="wz-zeit">heute 15 bis 19 Uhr</div></div></div>
+                        <div class="warn-zeile stufe-2"><span class="stufe-marke">2</span><div class="wz-txt"><div class="wz-titel">Sturmböen</div><div class="wz-zeit">heute 15 bis 20 Uhr</div></div></div>
+                        <div class="warn-zeile stufe-1"><span class="stufe-marke">1</span><div class="wz-txt"><div class="wz-titel">Windböen</div><div class="wz-zeit">heute 20 bis 23 Uhr</div></div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b> bis drei Warnungen</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- blitze -->
+          <div class="gal-typ" id="typ-blitze">
+            <div class="gal-info">
+              <h3>Blitze</h3>
+              <code>blitze</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>Umkreis (hier 50 km)</dd>
+                <dt>Daten</dt>
+                <dd><code>kompakt.blitze</code> (Anzahl 30 und 60 Min, nächster Abstand, Richtung, Zeit)</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(1, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#blitze" style="--x: 0; --y: 0; --w: 1; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-bolt"></i><span>Blitze</span></div>
+                      <div class="k-fuss">
+                        <div class="vor entbehrlich">nächster</div>
+                        <div class="wert c-w1"><b>12</b><small>km</small></div>
+                        <div class="unter"><b>47</b> in 30 Min</div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>1×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#blitze" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-bolt"></i><span>Blitze</span><span class="rechts">vor 2 Min</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="vor entbehrlich"><b style="color: var(--text)">47</b> in 30 Min</div>
+                          <div class="wert halb c-w1"><b>12</b><small>km</small></div>
+                          <div class="unter">im Westen</div>
+                        </div>
+                        <div class="mikro-feld fest ans-ende" data-mikro="ringe" data-punkte="12:250,14:245,16:258,19:240,22:252,24:262,27:235,31:248,33:255,38:242,41:265,45:238" data-max="50" style="aspect-ratio: 1"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#blitze" style="--x: 0; --y: 0; --w: 2; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-bolt"></i><span>Blitze</span><span class="rechts">Umkreis 50 km</span></div>
+                      <div class="mikro-feld" data-mikro="ringe" data-punkte="12:250,14:245,16:258,19:240,22:252,24:262,27:235,31:248,33:255,38:242,41:265,45:238" data-max="50" style="margin: 4px 0"></div>
+                      <div class="k-reihe fest">
+                        <div class="wert halb c-w1"><b>12</b><small>km</small></div>
+                        <div class="kz ans-ende" style="text-align: right"><b>47</b><small>in 30 Min</small></div>
+                      </div>
+                      <div class="unter">im Westen, vor 2 Min</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b> Entfernungsringe</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <!-- ---------------------------------------------------------- radar -->
+          <div class="gal-typ" id="typ-radar">
+            <div class="gal-info">
+              <h3>Regenradar</h3>
+              <code>radar</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd>letztes gemessenes Radarbild, im Gerät zugeschnitten; Karte aus dem Kachelcache. Tippen öffnet die Karte.</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/karte.html" style="--x: 0; --y: 0; --w: 2; --h: 2; padding: 0">
+                      <svg class="radar-bild" aria-hidden="true">
+                        <rect class="r-land" width="100%" height="100%" />
+                        <svg x="50%" y="50%" overflow="visible">
+                          <circle class="r-stadt" r="24" />
+                          <ellipse class="r-strasse" rx="44" ry="38" />
+                          <path class="r-strasse" d="M-260 18 L-44 4 M44 -8 L260 -44 M28 30 L130 260 M-26 -30 L-140 -260" />
+                          <path class="r-fluss" d="M78 260 C66 190 60 140 54 116 S30 62 18 30 S6 -10 10 -36 S0 -84 -12 -112 S-36 -176 -50 -260" />
+                          <!-- ZELLEN mittag -->
+                          <!-- Regengebiet im Westen -->
+                          <path class="r1" d="M-123.3 -41.3 C-119.7 -27.9 -116.5 -15.7 -114.3 -3.7 C-112.0 8.4 -108.0 23.9 -109.9 31.2 C-111.7 38.4 -121.7 35.8 -125.4 39.9 C-129.0 44.1 -129.5 49.5 -131.7 56.1 C-133.8 62.7 -134.5 73.8 -138.3 79.5 C-142.1 85.2 -147.9 92.3 -154.4 90.2 C-161.0 88.1 -171.1 78.0 -177.6 66.8 C-184.2 55.6 -188.4 35.7 -193.9 23.1 C-199.5 10.4 -207.1 1.9 -211.0 -9.3 C-214.9 -20.6 -216.8 -34.4 -217.6 -44.7 C-218.3 -55.0 -214.6 -60.1 -215.7 -71.1 C-216.8 -82.1 -224.2 -100.6 -224.2 -110.5 C-224.1 -120.4 -219.7 -127.6 -215.2 -130.4 C-210.7 -133.2 -203.3 -130.3 -197.1 -127.4 C-191.0 -124.4 -184.5 -117.1 -178.3 -112.8 C-172.1 -108.5 -167.0 -106.5 -159.9 -101.7 C-152.9 -96.9 -142.3 -94.1 -136.2 -84.0 C-130.1 -73.9 -127.0 -54.6 -123.3 -41.3 Z" />
+                          <path class="r2" d="M-128.5 -39.4 C-126.2 -29.3 -128.1 -20.1 -127.0 -10.9 C-125.8 -1.6 -120.7 10.2 -121.5 16.2 C-122.3 22.2 -128.8 22.3 -131.7 24.9 C-134.7 27.5 -137.3 27.7 -139.2 31.9 C-141.2 36.2 -140.9 45.3 -143.4 50.4 C-146.0 55.6 -149.8 62.7 -154.7 62.9 C-159.7 63.0 -168.2 59.8 -173.3 51.2 C-178.3 42.5 -181.5 21.9 -185.1 10.9 C-188.7 -0.2 -191.8 -6.5 -195.0 -15.2 C-198.1 -23.9 -203.3 -34.1 -204.1 -41.5 C-204.9 -48.9 -199.7 -52.0 -199.9 -59.6 C-200.1 -67.2 -204.9 -78.9 -205.3 -87.1 C-205.7 -95.4 -205.2 -105.5 -202.4 -109.1 C-199.6 -112.6 -193.5 -110.9 -188.6 -108.5 C-183.8 -106.1 -178.1 -99.4 -173.2 -94.6 C-168.4 -89.8 -165.0 -83.5 -159.6 -79.6 C-154.1 -75.7 -145.9 -78.1 -140.7 -71.4 C-135.5 -64.7 -130.8 -49.5 -128.5 -39.4 Z" />
+                          <!-- Schauer Südwest -->
+                          <path class="r1" d="M-120.0 68.4 C-118.1 72.0 -114.9 75.1 -113.7 78.6 C-112.4 82.2 -112.3 86.4 -112.6 89.7 C-113.0 93.1 -114.4 96.1 -115.7 98.7 C-117.1 101.3 -119.0 102.9 -120.7 105.5 C-122.3 108.1 -123.3 111.9 -125.6 114.1 C-128.0 116.4 -131.5 120.0 -134.8 119.2 C-138.1 118.4 -142.3 112.4 -145.4 109.4 C-148.5 106.3 -151.0 103.8 -153.6 101.0 C-156.3 98.1 -159.8 95.6 -161.4 92.3 C-162.9 89.0 -162.4 84.8 -163.1 81.2 C-163.7 77.6 -164.8 74.6 -165.4 70.9 C-166.1 67.3 -167.1 63.0 -166.8 59.3 C-166.6 55.6 -165.9 50.8 -163.8 48.7 C-161.6 46.5 -157.4 46.2 -154.1 46.5 C-150.8 46.7 -147.3 49.8 -144.0 50.3 C-140.7 50.7 -137.5 48.0 -134.3 49.2 C-131.2 50.3 -127.4 53.8 -125.1 57.0 C-122.7 60.2 -121.9 64.8 -120.0 68.4 Z" />
+                          <path class="r2" d="M-122.9 70.1 C-121.3 72.9 -118.1 75.2 -117.3 77.9 C-116.6 80.6 -117.6 83.8 -118.3 86.1 C-119.1 88.4 -120.7 89.8 -121.7 91.8 C-122.6 93.7 -123.1 95.5 -124.0 97.9 C-124.8 100.2 -125.2 104.1 -126.9 106.0 C-128.6 107.9 -131.7 110.1 -134.2 109.3 C-136.8 108.5 -139.8 103.4 -142.3 101.2 C-144.8 98.9 -147.1 97.9 -149.2 95.8 C-151.3 93.8 -154.1 91.3 -155.0 88.7 C-155.9 86.0 -154.3 82.6 -154.7 79.9 C-155.1 77.1 -156.6 75.0 -157.4 72.2 C-158.1 69.4 -159.4 65.7 -159.1 63.0 C-158.8 60.3 -157.6 57.2 -155.8 55.9 C-154.0 54.6 -150.8 55.0 -148.4 55.0 C-145.9 55.1 -143.8 56.3 -141.3 56.1 C-138.9 56.0 -136.1 53.1 -133.7 53.9 C-131.2 54.8 -128.5 58.5 -126.7 61.2 C-124.9 63.9 -124.4 67.3 -122.9 70.1 Z" />
+                          <!-- /ZELLEN -->
+                          <circle class="r-nachbar" cx="7" cy="-50" r="3" />
+                          <text class="neben" x="14" y="-45">Leverkusen</text>
+                          <circle class="r-ort" r="6" />
+                          <text x="12" y="5">Köln</text>
+                        </svg>
+                      </svg>
+                      <div class="radar-schleier"></div>
+                      <div class="k-kopf radar-kopf"><i class="fa-solid fa-satellite-dish"></i><span>Radar</span><span class="rechts">14:15</span></div>
+                      <div class="unter radar-unter">Regen im Westen</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×2</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/karte.html" style="--x: 0; --y: 0; --w: 3; --h: 2; padding: 0">
+                      <svg class="radar-bild" aria-hidden="true">
+                        <rect class="r-land" width="100%" height="100%" />
+                        <svg x="50%" y="50%" overflow="visible">
+                          <circle class="r-stadt" r="24" />
+                          <ellipse class="r-strasse" rx="44" ry="38" />
+                          <path class="r-strasse" d="M-260 18 L-44 4 M44 -8 L260 -44 M28 30 L130 260 M-26 -30 L-140 -260" />
+                          <path class="r-fluss" d="M78 260 C66 190 60 140 54 116 S30 62 18 30 S6 -10 10 -36 S0 -84 -12 -112 S-36 -176 -50 -260" />
+                          <!-- ZELLEN mittag -->
+                          <!-- Regengebiet im Westen -->
+                          <path class="r1" d="M-123.3 -41.3 C-119.7 -27.9 -116.5 -15.7 -114.3 -3.7 C-112.0 8.4 -108.0 23.9 -109.9 31.2 C-111.7 38.4 -121.7 35.8 -125.4 39.9 C-129.0 44.1 -129.5 49.5 -131.7 56.1 C-133.8 62.7 -134.5 73.8 -138.3 79.5 C-142.1 85.2 -147.9 92.3 -154.4 90.2 C-161.0 88.1 -171.1 78.0 -177.6 66.8 C-184.2 55.6 -188.4 35.7 -193.9 23.1 C-199.5 10.4 -207.1 1.9 -211.0 -9.3 C-214.9 -20.6 -216.8 -34.4 -217.6 -44.7 C-218.3 -55.0 -214.6 -60.1 -215.7 -71.1 C-216.8 -82.1 -224.2 -100.6 -224.2 -110.5 C-224.1 -120.4 -219.7 -127.6 -215.2 -130.4 C-210.7 -133.2 -203.3 -130.3 -197.1 -127.4 C-191.0 -124.4 -184.5 -117.1 -178.3 -112.8 C-172.1 -108.5 -167.0 -106.5 -159.9 -101.7 C-152.9 -96.9 -142.3 -94.1 -136.2 -84.0 C-130.1 -73.9 -127.0 -54.6 -123.3 -41.3 Z" />
+                          <path class="r2" d="M-128.5 -39.4 C-126.2 -29.3 -128.1 -20.1 -127.0 -10.9 C-125.8 -1.6 -120.7 10.2 -121.5 16.2 C-122.3 22.2 -128.8 22.3 -131.7 24.9 C-134.7 27.5 -137.3 27.7 -139.2 31.9 C-141.2 36.2 -140.9 45.3 -143.4 50.4 C-146.0 55.6 -149.8 62.7 -154.7 62.9 C-159.7 63.0 -168.2 59.8 -173.3 51.2 C-178.3 42.5 -181.5 21.9 -185.1 10.9 C-188.7 -0.2 -191.8 -6.5 -195.0 -15.2 C-198.1 -23.9 -203.3 -34.1 -204.1 -41.5 C-204.9 -48.9 -199.7 -52.0 -199.9 -59.6 C-200.1 -67.2 -204.9 -78.9 -205.3 -87.1 C-205.7 -95.4 -205.2 -105.5 -202.4 -109.1 C-199.6 -112.6 -193.5 -110.9 -188.6 -108.5 C-183.8 -106.1 -178.1 -99.4 -173.2 -94.6 C-168.4 -89.8 -165.0 -83.5 -159.6 -79.6 C-154.1 -75.7 -145.9 -78.1 -140.7 -71.4 C-135.5 -64.7 -130.8 -49.5 -128.5 -39.4 Z" />
+                          <!-- Schauer Südwest -->
+                          <path class="r1" d="M-120.0 68.4 C-118.1 72.0 -114.9 75.1 -113.7 78.6 C-112.4 82.2 -112.3 86.4 -112.6 89.7 C-113.0 93.1 -114.4 96.1 -115.7 98.7 C-117.1 101.3 -119.0 102.9 -120.7 105.5 C-122.3 108.1 -123.3 111.9 -125.6 114.1 C-128.0 116.4 -131.5 120.0 -134.8 119.2 C-138.1 118.4 -142.3 112.4 -145.4 109.4 C-148.5 106.3 -151.0 103.8 -153.6 101.0 C-156.3 98.1 -159.8 95.6 -161.4 92.3 C-162.9 89.0 -162.4 84.8 -163.1 81.2 C-163.7 77.6 -164.8 74.6 -165.4 70.9 C-166.1 67.3 -167.1 63.0 -166.8 59.3 C-166.6 55.6 -165.9 50.8 -163.8 48.7 C-161.6 46.5 -157.4 46.2 -154.1 46.5 C-150.8 46.7 -147.3 49.8 -144.0 50.3 C-140.7 50.7 -137.5 48.0 -134.3 49.2 C-131.2 50.3 -127.4 53.8 -125.1 57.0 C-122.7 60.2 -121.9 64.8 -120.0 68.4 Z" />
+                          <path class="r2" d="M-122.9 70.1 C-121.3 72.9 -118.1 75.2 -117.3 77.9 C-116.6 80.6 -117.6 83.8 -118.3 86.1 C-119.1 88.4 -120.7 89.8 -121.7 91.8 C-122.6 93.7 -123.1 95.5 -124.0 97.9 C-124.8 100.2 -125.2 104.1 -126.9 106.0 C-128.6 107.9 -131.7 110.1 -134.2 109.3 C-136.8 108.5 -139.8 103.4 -142.3 101.2 C-144.8 98.9 -147.1 97.9 -149.2 95.8 C-151.3 93.8 -154.1 91.3 -155.0 88.7 C-155.9 86.0 -154.3 82.6 -154.7 79.9 C-155.1 77.1 -156.6 75.0 -157.4 72.2 C-158.1 69.4 -159.4 65.7 -159.1 63.0 C-158.8 60.3 -157.6 57.2 -155.8 55.9 C-154.0 54.6 -150.8 55.0 -148.4 55.0 C-145.9 55.1 -143.8 56.3 -141.3 56.1 C-138.9 56.0 -136.1 53.1 -133.7 53.9 C-131.2 54.8 -128.5 58.5 -126.7 61.2 C-124.9 63.9 -124.4 67.3 -122.9 70.1 Z" />
+                          <!-- /ZELLEN -->
+                          <circle class="r-nachbar" cx="7" cy="-50" r="3" />
+                          <text class="neben" x="14" y="-45">Leverkusen</text>
+                          <circle class="r-ort" r="6" />
+                          <text x="12" y="5">Köln</text>
+                        </svg>
+                      </svg>
+                      <div class="radar-schleier"></div>
+                      <div class="k-kopf radar-kopf"><i class="fa-solid fa-satellite-dish"></i><span>Regenradar</span><span class="rechts">14:15 gemessen</span></div>
+                      <div class="unter radar-unter">Regen zieht von Westen heran</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/karte.html" style="--x: 0; --y: 0; --w: 3; --h: 3; padding: 0">
+                      <svg class="radar-bild" aria-hidden="true">
+                        <rect class="r-land" width="100%" height="100%" />
+                        <svg x="50%" y="50%" overflow="visible">
+                          <circle class="r-stadt" r="24" />
+                          <ellipse class="r-strasse" rx="44" ry="38" />
+                          <path class="r-strasse" d="M-260 18 L-44 4 M44 -8 L260 -44 M28 30 L130 260 M-26 -30 L-140 -260" />
+                          <path class="r-fluss" d="M78 260 C66 190 60 140 54 116 S30 62 18 30 S6 -10 10 -36 S0 -84 -12 -112 S-36 -176 -50 -260" />
+                          <!-- ZELLEN mittag -->
+                          <!-- Regengebiet im Westen -->
+                          <path class="r1" d="M-123.3 -41.3 C-119.7 -27.9 -116.5 -15.7 -114.3 -3.7 C-112.0 8.4 -108.0 23.9 -109.9 31.2 C-111.7 38.4 -121.7 35.8 -125.4 39.9 C-129.0 44.1 -129.5 49.5 -131.7 56.1 C-133.8 62.7 -134.5 73.8 -138.3 79.5 C-142.1 85.2 -147.9 92.3 -154.4 90.2 C-161.0 88.1 -171.1 78.0 -177.6 66.8 C-184.2 55.6 -188.4 35.7 -193.9 23.1 C-199.5 10.4 -207.1 1.9 -211.0 -9.3 C-214.9 -20.6 -216.8 -34.4 -217.6 -44.7 C-218.3 -55.0 -214.6 -60.1 -215.7 -71.1 C-216.8 -82.1 -224.2 -100.6 -224.2 -110.5 C-224.1 -120.4 -219.7 -127.6 -215.2 -130.4 C-210.7 -133.2 -203.3 -130.3 -197.1 -127.4 C-191.0 -124.4 -184.5 -117.1 -178.3 -112.8 C-172.1 -108.5 -167.0 -106.5 -159.9 -101.7 C-152.9 -96.9 -142.3 -94.1 -136.2 -84.0 C-130.1 -73.9 -127.0 -54.6 -123.3 -41.3 Z" />
+                          <path class="r2" d="M-128.5 -39.4 C-126.2 -29.3 -128.1 -20.1 -127.0 -10.9 C-125.8 -1.6 -120.7 10.2 -121.5 16.2 C-122.3 22.2 -128.8 22.3 -131.7 24.9 C-134.7 27.5 -137.3 27.7 -139.2 31.9 C-141.2 36.2 -140.9 45.3 -143.4 50.4 C-146.0 55.6 -149.8 62.7 -154.7 62.9 C-159.7 63.0 -168.2 59.8 -173.3 51.2 C-178.3 42.5 -181.5 21.9 -185.1 10.9 C-188.7 -0.2 -191.8 -6.5 -195.0 -15.2 C-198.1 -23.9 -203.3 -34.1 -204.1 -41.5 C-204.9 -48.9 -199.7 -52.0 -199.9 -59.6 C-200.1 -67.2 -204.9 -78.9 -205.3 -87.1 C-205.7 -95.4 -205.2 -105.5 -202.4 -109.1 C-199.6 -112.6 -193.5 -110.9 -188.6 -108.5 C-183.8 -106.1 -178.1 -99.4 -173.2 -94.6 C-168.4 -89.8 -165.0 -83.5 -159.6 -79.6 C-154.1 -75.7 -145.9 -78.1 -140.7 -71.4 C-135.5 -64.7 -130.8 -49.5 -128.5 -39.4 Z" />
+                          <!-- Schauer Südwest -->
+                          <path class="r1" d="M-120.0 68.4 C-118.1 72.0 -114.9 75.1 -113.7 78.6 C-112.4 82.2 -112.3 86.4 -112.6 89.7 C-113.0 93.1 -114.4 96.1 -115.7 98.7 C-117.1 101.3 -119.0 102.9 -120.7 105.5 C-122.3 108.1 -123.3 111.9 -125.6 114.1 C-128.0 116.4 -131.5 120.0 -134.8 119.2 C-138.1 118.4 -142.3 112.4 -145.4 109.4 C-148.5 106.3 -151.0 103.8 -153.6 101.0 C-156.3 98.1 -159.8 95.6 -161.4 92.3 C-162.9 89.0 -162.4 84.8 -163.1 81.2 C-163.7 77.6 -164.8 74.6 -165.4 70.9 C-166.1 67.3 -167.1 63.0 -166.8 59.3 C-166.6 55.6 -165.9 50.8 -163.8 48.7 C-161.6 46.5 -157.4 46.2 -154.1 46.5 C-150.8 46.7 -147.3 49.8 -144.0 50.3 C-140.7 50.7 -137.5 48.0 -134.3 49.2 C-131.2 50.3 -127.4 53.8 -125.1 57.0 C-122.7 60.2 -121.9 64.8 -120.0 68.4 Z" />
+                          <path class="r2" d="M-122.9 70.1 C-121.3 72.9 -118.1 75.2 -117.3 77.9 C-116.6 80.6 -117.6 83.8 -118.3 86.1 C-119.1 88.4 -120.7 89.8 -121.7 91.8 C-122.6 93.7 -123.1 95.5 -124.0 97.9 C-124.8 100.2 -125.2 104.1 -126.9 106.0 C-128.6 107.9 -131.7 110.1 -134.2 109.3 C-136.8 108.5 -139.8 103.4 -142.3 101.2 C-144.8 98.9 -147.1 97.9 -149.2 95.8 C-151.3 93.8 -154.1 91.3 -155.0 88.7 C-155.9 86.0 -154.3 82.6 -154.7 79.9 C-155.1 77.1 -156.6 75.0 -157.4 72.2 C-158.1 69.4 -159.4 65.7 -159.1 63.0 C-158.8 60.3 -157.6 57.2 -155.8 55.9 C-154.0 54.6 -150.8 55.0 -148.4 55.0 C-145.9 55.1 -143.8 56.3 -141.3 56.1 C-138.9 56.0 -136.1 53.1 -133.7 53.9 C-131.2 54.8 -128.5 58.5 -126.7 61.2 C-124.9 63.9 -124.4 67.3 -122.9 70.1 Z" />
+                          <!-- /ZELLEN -->
+                          <circle class="r-nachbar" cx="7" cy="-50" r="3" />
+                          <text class="neben" x="14" y="-45">Leverkusen</text>
+                          <circle class="r-ort" r="6" />
+                          <text x="12" y="5">Köln</text>
+                        </svg>
+                      </svg>
+                      <div class="radar-schleier"></div>
+                      <div class="k-kopf radar-kopf"><i class="fa-solid fa-satellite-dish"></i><span>Regenradar</span><span class="rechts">14:15 gemessen</span></div>
+                      <div class="unter radar-unter">Regen zieht von Westen heran</div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×3</b></figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ Familie Rückblick -->
+        <section class="gal-familie" id="rueckblick">
+          <h2>Rückblick</h2>
+          <p>Wie der laufende Monat im Vergleich zum Klimamittel 1991 bis 2020 ausfällt.</p>
+
+          <!-- ---------------------------------------------------------- monat -->
+          <div class="gal-typ" id="typ-monat">
+            <div class="gal-info">
+              <h3>Monatsvergleich</h3>
+              <code>monat</code>
+              <dl>
+                <dt>Einstellungen</dt>
+                <dd>keine</dd>
+                <dt>Daten</dt>
+                <dd>Klimamittel und Monatsaggregate aus dem Archiv</dd>
+                <dt>Seiten</dt>
+                <dd>Wetter</dd>
+              </dl>
+            </div>
+            <div class="gal-muster">
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(2, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#monat" style="--x: 0; --y: 0; --w: 2; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-chart-column"></i><span>Oktober bisher</span></div>
+                      <div class="k-reihe">
+                        <div class="k-block">
+                          <div class="wert halb t-heiss"><b>+1,4°</b></div>
+                          <div class="unter">wärmer</div>
+                        </div>
+                        <div class="k-block ans-ende zeilen-klein"><div>bisher <b>12,3°</b></div><div>Mittel <b>10,9°</b></div></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>2×1</b></figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#monat" style="--x: 0; --y: 0; --w: 3; --h: 1">
+                      <div class="k-kopf"><i class="fa-solid fa-chart-column"></i><span>Oktober bisher</span><span class="rechts">zu 1991 bis 2020</span></div>
+                      <div class="k-reihe" style="gap: 12px">
+                        <div class="k-block">
+                          <div class="wert halb t-heiss"><b>+1,4°</b></div>
+                          <div class="unter">wärmer</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="abweichung" data-werte="1.8,0.6,2.1,-0.4,1.2,2.6,0.9,1.7,-0.3,1.4" data-jetzt="9" data-achse="Jan|Mai|Okt"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×1</b> je Monat</figcaption>
+              </figure>
+
+              <figure class="gal-probe">
+                <div class="tel muster" style="--breite: 390px">
+                  <div class="raster" style="grid-template-columns: repeat(3, var(--feld)); padding: 0">
+                    <a class="k" href="/mockups/telefon/detail.html#monat" style="--x: 0; --y: 0; --w: 3; --h: 2">
+                      <div class="k-kopf"><i class="fa-solid fa-chart-column"></i><span>Oktober bisher</span><span class="rechts">zu 1991 bis 2020</span></div>
+                      <div class="k-reihe" style="gap: 12px; margin-top: 6px">
+                        <div class="k-block" style="width: 32%">
+                          <div class="wert halb t-heiss"><b>+1,4°</b></div>
+                          <div class="unter">Temperatur</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="abweichung" data-werte="1.8,0.6,2.1,-0.4,1.2,2.6,0.9,1.7,-0.3,1.4" data-jetzt="9"></div>
+                      </div>
+                      <div class="k-reihe" style="gap: 12px; margin-top: 10px">
+                        <div class="k-block" style="width: 32%">
+                          <div class="wert halb c-sonne"><b>-20 %</b></div>
+                          <div class="unter">Niederschlag</div>
+                        </div>
+                        <div class="mikro-feld" data-mikro="abweichung" data-werte="12,-35,-48,8,-22,41,-15,27,-9,-20" data-jetzt="9" data-achse="Jan|Mai|Okt" style="--t-heiss: var(--regen); --t-frost: var(--sonne)"></div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                <figcaption><b>3×2</b> mit Niederschlag</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ Bausteine -->
+        <section class="gal-familie" id="bausteine">
+          <h2>Bausteine</h2>
+          <p>Die Mikrodiagramme einzeln, wie sie <code>mikro.js</code> zeichnet: Name, Parameter als data-Attribute und die Vorlage für den Svelte-Baustein unter <code>telefon/mikro/</code> mit denselben Parametern. Alle Farben kommen aus den Variablen der Telefonansicht, darum stimmt der Nachtbetrieb ohne Sonderfall. Gezeichnet wird in der tatsächlichen Größe des Felds.</p>
+
+          <div class="gal-bausteine">
+            <!-- linie -->
+            <div class="gal-baustein">
+              <h3><code>linie</code><small>Svelte <code>mikro/Linie.svelte</code></small></h3>
+              <p>Verlauf ohne Achsen, glatt ohne Überschwingen, Punkt auf dem Jetzt-Wert.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 140px; height: 80px"><div class="gal-flaeche-titel">schlicht</div><div class="mikro-feld" data-mikro="linie" data-werte="1008.6,1010.2,1011.3,1012.4,1013.6,1014.9,1015.8,1016.7,1017.5,1018.2" data-farbe="--text-2"></div></div>
+                <div class="gal-flaeche" style="width: 230px; height: 110px"><div class="gal-flaeche-titel">temp, beschriften 2, jetzt 0</div><div class="mikro-feld" data-mikro="linie" data-werte="13,14,14,13,11,10,10,10,9,9,9,9" data-farbe="temp" data-flaeche="1" data-beschriften="2" data-jetzt="0"></div></div>
+                <div class="gal-flaeche" style="width: 230px; height: 110px"><div class="gal-flaeche-titel">minmax, ohne Punkt</div><div class="mikro-feld" data-mikro="linie" data-werte="15,13,12,14,17,16,14" data-farbe="temp" data-minmax="1" data-jetzt="-1"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-werte</code></dt><dd>Zahlen, mit Komma getrennt</dd>
+                <dt><code>data-farbe</code></dt><dd>Variable wie <code>--regen</code> oder <code>temp</code> für Temperaturfarben als Verlauf</dd>
+                <dt><code>data-flaeche</code></dt><dd><code>1</code>: zarte Fläche unter der Linie</dd>
+                <dt><code>data-jetzt</code></dt><dd>Index des Jetzt-Punkts; ohne Angabe der letzte Wert, <code>-1</code> ohne Punkt</dd>
+                <dt><code>data-beschriften</code></dt><dd><code>n</code>: jeden n-ten Wert beschriften</dd>
+                <dt><code>data-minmax</code></dt><dd><code>1</code>: Hoch und Tief beschriften</dd>
+                <dt><code>data-einheit</code></dt><dd>hinter beschrifteten Werten, Standard <code>°</code>, leer für ohne</dd>
+              </dl>
+              <div class="gal-merke">Offen: Beschriftungen hängen immer ° an. Für Messwerte mit anderer Einheit braucht der Baustein <code>einheit</code>.</div>
+            </div>
+
+            <!-- balken -->
+            <div class="gal-baustein">
+              <h3><code>balken</code><small>Svelte <code>mikro/Saeulen.svelte</code></small></h3>
+              <p>Säulen auf einer Grundlinie, wahlweise mit Achse und hervorgehobener Säule.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 230px; height: 96px"><div class="gal-flaeche-titel">Regen 2 h mit Achse</div><div class="mikro-feld" data-mikro="balken" data-werte="0,0,0,0,0,0.4,1.5,4.2,8.6,12,9.8,6.4,4,2.6,1.8,1.2,0.8,0.6,0.4,0.3,0.2,0.1,0,0" data-max="12" data-achse="jetzt|+1 h|+2 h"></div></div>
+                <div class="gal-flaeche" style="width: 140px; height: 96px"><div class="gal-flaeche-titel">jetzt 4</div><div class="mikro-feld" data-mikro="balken" data-werte="0,0,0.3,1.2,0.9,0.6,0.3,0.1" data-max="2" data-jetzt="4"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-werte</code></dt><dd>Zahlen, mit Komma getrennt</dd>
+                <dt><code>data-max</code></dt><dd>Skalenende; ohne Angabe der größte Wert</dd>
+                <dt><code>data-farbe</code></dt><dd>Variable, Standard <code>--regen</code></dd>
+                <dt><code>data-jetzt</code></dt><dd>Index der vollen Säule, die übrigen gedämpft</dd>
+                <dt><code>data-achse</code></dt><dd>Beschriftung <code>a|b|c</code>, gleichmäßig verteilt</dd>
+              </dl>
+            </div>
+
+            <!-- bogen -->
+            <div class="gal-baustein">
+              <h3><code>bogen</code><small>Svelte <code>mikro/Bogen.svelte</code></small></h3>
+              <p>Dreiviertelbogen in fünf Stufenfarben mit Marke auf dem Wert.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 102px; height: 84px"><div class="gal-flaeche-titel">UV 2</div><div class="mikro-feld" data-mikro="bogen" data-wert="2" data-max="11"></div></div>
+                <div class="gal-flaeche" style="width: 102px; height: 84px"><div class="gal-flaeche-titel">UV 7</div><div class="mikro-feld" data-mikro="bogen" data-wert="7" data-max="11"></div></div>
+                <div class="gal-flaeche" style="width: 102px; height: 84px"><div class="gal-flaeche-titel">luft 28</div><div class="mikro-feld" data-mikro="bogen" data-wert="28" data-max="100" data-skala="luft"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-wert</code></dt><dd>aktueller Wert</dd>
+                <dt><code>data-max</code></dt><dd>Skalenende, Standard 11</dd>
+                <dt><code>data-skala</code></dt><dd><code>uv</code> oder <code>luft</code>; beide derzeit dieselben fünf Stufen</dd>
+              </dl>
+            </div>
+
+            <!-- ring -->
+            <div class="gal-baustein">
+              <h3><code>ring</code><small>Svelte <code>mikro/Ring.svelte</code></small></h3>
+              <p>Anteil als Vollkreis; der Wert steht daneben oder im Ring (<code>.ringwert</code>).</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 84px; height: 84px"><div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div></div>
+                <div class="gal-flaeche" style="width: 84px; height: 84px"><div class="mikro-feld" data-mikro="ring" data-wert="40" data-max="100" data-farbe="--text-2"></div></div>
+                <div class="gal-flaeche" style="width: 104px; height: 104px"><div class="ringwert" style="height: 100%"><div class="mikro-feld" data-mikro="ring" data-wert="28" data-max="100" data-farbe="--gut"></div><b>28</b></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-wert</code></dt><dd>aktueller Wert</dd>
+                <dt><code>data-max</code></dt><dd>Skalenende, Standard 100</dd>
+                <dt><code>data-farbe</code></dt><dd>Variable, Standard <code>--akzent</code></dd>
+              </dl>
+            </div>
+
+            <!-- kompass -->
+            <div class="gal-baustein">
+              <h3><code>kompass</code><small>Svelte <code>mikro/Windrose.svelte</code></small></h3>
+              <p>Windrose mit Pfeil, der zeigt, wohin der Wind weht. Das N erscheint ab einem Radius von 40 px.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 60px; height: 60px"><div class="mikro-feld" data-mikro="kompass" data-grad="225"></div></div>
+                <div class="gal-flaeche" style="width: 130px; height: 130px"><div class="mikro-feld" data-mikro="kompass" data-grad="225"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-grad</code></dt><dd>woher der Wind kommt, 0 = Nord, 225 = Südwest</dd>
+                <dt><code>data-staerke</code></dt><dd>0 bis 1 für die Pfeillänge; vorgesehen, wird noch nicht ausgewertet</dd>
+              </dl>
+            </div>
+
+            <!-- sonne -->
+            <div class="gal-baustein">
+              <h3><code>sonne</code><small>Svelte <code>mikro/Sonnenbogen.svelte</code></small></h3>
+              <p>Tagbogen über dem Horizont, der vergangene Teil in Sonnenfarbe. Nach Untergang ohne Sonne.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 102px; height: 64px"><div class="mikro-feld" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="14:20"></div></div>
+                <div class="gal-flaeche" style="width: 230px; height: 96px"><div class="mikro-feld" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="14:20" data-beschriften="1"></div></div>
+                <div class="gal-flaeche" style="width: 230px; height: 96px"><div class="gal-flaeche-titel">jetzt 19:30</div><div class="mikro-feld" data-mikro="sonne" data-auf="08:07" data-unter="18:27" data-jetzt="19:30" data-beschriften="1"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-auf</code></dt><dd>Sonnenaufgang, Uhrzeit <code>08:07</code></dd>
+                <dt><code>data-unter</code></dt><dd>Sonnenuntergang, Uhrzeit</dd>
+                <dt><code>data-jetzt</code></dt><dd>jetzige Uhrzeit am Ort</dd>
+                <dt><code>data-beschriften</code></dt><dd><code>1</code>: Auf- und Untergang unter dem Horizont</dd>
+              </dl>
+            </div>
+
+            <!-- mond -->
+            <div class="gal-baustein">
+              <h3><code>mond</code><small>Svelte <code>mikro/Mond.svelte</code></small></h3>
+              <p>Mondscheibe mit beleuchtetem Anteil, Licht rechts bei zunehmendem Mond.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 66px; height: 80px"><div class="gal-flaeche-titel">0,58 zu</div><div class="mikro-feld" data-mikro="mond" data-anteil="0.58" data-zunehmend="1"></div></div>
+                <div class="gal-flaeche" style="width: 66px; height: 80px"><div class="gal-flaeche-titel">0,25 zu</div><div class="mikro-feld" data-mikro="mond" data-anteil="0.25" data-zunehmend="1"></div></div>
+                <div class="gal-flaeche" style="width: 66px; height: 80px"><div class="gal-flaeche-titel">1,0</div><div class="mikro-feld" data-mikro="mond" data-anteil="1" data-zunehmend="1"></div></div>
+                <div class="gal-flaeche" style="width: 66px; height: 80px"><div class="gal-flaeche-titel">0,75 ab</div><div class="mikro-feld" data-mikro="mond" data-anteil="0.75" data-zunehmend="0"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-anteil</code></dt><dd>beleuchteter Anteil 0 bis 1</dd>
+                <dt><code>data-zunehmend</code></dt><dd><code>1</code>: zunehmend, rechte Seite hell; sonst abnehmend</dd>
+              </dl>
+            </div>
+
+            <!-- abweichung -->
+            <div class="gal-baustein">
+              <h3><code>abweichung</code><small>Svelte <code>mikro/Abweichung.svelte</code></small></h3>
+              <p>Säulen nach oben und unten um das Mittel, die laufende Säule voll.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 230px; height: 96px"><div class="gal-flaeche-titel">Temperatur</div><div class="mikro-feld" data-mikro="abweichung" data-werte="1.8,0.6,2.1,-0.4,1.2,2.6,0.9,1.7,-0.3,1.4" data-jetzt="9" data-achse="Jan|Mai|Okt"></div></div>
+                <div class="gal-flaeche" style="width: 230px; height: 96px"><div class="gal-flaeche-titel">Niederschlag, Farben umgestellt</div><div class="mikro-feld" data-mikro="abweichung" data-werte="12,-35,-48,8,-22,41,-15,27,-9,-20" data-jetzt="9" data-achse="Jan|Mai|Okt" style="--t-heiss: var(--regen); --t-frost: var(--sonne)"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-werte</code></dt><dd>Abweichungen, positiv und negativ</dd>
+                <dt><code>data-jetzt</code></dt><dd>Index der vollen Säule, die übrigen gedämpft</dd>
+                <dt><code>data-achse</code></dt><dd>Beschriftung <code>a|b|c</code></dd>
+              </dl>
+              <div class="gal-merke">Farben aus <code>--t-heiss</code> (über dem Mittel) und <code>--t-frost</code> (darunter). Für Niederschlag am Element auf <code>--regen</code> und <code>--sonne</code> umgestellt; der Baustein sollte dafür einen Parameter <code>farben</code> bekommen.</div>
+            </div>
+
+            <!-- ringe -->
+            <div class="gal-baustein">
+              <h3><code>ringe</code><small>Svelte <code>mikro/Ringe.svelte</code></small></h3>
+              <p>Blitze in Entfernungsringen um den Ort, die drei neuesten groß. Beschriftung der Ringe ab einem Radius von 50 px.</p>
+              <div class="tel gal-buehne" style="--breite: 390px">
+                <div class="gal-flaeche" style="width: 84px; height: 84px"><div class="mikro-feld" data-mikro="ringe" data-punkte="12:250,14:245,16:258,19:240,22:252,24:262,27:235,31:248,33:255,38:242,41:265,45:238" data-max="50"></div></div>
+                <div class="gal-flaeche" style="width: 150px; height: 150px"><div class="mikro-feld" data-mikro="ringe" data-punkte="12:250,14:245,16:258,19:240,22:252,24:262,27:235,31:248,33:255,38:242,41:265,45:238" data-max="50"></div></div>
+              </div>
+              <dl class="gal-param">
+                <dt><code>data-punkte</code></dt><dd><code>km:grad</code> mit Komma getrennt, neueste zuerst</dd>
+                <dt><code>data-max</code></dt><dd>Kilometer am Rand, Standard 50 (Umkreis)</dd>
+                <dt><code>data-ringe</code></dt><dd>Ringe in km, Standard <code>10,25,50</code></dd>
+              </dl>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <script src="/mockups/telefon/mikro.js"></script>
+    <script src="/mockups/telefon/entwurf.js"></script>
+  </body>
+</html>

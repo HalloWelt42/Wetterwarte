@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Wetterwarte - Telefon: Karte</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/telefon/telefon.css" />
+    <style>
+      /* Zusatzstile Karte (Vorschlag für telefon.css) */
+      .tel .karte-flaeche {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background: var(--grund);
+        /* Grundkarte dunkel */
+        --k-land: #101318;
+        --k-stadt: #1c2027;
+        --k-wald: #0d1411;
+        --k-fluss: #1f3247;
+        --k-strasse: #272c34;
+        --k-grenze: #3a3f47;
+        --k-schrift: #b4bcc6;
+        --k-schrift-rand: #000;
+        --k-hier: #f3f5f7;
+        /* Regenstufen wie die Desktop-Karte: 0,1 0,5 1 2 5 10 20 40 mm/h */
+        --rr1: #4d8df2;
+        --rr2: #2980e6;
+        --rr3: #26c7b8;
+        --rr4: #40cc59;
+        --rr5: #f2e64d;
+        --rr6: #fa9e33;
+        --rr7: #eb4d33;
+        --rr8: #bf33bf;
+        /* Wind: bis 10, 10 bis 20, 20 bis 30, ab 30 km/h */
+        --kw1: #6fb3d9;
+        --kw2: #57c1a0;
+        --kw3: #e0c04a;
+        --kw4: #e8894a;
+      }
+      /* Grundkarte hell: nur die Karte, die Bedienteile bleiben dunkel */
+      .tel .karte-flaeche.an-hell {
+        --k-land: #e9e6df;
+        --k-stadt: #d8d3ca;
+        --k-wald: #d3dfcc;
+        --k-fluss: #9fc3e4;
+        --k-strasse: #c4bdb1;
+        --k-grenze: #8f897f;
+        --k-schrift: #2b3039;
+        --k-schrift-rand: #f4f2ed;
+        --k-hier: #15181d;
+        --kw1: #2f7fb0;
+        --kw2: #23896a;
+        --kw3: #a8820f;
+        --kw4: #c4621f;
+      }
+      /* Nachtbetrieb: Karte, Regen und Wind nur in Rot, Stufen über die Helligkeit. Die Grundkarte
+         bleibt nachts dunkel, auch wenn "hell" gewählt ist. */
+      .tel[data-modus="nacht"] .karte-flaeche,
+      .tel[data-modus="nacht"] .karte-flaeche.an-hell {
+        --k-land: #070101;
+        --k-stadt: #170506;
+        --k-wald: #0b0202;
+        --k-fluss: #2c0b0c;
+        --k-strasse: #200708;
+        --k-grenze: #3a0e0c;
+        --k-schrift: #a8301f;
+        --k-schrift-rand: #000;
+        --k-hier: #e0412f;
+        --rr1: #3a0d0b;
+        --rr2: #521310;
+        --rr3: #6a1913;
+        --rr4: #832017;
+        --rr5: #9c271c;
+        --rr6: #b52f22;
+        --rr7: #cb3828;
+        --rr8: #e0412f;
+        --kw1: #521310;
+        --kw2: #832017;
+        --kw3: #b52f22;
+        --kw4: #e0412f;
+      }
+      .tel .karte { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      /* Helle Karte: dunkler Schleier unter der Statusleiste, damit Uhrzeit und Symbole lesbar bleiben */
+      .tel .karte-flaeche.an-hell::before { content: ""; position: absolute; inset: 0 0 auto; height: calc(var(--sicher-oben) + 16px); z-index: 4; pointer-events: none; background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.55) 60%, rgba(0, 0, 0, 0)); }
+      .tel[data-modus="nacht"] .karte-flaeche.an-hell::before { display: none; }
+      .tel .karte .k-land { fill: var(--k-land); }
+      .tel .karte .k-wald { fill: var(--k-wald); }
+      .tel .karte .k-stadt { fill: var(--k-stadt); }
+      .tel .karte .k-grenze { fill: none; stroke: var(--k-grenze); stroke-width: 1.5; stroke-dasharray: 6 5; }
+      .tel .karte .k-strasse { fill: none; stroke: var(--k-strasse); stroke-width: 2; stroke-linecap: round; }
+      .tel .karte .k-fluss { fill: none; stroke: var(--k-fluss); stroke-width: 6; stroke-linecap: round; }
+      .tel .karte .k-fluss-klein { fill: none; stroke: var(--k-fluss); stroke-width: 2.5; stroke-linecap: round; }
+      .tel .karte .k-regen path { opacity: 0.85; stroke-width: 6; stroke-opacity: 0.3; stroke-linejoin: round; }
+      .tel .karte .k-r1 { fill: var(--rr1); stroke: var(--rr1); }
+      .tel .karte .k-r2 { fill: var(--rr2); stroke: var(--rr2); }
+      .tel .karte .k-r3 { fill: var(--rr3); stroke: var(--rr3); }
+      .tel .karte .k-r4 { fill: var(--rr4); stroke: var(--rr4); }
+      .tel .karte .k-r5 { fill: var(--rr5); stroke: var(--rr5); }
+      .tel .karte .k-warn-1 { fill: var(--w1); fill-opacity: 0.22; stroke: var(--w1); stroke-width: 2.5; stroke-linejoin: round; }
+      .tel .karte [class^="k-wind-"] { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+      .tel .karte .k-wind-1 { stroke: var(--kw1); }
+      .tel .karte .k-wind-2 { stroke: var(--kw2); }
+      .tel .karte .k-wind-3 { stroke: var(--kw3); }
+      .tel .karte .k-wind-4 { stroke: var(--kw4); }
+      .tel .karte .k-blitz { fill: var(--sonne); stroke: var(--k-schrift-rand); stroke-width: 1.5; stroke-linejoin: round; paint-order: stroke; }
+      /* Nachts liegen rote Blitze auf roten Zellen: umgekehrt zeichnen, die Form trägt */
+      .tel[data-modus="nacht"] .karte .k-blitz { fill: var(--grund); stroke: var(--text); }
+      .tel .karte text { font-family: "Barlow", system-ui, sans-serif; font-size: var(--s13); font-weight: 700; fill: var(--k-schrift); paint-order: stroke; stroke: var(--k-schrift-rand); stroke-width: 3px; stroke-linejoin: round; }
+      .tel .karte .k-ort { fill: var(--k-schrift); stroke: var(--k-schrift-rand); stroke-width: 2; }
+      .tel .karte .k-hier { fill: var(--k-hier); stroke: var(--k-schrift-rand); stroke-width: 3; }
+      .tel .karte .k-hier-name { font-size: var(--s17); fill: var(--k-hier); }
+
+      /* Ebenen: jede einzeln an oder aus (Klasse an-... an der Fläche) */
+      .tel .karte-flaeche:not(.an-radar) .ebene-radar,
+      .tel .karte-flaeche:not(.an-wind) .ebene-wind,
+      .tel .karte-flaeche:not(.an-warnungen) .ebene-warnungen,
+      .tel .karte-flaeche:not(.an-blitze) .ebene-blitze,
+      .tel .karte-flaeche:not(.an-detail) .ebene-detail,
+      .tel .karte-flaeche:not(.an-radar) .abspiel,
+      .tel .karte-flaeche:not(.an-wind) .kl-wind,
+      .tel .karte-flaeche:not(.an-warnungen) .kl-warnungen,
+      .tel .karte-flaeche:not(.an-blitze) .kl-blitze,
+      .tel .karte-flaeche:not(.an-wind):not(.an-warnungen):not(.an-blitze) .karte-legende { display: none; }
+
+      /* Schwebende Bedienteile über der Karte */
+      .tel .schwebe { background: color-mix(in srgb, var(--flaeche) 90%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5); }
+      .tel .karte-kopf { position: absolute; left: var(--rand); top: calc(var(--sicher-oben) + 4px); z-index: 5; display: flex; flex-direction: column; justify-content: center; min-height: 52px; max-width: calc(100% - 2 * var(--rand) - 60px); padding: 5px 16px 7px; border-radius: 16px; color: var(--text); text-decoration: none; }
+      .tel .karte-ort { font-size: var(--s19); font-weight: 700; line-height: 1.15; white-space: nowrap; }
+      .tel .karte-ort i { margin-left: 4px; font-size: var(--s13); color: var(--text-3); }
+      .tel .karte-stand { display: flex; align-items: center; gap: 6px; font-size: var(--s15); color: var(--text-2); white-space: nowrap; }
+      .tel .karte-stand .frische { width: 8px; height: 8px; }
+
+      /* Ebenenschalter: rund, 44 px, rechts untereinander. An: getönte Fläche, kein Rand. */
+      .tel .ebenen { position: absolute; right: var(--rand); top: calc(var(--sicher-oben) + 4px); z-index: 5; display: flex; flex-direction: column; gap: 8px; }
+      .tel .ebene { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--text-2); font-size: var(--s17); }
+      .tel .ebene[aria-pressed="true"] { background: color-mix(in srgb, var(--akzent) 30%, var(--flaeche)); color: var(--akzent); }
+      .tel[data-modus="nacht"] .ebene[aria-pressed="true"] { background: var(--flaeche-3); color: var(--text); }
+
+      /* Unten über der Reiterleiste: Maßstab, Legende der Ebenen, Abspielleiste fürs Regenradar */
+      .tel .karte-unten { position: absolute; left: var(--rand); right: var(--rand); bottom: calc(var(--leiste-h) + var(--sicher-unten) + var(--rand)); z-index: 5; display: flex; flex-direction: column; gap: 8px; }
+      .tel .massstab { align-self: flex-start; display: flex; align-items: center; gap: 6px; margin-left: 8px; font-size: var(--s13); font-weight: 700; color: var(--k-schrift); text-shadow: 0 0 3px var(--k-schrift-rand), 0 0 3px var(--k-schrift-rand); }
+      .tel .massstab span { width: 34px; height: 6px; background: linear-gradient(var(--k-schrift), var(--k-schrift)) left bottom / 100% 2px no-repeat, linear-gradient(var(--k-schrift), var(--k-schrift)) left bottom / 2px 100% no-repeat, linear-gradient(var(--k-schrift), var(--k-schrift)) right bottom / 2px 100% no-repeat; }
+      .tel .karte-legende { display: flex; flex-direction: column; gap: 10px; padding: 10px 14px 12px; border-radius: var(--radius); }
+      .tel .kl-zeile { display: flex; align-items: center; gap: 10px; min-width: 0; }
+      .tel .kl-zeile .stufe-marke { width: 30px; height: 30px; border-radius: 8px; font-size: var(--s15); }
+      .tel .kl-zeile.kl-warnungen { margin: -4px -8px; padding: 6px 8px; border-radius: 10px; }
+      .tel .kl-text { min-width: 0; flex: 1; line-height: 1.2; }
+      .tel .kl-text b { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .tel .kl-text small { display: block; font-size: var(--s15); color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .tel .kl-blitz { width: 30px; flex: none; text-align: center; color: var(--sonne); font-size: var(--s19); }
+
+      .tel .abspiel { padding: 8px 14px 12px 10px; border-radius: var(--radius); }
+      .tel .abspiel-zeile { display: flex; align-items: center; gap: 12px; }
+      .tel .abspielen { background: var(--akzent); color: #04121f; font-size: var(--s17); }
+      .tel[data-modus="nacht"] .abspielen { color: #000; }
+      .tel .abspiel-zeit { display: flex; flex-direction: column; flex: none; line-height: 1.05; }
+      .tel .abspiel-zeit b { font-size: var(--s26); font-weight: 700; font-variant-numeric: tabular-nums; }
+      .tel .abspiel-zeit small { font-size: var(--s13); font-weight: 700; color: var(--text-3); }
+      .tel .abspiel-hinweis { flex: 1; min-width: 0; text-align: right; font-size: var(--s15); color: var(--text-2); line-height: 1.2; }
+      .tel .zeitleiste { position: relative; height: 44px; margin: 0 4px 0 6px; cursor: pointer; touch-action: none; }
+      .tel .zl-bahn { position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; display: flex; }
+      .tel .zl-gemessen { width: 33.33%; border-radius: 3px 0 0 3px; background: var(--text-2); }
+      .tel .zl-vorhersage { flex: 1; border-radius: 0 3px 3px 0; background: repeating-linear-gradient(90deg, var(--text-3) 0 7px, transparent 7px 12px); }
+      .tel .zl-stunde { position: absolute; top: 50%; width: 2px; height: 14px; margin: -7px 0 0 -1px; border-radius: 1px; background: var(--text-3); }
+      .tel .zl-griff { position: absolute; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 4px var(--flaeche); }
+      .tel .zl-achse { position: relative; height: calc(var(--s13) + 4px); margin: -6px 4px 0 6px; font-size: var(--s13); font-weight: 700; color: var(--text-3); }
+      .tel .zl-achse span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+      .tel .zl-achse span:first-child { transform: none; }
+      .tel .zl-achse span:last-child { transform: translateX(-100%); }
+      .tel .zl-achse .jetzt { color: var(--text); }
+      .tel .legende { display: flex; align-items: flex-start; gap: 10px; margin: 12px 4px 0 6px; }
+      .tel .karte-legende .legende { margin: 0; }
+      .tel .legende-titel { flex: none; min-width: 3.4em; font-size: var(--s13); font-weight: 700; line-height: 1; color: var(--text-3); }
+      .tel .legende-skala { flex: 1; min-width: 0; }
+      .tel .legende-balken { display: flex; height: 8px; border-radius: 4px; overflow: hidden; }
+      .tel .legende-balken span { flex: 1; }
+      .tel .legende-werte { display: flex; margin-top: 3px; font-size: var(--s13); font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+      .tel .legende-werte span { flex: 1; min-width: 0; }
+    </style>
+  </head>
+  <body class="tel-seite">
+    <div class="buehne">
+      <!-- ================================================================ Karte: Regenradar und Detailkarte an, dunkel -->
+      <div class="buehne-spalte">
+        <div class="geraet tel">
+          <div class="statusleiste"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+          <div class="schale">
+            <div class="karte-flaeche an-radar an-detail">
+              <svg class="karte" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                <rect class="k-land" width="390" height="844" />
+                <path class="k-wald" d="M-20,600 C-6.7,549.2 31.7,573.3 60,575 C88.3,576.7 124.2,590.8 150,610 C175.8,629.2 198.3,660.0 215,690 C231.7,720.0 247.5,758.3 250,790 C252.5,821.7 275.0,865.0 230,880 C185.0,895.0 21.7,926.7 -20,880 C-61.7,833.3 -33.3,650.8 -20,600 Z" />
+                <path class="k-wald" d="M320,230 C330.8,208.3 381.7,155.0 395,210 C408.3,265.0 407.5,505.0 400,560 C392.5,615.0 363.7,558.3 350,540 C336.3,521.7 321.3,483.3 318,450 C314.7,416.7 329.7,376.7 330,340 C330.3,303.3 309.2,251.7 320,230 Z" />
+                <path class="k-wald" d="M175,455 C180.5,451.7 193.0,455.8 198,470 C203.0,484.2 206.3,522.5 205,540 C203.7,557.5 196.2,575.0 190,575 C183.8,575.0 172.2,554.2 168,540 C163.8,525.8 163.8,504.2 165,490 C166.2,475.8 169.5,458.3 175,455 Z" />
+                <path class="k-stadt" d="M205,395 C213.7,385.8 236.7,382.5 250,385 C263.3,387.5 278.3,399.2 285,410 C291.7,420.8 293.8,438.7 290,450 C286.2,461.3 273.7,473.8 262,478 C250.3,482.2 230.7,481.3 220,475 C209.3,468.7 200.5,453.3 198,440 C195.5,426.7 196.3,404.2 205,395 Z" />
+                <path class="k-stadt" d="M262,492 C267.0,486.5 282.3,490.3 288,495 C293.7,499.7 297.3,512.8 296,520 C294.7,527.2 286.3,536.7 280,538 C273.7,539.3 261.0,535.7 258,528 C255.0,520.3 257.0,497.5 262,492 Z" />
+                <path class="k-stadt" d="M172,300 C177.7,291.2 203.0,288.3 212,292 C221.0,295.7 226.3,312.3 226,322 C225.7,331.7 218.0,346.2 210,350 C202.0,353.8 184.3,353.3 178,345 C171.7,336.7 166.3,308.8 172,300 Z" />
+                <path class="k-stadt" d="M16,478 C21.0,472.7 38.0,470.3 44,474 C50.0,477.7 53.3,493.3 52,500 C50.7,506.7 42.3,513.0 36,514 C29.7,515.0 17.3,512.0 14,506 C10.7,500.0 11.0,483.3 16,478 Z" />
+                <path class="k-stadt" d="M240,360 C242.3,355.0 257.3,353.0 262,356 C266.7,359.0 270.3,373.0 268,378 C265.7,383.0 252.7,389.0 248,386 C243.3,383.0 237.7,365.0 240,360 Z" />
+                <path class="k-stadt" d="M150,322 C153.0,318.0 166.3,317.0 170,320 C173.7,323.0 175.0,336.0 172,340 C169.0,344.0 155.7,347.0 152,344 C148.3,341.0 147.0,326.0 150,322 Z" />
+                <path class="k-fluss-klein" d="M392,528 C383.3,526.7 355.3,524.3 340,520 C324.7,515.7 310.0,507.0 300,502 C290.0,497.0 283.3,492.0 280,490" />
+                <path class="k-fluss-klein" d="M140,640 C143.3,623.3 154.0,570.0 160,540 C166.0,510.0 171.7,486.7 176,460 C180.3,433.3 183.3,403.0 186,380 C188.7,357.0 191.0,331.7 192,322" />
+                <path class="k-fluss" d="M380,880 C373.7,861.7 354.0,811.0 342,770 C330.0,729.0 318.8,677.7 308,634 C297.2,590.3 285.5,535.2 277,508 C268.5,480.8 262.0,484.0 257,471 C252.0,458.0 248.2,442.5 247,430 C245.8,417.5 252.8,406.2 250,396 C247.2,385.8 236.2,377.5 230,369 C223.8,360.5 219.3,353.0 213,345 C206.7,337.0 194.3,332.3 192,321 C189.7,309.7 201.2,292.8 199,277 C196.8,261.2 184.7,257.2 179,226 C173.3,194.8 169.0,129.7 165,90 C161.0,50.3 156.7,5.0 155,-12" />
+                <g class="ebene-detail">
+                  <path class="k-grenze" d="M-5,330 C-1.8,341.7 11.8,376.7 14,400 C16.2,423.3 8.3,450.0 8,470 C7.7,490.0 8.3,504.2 12,520 C15.7,535.8 29.0,547.5 30,565 C31.0,582.5 23.8,604.2 18,625 C12.2,645.8 -1.2,679.2 -5,690" />
+                  <path class="k-strasse" d="M240,432 C228.7,435.3 195.3,445.3 172,452 C148.7,458.7 123.7,465.3 100,472 C76.3,478.7 48.3,487.3 30,492 C11.7,496.7 -3.3,498.7 -10,500" />
+                  <path class="k-strasse" d="M212,-10 C214.3,25.0 221.7,146.7 226,200 C230.3,253.3 231.0,274.7 238,310 C245.0,345.3 257.7,377.0 268,412 C278.3,447.0 288.3,482.0 300,520 C311.7,558.0 322.7,583.3 338,640 C353.3,696.7 383.0,823.3 392,860" />
+                  <path class="k-strasse" d="M392,110 C376.7,140.0 323.3,243.0 300,290 C276.7,337.0 267.8,365.3 252,392 C236.2,418.7 222.0,422.0 205,450 C188.0,478.0 168.3,518.3 150,560 C131.7,601.7 110.0,650.0 95,700 C80.0,750.0 65.8,833.3 60,860" />
+                  <path class="k-strasse" d="M244,444 C247.0,450.0 256.7,468.7 262,480 C267.3,491.3 273.7,506.7 276,512" />
+                  <path class="k-strasse" d="M90,-10 C92.3,25.0 99.3,135.0 104,200 C108.7,265.0 112.3,320.0 118,380 C123.7,440.0 129.3,480.0 138,560 C146.7,640.0 164.7,810.0 170,860" />
+                </g>
+                <g class="ebene-warnungen">
+                  <path class="k-warn-1" d="M-10,440 C0.3,377.3 31.7,420.3 52,424 C72.3,427.7 96.3,442.7 112,462 C127.7,481.3 136.7,513.3 146,540 C155.3,566.7 159.7,595.3 168,622 C176.3,648.7 194.0,670.3 196,700 C198.0,729.7 214.3,783.3 180,800 C145.7,816.7 21.7,860.0 -10,800 C-41.7,740.0 -20.3,502.7 -10,440 Z" />
+                </g>
+                <g class="ebene-radar k-regen">
+                  <path class="k-r1" d="M60,40 C68.2,41.7 71.9,53.0 79.3,57.6 C86.7,62.2 97.8,62.5 104.6,67.9 C111.4,73.3 115.5,80.9 120,90 C124.5,99.1 130.4,111.4 131.6,122.5 C132.8,133.6 127.3,145.3 127.0,156.6 C126.7,167.8 129.2,178.7 130,190 C130.8,201.3 132.5,213.4 131.5,224.7 C130.5,236.0 127.2,246.8 124.0,257.7 C120.8,268.6 113.4,279.5 112,290 C110.6,300.5 116.8,310.6 115.8,320.6 C114.8,330.6 108.3,340.1 106.3,350.0 C104.3,359.9 105.9,370.1 104,380 C102.1,389.9 95.1,399.5 94.7,409.5 C94.3,419.5 100.9,430.0 101.4,440.1 C102.0,450.2 99.8,460.1 98,470 C96.2,479.9 91.0,489.4 90.3,499.5 C89.6,509.6 94.6,520.4 93.9,530.5 C93.2,540.6 88.0,549.9 86,560 C84.0,570.1 85.2,581.2 81.9,591.0 C78.6,600.8 69.5,609.2 66.2,619.0 C62.9,628.8 63.6,639.2 62,650 C60.4,660.8 62.2,674.0 56.6,683.5 C51.0,693.0 34.3,697.5 28.5,706.9 C22.7,716.3 25.8,732.1 22,740 C18.2,747.9 11.7,750.6 5.5,754.5 C-0.7,758.4 -9.2,759.4 -15.1,763.6 C-21.0,767.9 -26.8,817.3 -30,780 C-33.2,742.7 -34.0,620.0 -34.2,540.0 C-34.4,460.0 -32.1,380.0 -31.4,300.0 C-30.7,220.0 -35.5,99.8 -30,60 C-24.5,20.2 -8.2,63.4 1.8,61.3 C11.8,59.2 20.4,50.8 30.1,47.2 C39.8,43.7 51.8,38.3 60,40 Z" />
+                  <path class="k-r1" d="M118,360 C120.3,358.3 123.1,360.7 125.6,361.2 C128.1,361.7 130.5,362.2 132.9,363.0 C135.3,363.8 138.2,364.2 140,366 C141.8,367.8 143.6,370.7 143.9,373.6 C144.2,376.5 141.1,380.5 141.8,383.2 C142.5,385.9 147.8,387.7 148,390 C148.2,392.3 145.3,395.3 143.0,397.0 C140.7,398.7 136.4,398.4 134.2,400.2 C132.0,402.0 131.5,407.8 130,408 C128.5,408.2 127.2,402.7 125.0,401.3 C122.8,399.9 119.4,400.5 116.9,399.6 C114.4,398.7 110.9,398.6 110,396 C109.1,393.4 111.3,387.9 111.6,383.8 C111.9,379.7 110.5,375.2 111.6,371.2 C112.7,367.2 115.7,361.7 118,360 Z" />
+                  <path class="k-r1" d="M300,742 C300.8,736.5 312.7,734.2 319.3,731.4 C325.9,728.6 332.6,725.9 339.7,725.0 C346.8,724.1 355.1,724.9 362,726 C368.9,727.1 377.1,727.2 381.0,731.7 C384.9,736.2 382.2,748.2 385.7,753.3 C389.2,758.3 398.7,757.0 402,762 C405.3,767.0 406.1,776.4 405.5,783.1 C404.9,789.9 400.8,796.0 398.5,802.5 C396.2,809.0 396.9,820.3 392,822 C387.1,823.7 377.2,812.2 369.3,812.9 C361.4,813.6 352.5,825.5 344.6,826.0 C336.7,826.5 326.2,822.0 322,816 C317.8,810.0 320.8,798.5 319.5,789.9 C318.2,781.3 317.6,772.6 314.4,764.6 C311.1,756.6 299.2,747.5 300,742 Z" />
+                  <path class="k-r2" d="M30,90 C36.4,90.7 44.9,100.0 50.2,106.7 C55.5,113.4 57.3,122.9 61.9,130.1 C66.5,137.3 75.7,141.1 78,150 C80.3,158.9 75.0,172.5 76.0,183.6 C77.0,194.7 83.0,205.4 84.3,216.5 C85.6,227.6 83.8,239.2 84,250 C84.2,260.8 86.9,271.4 85.3,281.5 C83.7,291.6 77.8,300.8 74.6,310.5 C71.4,320.2 67.4,330.1 66,340 C64.6,349.9 68.2,360.2 66.2,370.1 C64.2,380.0 54.7,389.4 53.7,399.4 C52.7,409.4 60.5,420.0 60,430 C59.5,440.0 50.7,449.3 51.0,459.4 C51.3,469.5 61.4,480.5 61.6,490.6 C61.8,500.7 54.0,510.0 52,520 C50.0,530.0 50.0,540.4 49.3,550.7 C48.6,561.0 50.3,571.7 47.8,581.6 C45.2,591.5 37.3,600.4 34,610 C30.7,619.6 33.1,630.6 28.2,639.0 C23.3,647.4 9.4,652.0 4.7,660.5 C0.0,669.0 2.1,683.6 0,690 C-2.1,696.4 -4.8,698.0 -8.2,698.8 C-11.6,699.6 -17.0,694.8 -20.6,695.0 C-24.2,695.2 -28.2,732.0 -30,700 C-31.8,668.0 -32.1,568.9 -31.6,503.3 C-31.1,437.8 -27.5,372.2 -27.2,306.7 C-26.9,241.1 -32.7,144.3 -30,110 C-27.3,75.7 -17.9,102.0 -10.9,100.7 C-3.9,99.4 5.1,104.1 11.9,102.3 C18.7,100.5 23.6,89.3 30,90 Z" />
+                  <path class="k-r2" d="M338,760 C338.8,758.0 346.2,760.9 350.1,760.7 C354.1,760.5 358.1,760.4 361.7,758.9 C365.3,757.4 369.0,751.5 372,752 C375.0,752.5 378.5,758.1 379.6,762.0 C380.7,765.9 378.1,771.1 378.8,775.1 C379.5,779.1 384.9,783.0 384,786 C383.1,789.0 377.7,792.0 373.6,792.9 C369.5,793.8 363.5,790.0 359.6,791.2 C355.7,792.4 352.6,800.6 350,800 C347.4,799.4 344.9,791.9 344.1,787.3 C343.3,782.7 346.1,776.9 345.1,772.4 C344.1,767.9 337.2,762.0 338,760 Z" />
+                  <path class="k-r3" d="M20,200 C23.2,199.2 27.0,205.3 30.5,207.8 C34.0,210.3 37.1,213.8 41.2,215.0 C45.3,216.2 52.8,212.2 55,215 C57.2,217.8 53.6,226.5 54.4,232.1 C55.2,237.7 58.5,242.8 59.8,248.3 C61.1,253.8 63.0,259.6 62,265 C61.0,270.4 55.6,274.9 53.7,280.5 C51.8,286.1 53.3,293.6 50.7,298.8 C48.1,304.1 42.2,309.8 38,312 C33.8,314.2 28.9,313.1 25.3,311.8 C21.7,310.5 19.4,306.8 16.5,304.2 C13.6,301.6 11.0,300.3 8,296 C5.0,291.7 0.2,284.5 -1.4,278.4 C-3.0,272.3 -1.7,265.6 -1.8,259.2 C-1.9,252.8 -4.1,244.9 -2,240 C0.1,235.1 8.4,234.2 10.6,229.6 C12.8,225.0 9.4,217.3 11.0,212.4 C12.6,207.5 16.8,200.8 20,200 Z" />
+                  <path class="k-r3" d="M10,468 C12.8,465.5 18.7,467.3 22.6,468.3 C26.5,469.3 29.7,472.2 33.3,474.2 C36.9,476.1 42.2,475.9 44,480 C45.8,484.1 43.5,492.7 44.2,498.9 C44.9,505.1 47.3,511.1 48.3,517.3 C49.3,523.5 51.7,530.1 50,536 C48.3,541.9 40.4,546.6 38.2,552.9 C36.0,559.2 38.5,567.4 36.8,573.9 C35.1,580.4 31.6,588.8 28,592 C24.4,595.2 18.6,594.7 14.9,593.0 C11.2,591.3 9.6,584.1 6.1,581.9 C2.6,579.7 -2.9,584.2 -6,580 C-9.1,575.8 -11.2,564.6 -12.3,556.9 C-13.4,549.1 -12.7,541.3 -12.3,533.5 C-11.9,525.7 -10.9,516.5 -10,510 C-9.1,503.4 -9.7,498.7 -7.1,494.2 C-4.5,489.7 2.9,487.5 5.7,483.1 C8.6,478.7 7.2,470.5 10,468 Z" />
+                  <path class="k-r4" d="M16,505 C17.4,503.1 20.1,505.7 22.2,505.8 C24.3,505.9 26.8,504.8 28.8,505.5 C30.8,506.2 33.1,507.3 34,510 C34.9,512.7 33.3,517.9 33.9,521.8 C34.5,525.7 36.9,529.3 37.4,533.2 C37.9,537.1 38.0,542.1 37,545 C36.0,547.9 33.2,548.8 31.3,550.7 C29.4,552.6 27.5,554.4 25.6,556.3 C23.7,558.2 21.6,562.4 20,562 C18.4,561.6 18.0,556.4 16.2,554.1 C14.4,551.8 11.0,550.6 9.3,548.2 C7.6,545.9 5.6,543.2 6,540 C6.4,536.8 10.6,533.0 11.9,529.1 C13.2,525.2 12.9,520.9 13.6,516.9 C14.3,512.9 14.6,506.9 16,505 Z" />
+                  <path class="k-r5" d="M20,518 C20.8,517.4 21.8,519.2 22.9,519.4 C23.9,519.6 25.3,518.9 26.3,519.2 C27.3,519.5 28.6,519.8 29,521 C29.4,522.2 28.7,524.8 28.8,526.7 C28.9,528.6 29.5,530.4 29.7,532.3 C29.9,534.2 30.3,536.5 30,538 C29.7,539.5 28.6,540.3 27.7,541.3 C26.8,542.2 25.9,543.1 24.8,543.7 C23.7,544.3 22.1,545.4 21,545 C19.9,544.6 18.7,542.8 18.0,541.4 C17.3,540.0 17.6,538.1 16.9,536.7 C16.2,535.3 13.9,534.4 14,533 C14.1,531.6 16.6,530.1 17.3,528.5 C18.0,526.9 17.8,524.9 18.2,523.1 C18.6,521.4 19.2,518.6 20,518 Z" />
+                  <path class="k-r1" d="M150,180 C151.4,179.4 154.0,181.0 155.8,180.6 C157.6,180.2 159.0,178.3 160.7,177.5 C162.4,176.7 164.9,175.2 166,176 C167.1,176.8 166.9,180.2 167.2,182.3 C167.5,184.4 166.8,186.9 167.6,188.8 C168.4,190.8 171.9,192.3 172,194 C172.1,195.7 169.8,197.6 168.4,198.9 C167.0,200.2 165.4,201.2 163.7,202.1 C162.0,202.9 159.6,204.3 158,204 C156.4,203.7 155.5,201.6 154.1,200.5 C152.7,199.4 151.0,198.8 149.7,197.7 C148.3,196.6 146.4,195.4 146,194 C145.6,192.6 147.2,191.0 147.4,189.4 C147.6,187.8 146.7,185.8 147.1,184.2 C147.5,182.6 148.6,180.6 150,180 Z" />
+                  <path class="k-r1" d="M96,610 C97.7,608.6 101.3,608.7 103.6,607.2 C105.9,605.7 107.3,602.3 109.7,601.1 C112.1,599.9 115.9,599.0 118,600 C120.1,601.0 121.4,604.3 122.2,606.8 C123.0,609.3 122.4,612.3 123.0,614.8 C123.6,617.3 126.5,619.8 126,622 C125.5,624.2 122.0,626.0 119.8,627.8 C117.6,629.6 115.0,631.0 113.0,633.0 C111.0,635.0 109.8,639.4 108,640 C106.2,640.6 103.5,638.6 102.1,636.8 C100.6,635.0 101.0,630.9 99.3,629.4 C97.6,627.9 93.4,629.3 92,628 C90.6,626.7 90.9,623.5 91.1,621.5 C91.3,619.5 92.5,617.6 93.3,615.7 C94.1,613.8 94.3,611.4 96,610 Z" />
+                  <path class="k-r2" d="M18,380 C19.2,377.8 21.9,375.6 24.5,375.0 C27.1,374.4 30.7,376.8 33.3,376.3 C35.9,375.8 38.5,371.3 40,372 C41.5,372.7 41.8,377.8 42.6,380.7 C43.4,383.6 43.8,386.6 44.7,389.5 C45.6,392.4 48.3,395.3 48,398 C47.7,400.7 45.1,403.8 42.7,405.9 C40.3,408.0 35.9,408.5 33.8,410.9 C31.7,413.2 31.9,419.1 30,420 C28.1,420.9 24.7,417.8 22.4,416.4 C20.1,415.0 17.9,413.5 16.2,411.4 C14.5,409.3 12.2,406.5 12,404 C11.8,401.5 14.2,398.9 15.1,396.3 C16.0,393.7 17.0,391.1 17.5,388.4 C18.0,385.7 16.8,382.2 18,380 Z" />
+                  <path class="k-r3" d="M14,392 C14.8,390.7 17.6,391.4 19.4,391.1 C21.2,390.8 23.1,390.9 24.9,390.4 C26.7,389.9 29.0,387.5 30,388 C31.0,388.5 30.6,391.6 30.7,393.5 C30.8,395.4 30.1,397.4 30.7,399.1 C31.2,400.9 34.1,402.5 34,404 C33.9,405.5 31.4,406.8 30.0,407.9 C28.6,409.0 27.2,410.1 25.5,410.8 C23.8,411.5 21.3,412.9 20,412 C18.7,411.1 18.4,407.6 17.5,405.5 C16.6,403.4 15.3,401.4 14.7,399.1 C14.1,396.9 13.2,393.3 14,392 Z" />
+                  <path class="k-r2" d="M40,140 C41.8,139.4 44.4,143.3 46.7,144.7 C49.0,146.1 51.4,147.5 53.9,148.4 C56.4,149.3 60.4,148.3 62,150 C63.6,151.7 62.9,155.7 63.3,158.6 C63.6,161.5 64.0,164.4 64.1,167.3 C64.2,170.2 65.3,174.4 64,176 C62.7,177.6 58.6,176.3 56.1,177.0 C53.6,177.7 51.3,178.5 49.3,180.0 C47.3,181.5 45.7,186.1 44,186 C42.3,185.9 40.7,181.7 38.9,179.6 C37.1,177.5 34.6,176.0 33.1,173.7 C31.6,171.4 30.1,168.8 30,166 C29.9,163.2 31.2,159.8 32.2,156.9 C33.2,154.0 34.5,151.1 35.8,148.3 C37.1,145.5 38.2,140.6 40,140 Z" />
+                  <path class="k-r2" d="M122,372 C122.5,370.8 125.5,372.6 127.1,373.1 C128.7,373.6 130.3,374.0 131.8,374.8 C133.3,375.6 135.2,376.6 136,378 C136.8,379.4 136.2,381.5 136.6,383.3 C137.0,385.1 138.0,386.8 138.2,388.6 C138.4,390.4 138.8,392.9 138,394 C137.2,395.1 134.8,394.7 133.2,395.0 C131.6,395.3 130.0,395.5 128.5,396.0 C127.0,396.5 124.8,399.1 124,398 C123.2,396.9 123.7,392.2 123.7,389.3 C123.7,386.4 124.5,383.4 124.2,380.5 C123.9,377.6 121.5,373.2 122,372 Z" />
+                </g>
+                <g class="ebene-wind">
+                  <path class="k-wind-3" d="M52.7,49.8 L67.3,30.2 M66.5,37.1 L67.3,30.2 L60.9,32.9" />
+                  <path class="k-wind-3" d="M117.1,48.8 L130.9,31.2 M129.9,38.1 L130.9,31.2 L124.4,33.8" />
+                  <path class="k-wind-2" d="M181.5,47.8 L194.5,32.2 M193.3,39.1 L194.5,32.2 L187.9,34.6" />
+                  <path class="k-wind-2" d="M246.0,46.8 L258.0,33.2 M256.6,40.1 L258.0,33.2 L251.4,35.4" />
+                  <path class="k-wind-2" d="M310.5,45.9 L321.5,34.1 M319.9,41.0 L321.5,34.1 L314.8,36.2" />
+                  <path class="k-wind-1" d="M375.1,44.9 L384.9,35.1 M383.1,41.8 L384.9,35.1 L378.1,36.9" />
+                  <path class="k-wind-3" d="M22.6,112.3 L37.4,91.7 M36.7,98.6 L37.4,91.7 L31.1,94.5" />
+                  <path class="k-wind-3" d="M86.9,111.3 L101.1,92.7 M100.2,99.7 L101.1,92.7 L94.6,95.4" />
+                  <path class="k-wind-2" d="M151.3,110.3 L164.7,93.7 M163.6,100.7 L164.7,93.7 L158.2,96.2" />
+                  <path class="k-wind-2" d="M215.8,109.3 L228.2,94.7 M226.9,101.6 L228.2,94.7 L221.6,97.1" />
+                  <path class="k-wind-2" d="M280.3,108.3 L291.7,95.7 M290.2,102.5 L291.7,95.7 L285.1,97.8" />
+                  <path class="k-wind-1" d="M344.8,107.4 L355.2,96.6 M353.5,103.4 L355.2,96.6 L348.5,98.6" />
+                  <path class="k-wind-3" d="M52.7,173.8 L67.3,154.2 M66.5,161.1 L67.3,154.2 L60.9,156.9" />
+                  <path class="k-wind-3" d="M117.1,172.8 L130.9,155.2 M129.9,162.1 L130.9,155.2 L124.4,157.8" />
+                  <path class="k-wind-2" d="M181.5,171.8 L194.5,156.2 M193.3,163.1 L194.5,156.2 L187.9,158.6" />
+                  <path class="k-wind-2" d="M246.0,170.8 L258.0,157.2 M256.6,164.1 L258.0,157.2 L251.4,159.4" />
+                  <path class="k-wind-2" d="M310.5,169.9 L321.5,158.1 M319.9,165.0 L321.5,158.1 L314.8,160.2" />
+                  <path class="k-wind-1" d="M375.1,168.9 L384.9,159.1 M383.1,165.8 L384.9,159.1 L378.1,160.9" />
+                  <path class="k-wind-3" d="M22.6,236.3 L37.4,215.7 M36.7,222.6 L37.4,215.7 L31.1,218.5" />
+                  <path class="k-wind-3" d="M86.9,235.3 L101.1,216.7 M100.2,223.7 L101.1,216.7 L94.6,219.4" />
+                  <path class="k-wind-2" d="M151.3,234.3 L164.7,217.7 M163.6,224.7 L164.7,217.7 L158.2,220.2" />
+                  <path class="k-wind-2" d="M215.8,233.3 L228.2,218.7 M226.9,225.6 L228.2,218.7 L221.6,221.1" />
+                  <path class="k-wind-2" d="M280.3,232.3 L291.7,219.7 M290.2,226.5 L291.7,219.7 L285.1,221.8" />
+                  <path class="k-wind-1" d="M344.8,231.4 L355.2,220.6 M353.5,227.4 L355.2,220.6 L348.5,222.6" />
+                  <path class="k-wind-3" d="M52.7,297.8 L67.3,278.2 M66.5,285.1 L67.3,278.2 L60.9,280.9" />
+                  <path class="k-wind-3" d="M117.1,296.8 L130.9,279.2 M129.9,286.1 L130.9,279.2 L124.4,281.8" />
+                  <path class="k-wind-2" d="M181.5,295.8 L194.5,280.2 M193.3,287.1 L194.5,280.2 L187.9,282.6" />
+                  <path class="k-wind-2" d="M246.0,294.8 L258.0,281.2 M256.6,288.1 L258.0,281.2 L251.4,283.4" />
+                  <path class="k-wind-2" d="M310.5,293.9 L321.5,282.1 M319.9,289.0 L321.5,282.1 L314.8,284.2" />
+                  <path class="k-wind-1" d="M375.1,292.9 L384.9,283.1 M383.1,289.8 L384.9,283.1 L378.1,284.9" />
+                  <path class="k-wind-3" d="M22.6,360.3 L37.4,339.7 M36.7,346.6 L37.4,339.7 L31.1,342.5" />
+                  <path class="k-wind-3" d="M86.9,359.3 L101.1,340.7 M100.2,347.7 L101.1,340.7 L94.6,343.4" />
+                  <path class="k-wind-2" d="M151.3,358.3 L164.7,341.7 M163.6,348.7 L164.7,341.7 L158.2,344.2" />
+                  <path class="k-wind-2" d="M215.8,357.3 L228.2,342.7 M226.9,349.6 L228.2,342.7 L221.6,345.1" />
+                  <path class="k-wind-2" d="M280.3,356.3 L291.7,343.7 M290.2,350.5 L291.7,343.7 L285.1,345.8" />
+                  <path class="k-wind-1" d="M344.8,355.4 L355.2,344.6 M353.5,351.4 L355.2,344.6 L348.5,346.6" />
+                  <path class="k-wind-3" d="M52.7,421.8 L67.3,402.2 M66.5,409.1 L67.3,402.2 L60.9,404.9" />
+                  <path class="k-wind-3" d="M117.1,420.8 L130.9,403.2 M129.9,410.1 L130.9,403.2 L124.4,405.8" />
+                  <path class="k-wind-2" d="M181.5,419.8 L194.5,404.2 M193.3,411.1 L194.5,404.2 L187.9,406.6" />
+                  <path class="k-wind-2" d="M310.5,417.9 L321.5,406.1 M319.9,413.0 L321.5,406.1 L314.8,408.2" />
+                  <path class="k-wind-1" d="M375.1,416.9 L384.9,407.1 M383.1,413.8 L384.9,407.1 L378.1,408.9" />
+                  <path class="k-wind-3" d="M22.6,484.3 L37.4,463.7 M36.7,470.6 L37.4,463.7 L31.1,466.5" />
+                  <path class="k-wind-3" d="M86.9,483.3 L101.1,464.7 M100.2,471.7 L101.1,464.7 L94.6,467.4" />
+                  <path class="k-wind-2" d="M151.3,482.3 L164.7,465.7 M163.6,472.7 L164.7,465.7 L158.2,468.2" />
+                  <path class="k-wind-2" d="M215.8,481.3 L228.2,466.7 M226.9,473.6 L228.2,466.7 L221.6,469.1" />
+                  <path class="k-wind-2" d="M280.3,480.3 L291.7,467.7 M290.2,474.5 L291.7,467.7 L285.1,469.8" />
+                  <path class="k-wind-1" d="M344.8,479.4 L355.2,468.6 M353.5,475.4 L355.2,468.6 L348.5,470.6" />
+                  <path class="k-wind-3" d="M52.7,545.8 L67.3,526.2 M66.5,533.1 L67.3,526.2 L60.9,528.9" />
+                  <path class="k-wind-3" d="M117.1,544.8 L130.9,527.2 M129.9,534.1 L130.9,527.2 L124.4,529.8" />
+                  <path class="k-wind-2" d="M181.5,543.8 L194.5,528.2 M193.3,535.1 L194.5,528.2 L187.9,530.6" />
+                  <path class="k-wind-2" d="M246.0,542.8 L258.0,529.2 M256.6,536.1 L258.0,529.2 L251.4,531.4" />
+                  <path class="k-wind-2" d="M310.5,541.9 L321.5,530.1 M319.9,537.0 L321.5,530.1 L314.8,532.2" />
+                  <path class="k-wind-1" d="M375.1,540.9 L384.9,531.1 M383.1,537.8 L384.9,531.1 L378.1,532.9" />
+                  <path class="k-wind-3" d="M22.6,608.3 L37.4,587.7 M36.7,594.6 L37.4,587.7 L31.1,590.5" />
+                  <path class="k-wind-3" d="M86.9,607.3 L101.1,588.7 M100.2,595.7 L101.1,588.7 L94.6,591.4" />
+                  <path class="k-wind-2" d="M151.3,606.3 L164.7,589.7 M163.6,596.7 L164.7,589.7 L158.2,592.2" />
+                  <path class="k-wind-2" d="M215.8,605.3 L228.2,590.7 M226.9,597.6 L228.2,590.7 L221.6,593.1" />
+                  <path class="k-wind-2" d="M280.3,604.3 L291.7,591.7 M290.2,598.5 L291.7,591.7 L285.1,593.8" />
+                  <path class="k-wind-1" d="M344.8,603.4 L355.2,592.6 M353.5,599.4 L355.2,592.6 L348.5,594.6" />
+                  <path class="k-wind-3" d="M52.2,670.6 L67.8,649.4 M67.0,656.4 L67.8,649.4 L61.4,652.2" />
+                  <path class="k-wind-3" d="M116.5,669.5 L131.5,650.5 M130.5,657.4 L131.5,650.5 L125.0,653.1" />
+                  <path class="k-wind-3" d="M180.9,668.5 L195.1,651.5 M193.9,658.4 L195.1,651.5 L188.5,653.9" />
+                  <path class="k-wind-2" d="M246.0,666.8 L258.0,653.2 M256.6,660.1 L258.0,653.2 L251.4,655.4" />
+                  <path class="k-wind-2" d="M310.5,665.9 L321.5,654.1 M319.9,661.0 L321.5,654.1 L314.8,656.2" />
+                  <path class="k-wind-1" d="M375.1,664.9 L384.9,655.1 M383.1,661.8 L384.9,655.1 L378.1,656.9" />
+                  <path class="k-wind-3" d="M22.0,733.1 L38.0,710.9 M37.3,717.9 L38.0,710.9 L31.6,713.8" />
+                  <path class="k-wind-3" d="M86.4,732.0 L101.6,712.0 M100.7,718.9 L101.6,712.0 L95.2,714.7" />
+                  <path class="k-wind-3" d="M150.7,731.0 L165.3,713.0 M164.2,720.0 L165.3,713.0 L158.7,715.6" />
+                  <path class="k-wind-2" d="M215.2,729.9 L228.8,714.1 M227.5,720.9 L228.8,714.1 L222.2,716.4" />
+                  <path class="k-wind-2" d="M280.3,728.3 L291.7,715.7 M290.2,722.5 L291.7,715.7 L285.1,717.8" />
+                  <path class="k-wind-1" d="M344.8,727.4 L355.2,716.6 M353.5,723.4 L355.2,716.6 L348.5,718.6" />
+                  <path class="k-wind-3" d="M52.2,794.6 L67.8,773.4 M67.0,780.4 L67.8,773.4 L61.4,776.2" />
+                  <path class="k-wind-3" d="M116.5,793.5 L131.5,774.5 M130.5,781.4 L131.5,774.5 L125.0,777.1" />
+                  <path class="k-wind-3" d="M180.9,792.5 L195.1,775.5 M193.9,782.4 L195.1,775.5 L188.5,777.9" />
+                  <path class="k-wind-2" d="M246.0,790.8 L258.0,777.2 M256.6,784.1 L258.0,777.2 L251.4,779.4" />
+                  <path class="k-wind-2" d="M310.5,789.9 L321.5,778.1 M319.9,785.0 L321.5,778.1 L314.8,780.2" />
+                  <path class="k-wind-1" d="M375.1,788.9 L384.9,779.1 M383.1,785.8 L384.9,779.1 L378.1,780.9" />
+                </g>
+                <g class="ebene-blitze">
+                  <path class="k-blitz" d="M24,519 L18,529 L22,529 L20,537 L27,526 L23,526 Z" />
+                  <path class="k-blitz" d="M36,539 L30,549 L34,549 L32,557 L39,546 L35,546 Z" />
+                  <path class="k-blitz" d="M14,547 L8,557 L12,557 L10,565 L17,554 L13,554 Z" />
+                </g>
+                <g class="ebene-detail">
+                  <circle class="k-ort" cx="197" cy="321" r="4" />
+                  <text x="206" y="317">Düsseldorf</text>
+                  <circle class="k-ort" cx="275" cy="508" r="4" />
+                  <text x="284" y="513">Bonn</text>
+                  <circle class="k-ort" cx="29" cy="491" r="4" />
+                  <text x="38" y="476">Aachen</text>
+                </g>
+                <circle class="k-hier" cx="240" cy="430" r="7" />
+                <text class="k-hier-name" x="252" y="436">Köln</text>
+              </svg>
+
+              <!-- Oben schwebend: Ort (Tippen öffnet die Orte) und Stand -->
+              <a class="karte-kopf schwebe" href="/mockups/telefon/orte.html">
+                <span class="karte-ort">Köln <i class="fa-solid fa-chevron-down"></i></span>
+                <span class="karte-stand"><span class="frische"></span>14:15 gemessen</span>
+              </a>
+
+              <!-- Rechts: Ebenen, jede einzeln an oder aus -->
+              <div class="ebenen" role="group" aria-label="Ebenen der Karte">
+                <button class="ebene schwebe" data-ebene="blitze" aria-pressed="false" aria-label="Gewitter"><i class="fa-solid fa-bolt"></i></button>
+                <button class="ebene schwebe" data-ebene="warnungen" aria-pressed="false" aria-label="Warnungen"><i class="fa-solid fa-triangle-exclamation"></i></button>
+                <button class="ebene schwebe" data-ebene="hell" aria-pressed="false" aria-label="Helle Grundkarte"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <button class="ebene schwebe" data-ebene="detail" aria-pressed="true" aria-label="Beschriftung und Straßen"><i class="fa-solid fa-map"></i></button>
+                <button class="ebene schwebe" data-ebene="radar" aria-pressed="true" aria-label="Regenradar"><i class="fa-solid fa-cloud-rain"></i></button>
+                <button class="ebene schwebe" data-ebene="wind" aria-pressed="false" aria-label="Wind"><i class="fa-solid fa-wind"></i></button>
+              </div>
+
+              <!-- Unten über der Reiterleiste: Maßstab, Legende der Ebenen, Abspielleiste (nur mit Regenradar) -->
+              <div class="karte-unten">
+                <div class="massstab"><span></span>10 km</div>
+                <div class="karte-legende schwebe">
+                  <div class="kl-zeile kl-warnungen stufe-1">
+                    <span class="stufe-marke">1</span>
+                    <div class="kl-text"><b>Windböen</b><small>Aachen und Eifel, ab 16 Uhr</small></div>
+                  </div>
+                  <div class="kl-zeile kl-blitze">
+                    <span class="kl-blitz"><i class="fa-solid fa-bolt"></i></span>
+                    <div class="kl-text"><b>3 Blitze bei Aachen</b><small>letzte 30 Minuten, 70 km entfernt</small></div>
+                  </div>
+                  <div class="legende kl-wind">
+                    <span class="legende-titel">Wind km/h</span>
+                    <div class="legende-skala">
+                      <div class="legende-balken"><span style="background: var(--kw1)"></span><span style="background: var(--kw2)"></span><span style="background: var(--kw3)"></span><span style="background: var(--kw4)"></span></div>
+                      <div class="legende-werte"><span>0</span><span>10</span><span>20</span><span>30</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abspiel schwebe">
+                  <div class="abspiel-zeile">
+                    <button class="knopf-rund abspielen" aria-label="Abspielen"><i class="fa-solid fa-play"></i></button>
+                    <div class="abspiel-zeit"><b class="zahl">14:15</b><small>gemessen, jetzt</small></div>
+                    <div class="abspiel-hinweis entbehrlich">Regen zieht von Westen heran</div>
+                  </div>
+                  <div class="zeitleiste" role="slider" aria-label="Zeitpunkt" aria-valuetext="14:15 gemessen">
+                    <div class="zl-bahn"><span class="zl-gemessen"></span><span class="zl-vorhersage"></span></div>
+                    <span class="zl-stunde" style="left: 0%"></span><span class="zl-stunde" style="left: 66.67%"></span><span class="zl-stunde" style="left: 100%"></span>
+                    <span class="zl-griff" style="left: 33.33%"></span>
+                  </div>
+                  <div class="zl-achse"><span style="left: 0%">-1 h</span><span class="jetzt" style="left: 33.33%">jetzt</span><span style="left: 66.67%">+1 h</span><span style="left: 100%">+2 h</span></div>
+                  <div class="legende">
+                    <span class="legende-titel">mm/h</span>
+                    <div class="legende-skala">
+                      <div class="legende-balken"><span style="background: var(--rr1)"></span><span style="background: var(--rr2)"></span><span style="background: var(--rr3)"></span><span style="background: var(--rr4)"></span><span style="background: var(--rr5)"></span><span style="background: var(--rr6)"></span><span style="background: var(--rr7)"></span><span style="background: var(--rr8)"></span></div>
+                      <div class="legende-werte"><span>0,1</span><span>0,5</span><span>1</span><span>2</span><span>5</span><span>10</span><span>20</span><span>40</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <nav class="leiste">
+              <a class="an" href="/mockups/telefon/karte.html" aria-current="page"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+              <a href="/mockups/telefon/wetter.html"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+              <a href="/mockups/telefon/gesundheit.html"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+              <a href="/mockups/telefon/mehr.html"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+            </nav>
+          </div>
+          <div class="wischleiste"></div>
+        </div>
+        <div class="geraet-unter">Seite <b>Karte</b>: Regenradar von 14:15 mit Abspielleiste, Detailkarte an, Grundkarte dunkel.</div>
+      </div>
+
+      <!-- ================================================================ Karte: hell, Wind und Warnungen an, Radar aus -->
+      <div class="buehne-spalte">
+        <div class="geraet tel">
+          <div class="statusleiste"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+          <div class="schale">
+            <div class="karte-flaeche an-hell an-wind an-warnungen an-detail">
+              <svg class="karte" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                <rect class="k-land" width="390" height="844" />
+                <path class="k-wald" d="M-20,600 C-6.7,549.2 31.7,573.3 60,575 C88.3,576.7 124.2,590.8 150,610 C175.8,629.2 198.3,660.0 215,690 C231.7,720.0 247.5,758.3 250,790 C252.5,821.7 275.0,865.0 230,880 C185.0,895.0 21.7,926.7 -20,880 C-61.7,833.3 -33.3,650.8 -20,600 Z" />
+                <path class="k-wald" d="M320,230 C330.8,208.3 381.7,155.0 395,210 C408.3,265.0 407.5,505.0 400,560 C392.5,615.0 363.7,558.3 350,540 C336.3,521.7 321.3,483.3 318,450 C314.7,416.7 329.7,376.7 330,340 C330.3,303.3 309.2,251.7 320,230 Z" />
+                <path class="k-wald" d="M175,455 C180.5,451.7 193.0,455.8 198,470 C203.0,484.2 206.3,522.5 205,540 C203.7,557.5 196.2,575.0 190,575 C183.8,575.0 172.2,554.2 168,540 C163.8,525.8 163.8,504.2 165,490 C166.2,475.8 169.5,458.3 175,455 Z" />
+                <path class="k-stadt" d="M205,395 C213.7,385.8 236.7,382.5 250,385 C263.3,387.5 278.3,399.2 285,410 C291.7,420.8 293.8,438.7 290,450 C286.2,461.3 273.7,473.8 262,478 C250.3,482.2 230.7,481.3 220,475 C209.3,468.7 200.5,453.3 198,440 C195.5,426.7 196.3,404.2 205,395 Z" />
+                <path class="k-stadt" d="M262,492 C267.0,486.5 282.3,490.3 288,495 C293.7,499.7 297.3,512.8 296,520 C294.7,527.2 286.3,536.7 280,538 C273.7,539.3 261.0,535.7 258,528 C255.0,520.3 257.0,497.5 262,492 Z" />
+                <path class="k-stadt" d="M172,300 C177.7,291.2 203.0,288.3 212,292 C221.0,295.7 226.3,312.3 226,322 C225.7,331.7 218.0,346.2 210,350 C202.0,353.8 184.3,353.3 178,345 C171.7,336.7 166.3,308.8 172,300 Z" />
+                <path class="k-stadt" d="M16,478 C21.0,472.7 38.0,470.3 44,474 C50.0,477.7 53.3,493.3 52,500 C50.7,506.7 42.3,513.0 36,514 C29.7,515.0 17.3,512.0 14,506 C10.7,500.0 11.0,483.3 16,478 Z" />
+                <path class="k-stadt" d="M240,360 C242.3,355.0 257.3,353.0 262,356 C266.7,359.0 270.3,373.0 268,378 C265.7,383.0 252.7,389.0 248,386 C243.3,383.0 237.7,365.0 240,360 Z" />
+                <path class="k-stadt" d="M150,322 C153.0,318.0 166.3,317.0 170,320 C173.7,323.0 175.0,336.0 172,340 C169.0,344.0 155.7,347.0 152,344 C148.3,341.0 147.0,326.0 150,322 Z" />
+                <path class="k-fluss-klein" d="M392,528 C383.3,526.7 355.3,524.3 340,520 C324.7,515.7 310.0,507.0 300,502 C290.0,497.0 283.3,492.0 280,490" />
+                <path class="k-fluss-klein" d="M140,640 C143.3,623.3 154.0,570.0 160,540 C166.0,510.0 171.7,486.7 176,460 C180.3,433.3 183.3,403.0 186,380 C188.7,357.0 191.0,331.7 192,322" />
+                <path class="k-fluss" d="M380,880 C373.7,861.7 354.0,811.0 342,770 C330.0,729.0 318.8,677.7 308,634 C297.2,590.3 285.5,535.2 277,508 C268.5,480.8 262.0,484.0 257,471 C252.0,458.0 248.2,442.5 247,430 C245.8,417.5 252.8,406.2 250,396 C247.2,385.8 236.2,377.5 230,369 C223.8,360.5 219.3,353.0 213,345 C206.7,337.0 194.3,332.3 192,321 C189.7,309.7 201.2,292.8 199,277 C196.8,261.2 184.7,257.2 179,226 C173.3,194.8 169.0,129.7 165,90 C161.0,50.3 156.7,5.0 155,-12" />
+                <g class="ebene-detail">
+                  <path class="k-grenze" d="M-5,330 C-1.8,341.7 11.8,376.7 14,400 C16.2,423.3 8.3,450.0 8,470 C7.7,490.0 8.3,504.2 12,520 C15.7,535.8 29.0,547.5 30,565 C31.0,582.5 23.8,604.2 18,625 C12.2,645.8 -1.2,679.2 -5,690" />
+                  <path class="k-strasse" d="M240,432 C228.7,435.3 195.3,445.3 172,452 C148.7,458.7 123.7,465.3 100,472 C76.3,478.7 48.3,487.3 30,492 C11.7,496.7 -3.3,498.7 -10,500" />
+                  <path class="k-strasse" d="M212,-10 C214.3,25.0 221.7,146.7 226,200 C230.3,253.3 231.0,274.7 238,310 C245.0,345.3 257.7,377.0 268,412 C278.3,447.0 288.3,482.0 300,520 C311.7,558.0 322.7,583.3 338,640 C353.3,696.7 383.0,823.3 392,860" />
+                  <path class="k-strasse" d="M392,110 C376.7,140.0 323.3,243.0 300,290 C276.7,337.0 267.8,365.3 252,392 C236.2,418.7 222.0,422.0 205,450 C188.0,478.0 168.3,518.3 150,560 C131.7,601.7 110.0,650.0 95,700 C80.0,750.0 65.8,833.3 60,860" />
+                  <path class="k-strasse" d="M244,444 C247.0,450.0 256.7,468.7 262,480 C267.3,491.3 273.7,506.7 276,512" />
+                  <path class="k-strasse" d="M90,-10 C92.3,25.0 99.3,135.0 104,200 C108.7,265.0 112.3,320.0 118,380 C123.7,440.0 129.3,480.0 138,560 C146.7,640.0 164.7,810.0 170,860" />
+                </g>
+                <g class="ebene-warnungen">
+                  <path class="k-warn-1" d="M-10,440 C0.3,377.3 31.7,420.3 52,424 C72.3,427.7 96.3,442.7 112,462 C127.7,481.3 136.7,513.3 146,540 C155.3,566.7 159.7,595.3 168,622 C176.3,648.7 194.0,670.3 196,700 C198.0,729.7 214.3,783.3 180,800 C145.7,816.7 21.7,860.0 -10,800 C-41.7,740.0 -20.3,502.7 -10,440 Z" />
+                </g>
+                <g class="ebene-radar k-regen">
+                  <path class="k-r1" d="M60,40 C68.2,41.7 71.9,53.0 79.3,57.6 C86.7,62.2 97.8,62.5 104.6,67.9 C111.4,73.3 115.5,80.9 120,90 C124.5,99.1 130.4,111.4 131.6,122.5 C132.8,133.6 127.3,145.3 127.0,156.6 C126.7,167.8 129.2,178.7 130,190 C130.8,201.3 132.5,213.4 131.5,224.7 C130.5,236.0 127.2,246.8 124.0,257.7 C120.8,268.6 113.4,279.5 112,290 C110.6,300.5 116.8,310.6 115.8,320.6 C114.8,330.6 108.3,340.1 106.3,350.0 C104.3,359.9 105.9,370.1 104,380 C102.1,389.9 95.1,399.5 94.7,409.5 C94.3,419.5 100.9,430.0 101.4,440.1 C102.0,450.2 99.8,460.1 98,470 C96.2,479.9 91.0,489.4 90.3,499.5 C89.6,509.6 94.6,520.4 93.9,530.5 C93.2,540.6 88.0,549.9 86,560 C84.0,570.1 85.2,581.2 81.9,591.0 C78.6,600.8 69.5,609.2 66.2,619.0 C62.9,628.8 63.6,639.2 62,650 C60.4,660.8 62.2,674.0 56.6,683.5 C51.0,693.0 34.3,697.5 28.5,706.9 C22.7,716.3 25.8,732.1 22,740 C18.2,747.9 11.7,750.6 5.5,754.5 C-0.7,758.4 -9.2,759.4 -15.1,763.6 C-21.0,767.9 -26.8,817.3 -30,780 C-33.2,742.7 -34.0,620.0 -34.2,540.0 C-34.4,460.0 -32.1,380.0 -31.4,300.0 C-30.7,220.0 -35.5,99.8 -30,60 C-24.5,20.2 -8.2,63.4 1.8,61.3 C11.8,59.2 20.4,50.8 30.1,47.2 C39.8,43.7 51.8,38.3 60,40 Z" />
+                  <path class="k-r1" d="M118,360 C120.3,358.3 123.1,360.7 125.6,361.2 C128.1,361.7 130.5,362.2 132.9,363.0 C135.3,363.8 138.2,364.2 140,366 C141.8,367.8 143.6,370.7 143.9,373.6 C144.2,376.5 141.1,380.5 141.8,383.2 C142.5,385.9 147.8,387.7 148,390 C148.2,392.3 145.3,395.3 143.0,397.0 C140.7,398.7 136.4,398.4 134.2,400.2 C132.0,402.0 131.5,407.8 130,408 C128.5,408.2 127.2,402.7 125.0,401.3 C122.8,399.9 119.4,400.5 116.9,399.6 C114.4,398.7 110.9,398.6 110,396 C109.1,393.4 111.3,387.9 111.6,383.8 C111.9,379.7 110.5,375.2 111.6,371.2 C112.7,367.2 115.7,361.7 118,360 Z" />
+                  <path class="k-r1" d="M300,742 C300.8,736.5 312.7,734.2 319.3,731.4 C325.9,728.6 332.6,725.9 339.7,725.0 C346.8,724.1 355.1,724.9 362,726 C368.9,727.1 377.1,727.2 381.0,731.7 C384.9,736.2 382.2,748.2 385.7,753.3 C389.2,758.3 398.7,757.0 402,762 C405.3,767.0 406.1,776.4 405.5,783.1 C404.9,789.9 400.8,796.0 398.5,802.5 C396.2,809.0 396.9,820.3 392,822 C387.1,823.7 377.2,812.2 369.3,812.9 C361.4,813.6 352.5,825.5 344.6,826.0 C336.7,826.5 326.2,822.0 322,816 C317.8,810.0 320.8,798.5 319.5,789.9 C318.2,781.3 317.6,772.6 314.4,764.6 C311.1,756.6 299.2,747.5 300,742 Z" />
+                  <path class="k-r2" d="M30,90 C36.4,90.7 44.9,100.0 50.2,106.7 C55.5,113.4 57.3,122.9 61.9,130.1 C66.5,137.3 75.7,141.1 78,150 C80.3,158.9 75.0,172.5 76.0,183.6 C77.0,194.7 83.0,205.4 84.3,216.5 C85.6,227.6 83.8,239.2 84,250 C84.2,260.8 86.9,271.4 85.3,281.5 C83.7,291.6 77.8,300.8 74.6,310.5 C71.4,320.2 67.4,330.1 66,340 C64.6,349.9 68.2,360.2 66.2,370.1 C64.2,380.0 54.7,389.4 53.7,399.4 C52.7,409.4 60.5,420.0 60,430 C59.5,440.0 50.7,449.3 51.0,459.4 C51.3,469.5 61.4,480.5 61.6,490.6 C61.8,500.7 54.0,510.0 52,520 C50.0,530.0 50.0,540.4 49.3,550.7 C48.6,561.0 50.3,571.7 47.8,581.6 C45.2,591.5 37.3,600.4 34,610 C30.7,619.6 33.1,630.6 28.2,639.0 C23.3,647.4 9.4,652.0 4.7,660.5 C0.0,669.0 2.1,683.6 0,690 C-2.1,696.4 -4.8,698.0 -8.2,698.8 C-11.6,699.6 -17.0,694.8 -20.6,695.0 C-24.2,695.2 -28.2,732.0 -30,700 C-31.8,668.0 -32.1,568.9 -31.6,503.3 C-31.1,437.8 -27.5,372.2 -27.2,306.7 C-26.9,241.1 -32.7,144.3 -30,110 C-27.3,75.7 -17.9,102.0 -10.9,100.7 C-3.9,99.4 5.1,104.1 11.9,102.3 C18.7,100.5 23.6,89.3 30,90 Z" />
+                  <path class="k-r2" d="M338,760 C338.8,758.0 346.2,760.9 350.1,760.7 C354.1,760.5 358.1,760.4 361.7,758.9 C365.3,757.4 369.0,751.5 372,752 C375.0,752.5 378.5,758.1 379.6,762.0 C380.7,765.9 378.1,771.1 378.8,775.1 C379.5,779.1 384.9,783.0 384,786 C383.1,789.0 377.7,792.0 373.6,792.9 C369.5,793.8 363.5,790.0 359.6,791.2 C355.7,792.4 352.6,800.6 350,800 C347.4,799.4 344.9,791.9 344.1,787.3 C343.3,782.7 346.1,776.9 345.1,772.4 C344.1,767.9 337.2,762.0 338,760 Z" />
+                  <path class="k-r3" d="M20,200 C23.2,199.2 27.0,205.3 30.5,207.8 C34.0,210.3 37.1,213.8 41.2,215.0 C45.3,216.2 52.8,212.2 55,215 C57.2,217.8 53.6,226.5 54.4,232.1 C55.2,237.7 58.5,242.8 59.8,248.3 C61.1,253.8 63.0,259.6 62,265 C61.0,270.4 55.6,274.9 53.7,280.5 C51.8,286.1 53.3,293.6 50.7,298.8 C48.1,304.1 42.2,309.8 38,312 C33.8,314.2 28.9,313.1 25.3,311.8 C21.7,310.5 19.4,306.8 16.5,304.2 C13.6,301.6 11.0,300.3 8,296 C5.0,291.7 0.2,284.5 -1.4,278.4 C-3.0,272.3 -1.7,265.6 -1.8,259.2 C-1.9,252.8 -4.1,244.9 -2,240 C0.1,235.1 8.4,234.2 10.6,229.6 C12.8,225.0 9.4,217.3 11.0,212.4 C12.6,207.5 16.8,200.8 20,200 Z" />
+                  <path class="k-r3" d="M10,468 C12.8,465.5 18.7,467.3 22.6,468.3 C26.5,469.3 29.7,472.2 33.3,474.2 C36.9,476.1 42.2,475.9 44,480 C45.8,484.1 43.5,492.7 44.2,498.9 C44.9,505.1 47.3,511.1 48.3,517.3 C49.3,523.5 51.7,530.1 50,536 C48.3,541.9 40.4,546.6 38.2,552.9 C36.0,559.2 38.5,567.4 36.8,573.9 C35.1,580.4 31.6,588.8 28,592 C24.4,595.2 18.6,594.7 14.9,593.0 C11.2,591.3 9.6,584.1 6.1,581.9 C2.6,579.7 -2.9,584.2 -6,580 C-9.1,575.8 -11.2,564.6 -12.3,556.9 C-13.4,549.1 -12.7,541.3 -12.3,533.5 C-11.9,525.7 -10.9,516.5 -10,510 C-9.1,503.4 -9.7,498.7 -7.1,494.2 C-4.5,489.7 2.9,487.5 5.7,483.1 C8.6,478.7 7.2,470.5 10,468 Z" />
+                  <path class="k-r4" d="M16,505 C17.4,503.1 20.1,505.7 22.2,505.8 C24.3,505.9 26.8,504.8 28.8,505.5 C30.8,506.2 33.1,507.3 34,510 C34.9,512.7 33.3,517.9 33.9,521.8 C34.5,525.7 36.9,529.3 37.4,533.2 C37.9,537.1 38.0,542.1 37,545 C36.0,547.9 33.2,548.8 31.3,550.7 C29.4,552.6 27.5,554.4 25.6,556.3 C23.7,558.2 21.6,562.4 20,562 C18.4,561.6 18.0,556.4 16.2,554.1 C14.4,551.8 11.0,550.6 9.3,548.2 C7.6,545.9 5.6,543.2 6,540 C6.4,536.8 10.6,533.0 11.9,529.1 C13.2,525.2 12.9,520.9 13.6,516.9 C14.3,512.9 14.6,506.9 16,505 Z" />
+                  <path class="k-r5" d="M20,518 C20.8,517.4 21.8,519.2 22.9,519.4 C23.9,519.6 25.3,518.9 26.3,519.2 C27.3,519.5 28.6,519.8 29,521 C29.4,522.2 28.7,524.8 28.8,526.7 C28.9,528.6 29.5,530.4 29.7,532.3 C29.9,534.2 30.3,536.5 30,538 C29.7,539.5 28.6,540.3 27.7,541.3 C26.8,542.2 25.9,543.1 24.8,543.7 C23.7,544.3 22.1,545.4 21,545 C19.9,544.6 18.7,542.8 18.0,541.4 C17.3,540.0 17.6,538.1 16.9,536.7 C16.2,535.3 13.9,534.4 14,533 C14.1,531.6 16.6,530.1 17.3,528.5 C18.0,526.9 17.8,524.9 18.2,523.1 C18.6,521.4 19.2,518.6 20,518 Z" />
+                  <path class="k-r1" d="M150,180 C151.4,179.4 154.0,181.0 155.8,180.6 C157.6,180.2 159.0,178.3 160.7,177.5 C162.4,176.7 164.9,175.2 166,176 C167.1,176.8 166.9,180.2 167.2,182.3 C167.5,184.4 166.8,186.9 167.6,188.8 C168.4,190.8 171.9,192.3 172,194 C172.1,195.7 169.8,197.6 168.4,198.9 C167.0,200.2 165.4,201.2 163.7,202.1 C162.0,202.9 159.6,204.3 158,204 C156.4,203.7 155.5,201.6 154.1,200.5 C152.7,199.4 151.0,198.8 149.7,197.7 C148.3,196.6 146.4,195.4 146,194 C145.6,192.6 147.2,191.0 147.4,189.4 C147.6,187.8 146.7,185.8 147.1,184.2 C147.5,182.6 148.6,180.6 150,180 Z" />
+                  <path class="k-r1" d="M96,610 C97.7,608.6 101.3,608.7 103.6,607.2 C105.9,605.7 107.3,602.3 109.7,601.1 C112.1,599.9 115.9,599.0 118,600 C120.1,601.0 121.4,604.3 122.2,606.8 C123.0,609.3 122.4,612.3 123.0,614.8 C123.6,617.3 126.5,619.8 126,622 C125.5,624.2 122.0,626.0 119.8,627.8 C117.6,629.6 115.0,631.0 113.0,633.0 C111.0,635.0 109.8,639.4 108,640 C106.2,640.6 103.5,638.6 102.1,636.8 C100.6,635.0 101.0,630.9 99.3,629.4 C97.6,627.9 93.4,629.3 92,628 C90.6,626.7 90.9,623.5 91.1,621.5 C91.3,619.5 92.5,617.6 93.3,615.7 C94.1,613.8 94.3,611.4 96,610 Z" />
+                  <path class="k-r2" d="M18,380 C19.2,377.8 21.9,375.6 24.5,375.0 C27.1,374.4 30.7,376.8 33.3,376.3 C35.9,375.8 38.5,371.3 40,372 C41.5,372.7 41.8,377.8 42.6,380.7 C43.4,383.6 43.8,386.6 44.7,389.5 C45.6,392.4 48.3,395.3 48,398 C47.7,400.7 45.1,403.8 42.7,405.9 C40.3,408.0 35.9,408.5 33.8,410.9 C31.7,413.2 31.9,419.1 30,420 C28.1,420.9 24.7,417.8 22.4,416.4 C20.1,415.0 17.9,413.5 16.2,411.4 C14.5,409.3 12.2,406.5 12,404 C11.8,401.5 14.2,398.9 15.1,396.3 C16.0,393.7 17.0,391.1 17.5,388.4 C18.0,385.7 16.8,382.2 18,380 Z" />
+                  <path class="k-r3" d="M14,392 C14.8,390.7 17.6,391.4 19.4,391.1 C21.2,390.8 23.1,390.9 24.9,390.4 C26.7,389.9 29.0,387.5 30,388 C31.0,388.5 30.6,391.6 30.7,393.5 C30.8,395.4 30.1,397.4 30.7,399.1 C31.2,400.9 34.1,402.5 34,404 C33.9,405.5 31.4,406.8 30.0,407.9 C28.6,409.0 27.2,410.1 25.5,410.8 C23.8,411.5 21.3,412.9 20,412 C18.7,411.1 18.4,407.6 17.5,405.5 C16.6,403.4 15.3,401.4 14.7,399.1 C14.1,396.9 13.2,393.3 14,392 Z" />
+                  <path class="k-r2" d="M40,140 C41.8,139.4 44.4,143.3 46.7,144.7 C49.0,146.1 51.4,147.5 53.9,148.4 C56.4,149.3 60.4,148.3 62,150 C63.6,151.7 62.9,155.7 63.3,158.6 C63.6,161.5 64.0,164.4 64.1,167.3 C64.2,170.2 65.3,174.4 64,176 C62.7,177.6 58.6,176.3 56.1,177.0 C53.6,177.7 51.3,178.5 49.3,180.0 C47.3,181.5 45.7,186.1 44,186 C42.3,185.9 40.7,181.7 38.9,179.6 C37.1,177.5 34.6,176.0 33.1,173.7 C31.6,171.4 30.1,168.8 30,166 C29.9,163.2 31.2,159.8 32.2,156.9 C33.2,154.0 34.5,151.1 35.8,148.3 C37.1,145.5 38.2,140.6 40,140 Z" />
+                  <path class="k-r2" d="M122,372 C122.5,370.8 125.5,372.6 127.1,373.1 C128.7,373.6 130.3,374.0 131.8,374.8 C133.3,375.6 135.2,376.6 136,378 C136.8,379.4 136.2,381.5 136.6,383.3 C137.0,385.1 138.0,386.8 138.2,388.6 C138.4,390.4 138.8,392.9 138,394 C137.2,395.1 134.8,394.7 133.2,395.0 C131.6,395.3 130.0,395.5 128.5,396.0 C127.0,396.5 124.8,399.1 124,398 C123.2,396.9 123.7,392.2 123.7,389.3 C123.7,386.4 124.5,383.4 124.2,380.5 C123.9,377.6 121.5,373.2 122,372 Z" />
+                </g>
+                <g class="ebene-wind">
+                  <path class="k-wind-3" d="M52.7,49.8 L67.3,30.2 M66.5,37.1 L67.3,30.2 L60.9,32.9" />
+                  <path class="k-wind-3" d="M117.1,48.8 L130.9,31.2 M129.9,38.1 L130.9,31.2 L124.4,33.8" />
+                  <path class="k-wind-2" d="M181.5,47.8 L194.5,32.2 M193.3,39.1 L194.5,32.2 L187.9,34.6" />
+                  <path class="k-wind-2" d="M246.0,46.8 L258.0,33.2 M256.6,40.1 L258.0,33.2 L251.4,35.4" />
+                  <path class="k-wind-2" d="M310.5,45.9 L321.5,34.1 M319.9,41.0 L321.5,34.1 L314.8,36.2" />
+                  <path class="k-wind-1" d="M375.1,44.9 L384.9,35.1 M383.1,41.8 L384.9,35.1 L378.1,36.9" />
+                  <path class="k-wind-3" d="M22.6,112.3 L37.4,91.7 M36.7,98.6 L37.4,91.7 L31.1,94.5" />
+                  <path class="k-wind-3" d="M86.9,111.3 L101.1,92.7 M100.2,99.7 L101.1,92.7 L94.6,95.4" />
+                  <path class="k-wind-2" d="M151.3,110.3 L164.7,93.7 M163.6,100.7 L164.7,93.7 L158.2,96.2" />
+                  <path class="k-wind-2" d="M215.8,109.3 L228.2,94.7 M226.9,101.6 L228.2,94.7 L221.6,97.1" />
+                  <path class="k-wind-2" d="M280.3,108.3 L291.7,95.7 M290.2,102.5 L291.7,95.7 L285.1,97.8" />
+                  <path class="k-wind-1" d="M344.8,107.4 L355.2,96.6 M353.5,103.4 L355.2,96.6 L348.5,98.6" />
+                  <path class="k-wind-3" d="M52.7,173.8 L67.3,154.2 M66.5,161.1 L67.3,154.2 L60.9,156.9" />
+                  <path class="k-wind-3" d="M117.1,172.8 L130.9,155.2 M129.9,162.1 L130.9,155.2 L124.4,157.8" />
+                  <path class="k-wind-2" d="M181.5,171.8 L194.5,156.2 M193.3,163.1 L194.5,156.2 L187.9,158.6" />
+                  <path class="k-wind-2" d="M246.0,170.8 L258.0,157.2 M256.6,164.1 L258.0,157.2 L251.4,159.4" />
+                  <path class="k-wind-2" d="M310.5,169.9 L321.5,158.1 M319.9,165.0 L321.5,158.1 L314.8,160.2" />
+                  <path class="k-wind-1" d="M375.1,168.9 L384.9,159.1 M383.1,165.8 L384.9,159.1 L378.1,160.9" />
+                  <path class="k-wind-3" d="M22.6,236.3 L37.4,215.7 M36.7,222.6 L37.4,215.7 L31.1,218.5" />
+                  <path class="k-wind-3" d="M86.9,235.3 L101.1,216.7 M100.2,223.7 L101.1,216.7 L94.6,219.4" />
+                  <path class="k-wind-2" d="M151.3,234.3 L164.7,217.7 M163.6,224.7 L164.7,217.7 L158.2,220.2" />
+                  <path class="k-wind-2" d="M215.8,233.3 L228.2,218.7 M226.9,225.6 L228.2,218.7 L221.6,221.1" />
+                  <path class="k-wind-2" d="M280.3,232.3 L291.7,219.7 M290.2,226.5 L291.7,219.7 L285.1,221.8" />
+                  <path class="k-wind-1" d="M344.8,231.4 L355.2,220.6 M353.5,227.4 L355.2,220.6 L348.5,222.6" />
+                  <path class="k-wind-3" d="M52.7,297.8 L67.3,278.2 M66.5,285.1 L67.3,278.2 L60.9,280.9" />
+                  <path class="k-wind-3" d="M117.1,296.8 L130.9,279.2 M129.9,286.1 L130.9,279.2 L124.4,281.8" />
+                  <path class="k-wind-2" d="M181.5,295.8 L194.5,280.2 M193.3,287.1 L194.5,280.2 L187.9,282.6" />
+                  <path class="k-wind-2" d="M246.0,294.8 L258.0,281.2 M256.6,288.1 L258.0,281.2 L251.4,283.4" />
+                  <path class="k-wind-2" d="M310.5,293.9 L321.5,282.1 M319.9,289.0 L321.5,282.1 L314.8,284.2" />
+                  <path class="k-wind-1" d="M375.1,292.9 L384.9,283.1 M383.1,289.8 L384.9,283.1 L378.1,284.9" />
+                  <path class="k-wind-3" d="M22.6,360.3 L37.4,339.7 M36.7,346.6 L37.4,339.7 L31.1,342.5" />
+                  <path class="k-wind-3" d="M86.9,359.3 L101.1,340.7 M100.2,347.7 L101.1,340.7 L94.6,343.4" />
+                  <path class="k-wind-2" d="M151.3,358.3 L164.7,341.7 M163.6,348.7 L164.7,341.7 L158.2,344.2" />
+                  <path class="k-wind-2" d="M215.8,357.3 L228.2,342.7 M226.9,349.6 L228.2,342.7 L221.6,345.1" />
+                  <path class="k-wind-2" d="M280.3,356.3 L291.7,343.7 M290.2,350.5 L291.7,343.7 L285.1,345.8" />
+                  <path class="k-wind-1" d="M344.8,355.4 L355.2,344.6 M353.5,351.4 L355.2,344.6 L348.5,346.6" />
+                  <path class="k-wind-3" d="M52.7,421.8 L67.3,402.2 M66.5,409.1 L67.3,402.2 L60.9,404.9" />
+                  <path class="k-wind-3" d="M117.1,420.8 L130.9,403.2 M129.9,410.1 L130.9,403.2 L124.4,405.8" />
+                  <path class="k-wind-2" d="M181.5,419.8 L194.5,404.2 M193.3,411.1 L194.5,404.2 L187.9,406.6" />
+                  <path class="k-wind-2" d="M310.5,417.9 L321.5,406.1 M319.9,413.0 L321.5,406.1 L314.8,408.2" />
+                  <path class="k-wind-1" d="M375.1,416.9 L384.9,407.1 M383.1,413.8 L384.9,407.1 L378.1,408.9" />
+                  <path class="k-wind-3" d="M22.6,484.3 L37.4,463.7 M36.7,470.6 L37.4,463.7 L31.1,466.5" />
+                  <path class="k-wind-3" d="M86.9,483.3 L101.1,464.7 M100.2,471.7 L101.1,464.7 L94.6,467.4" />
+                  <path class="k-wind-2" d="M151.3,482.3 L164.7,465.7 M163.6,472.7 L164.7,465.7 L158.2,468.2" />
+                  <path class="k-wind-2" d="M215.8,481.3 L228.2,466.7 M226.9,473.6 L228.2,466.7 L221.6,469.1" />
+                  <path class="k-wind-2" d="M280.3,480.3 L291.7,467.7 M290.2,474.5 L291.7,467.7 L285.1,469.8" />
+                  <path class="k-wind-1" d="M344.8,479.4 L355.2,468.6 M353.5,475.4 L355.2,468.6 L348.5,470.6" />
+                  <path class="k-wind-3" d="M52.7,545.8 L67.3,526.2 M66.5,533.1 L67.3,526.2 L60.9,528.9" />
+                  <path class="k-wind-3" d="M117.1,544.8 L130.9,527.2 M129.9,534.1 L130.9,527.2 L124.4,529.8" />
+                  <path class="k-wind-2" d="M181.5,543.8 L194.5,528.2 M193.3,535.1 L194.5,528.2 L187.9,530.6" />
+                  <path class="k-wind-2" d="M246.0,542.8 L258.0,529.2 M256.6,536.1 L258.0,529.2 L251.4,531.4" />
+                  <path class="k-wind-2" d="M310.5,541.9 L321.5,530.1 M319.9,537.0 L321.5,530.1 L314.8,532.2" />
+                  <path class="k-wind-1" d="M375.1,540.9 L384.9,531.1 M383.1,537.8 L384.9,531.1 L378.1,532.9" />
+                  <path class="k-wind-3" d="M22.6,608.3 L37.4,587.7 M36.7,594.6 L37.4,587.7 L31.1,590.5" />
+                  <path class="k-wind-3" d="M86.9,607.3 L101.1,588.7 M100.2,595.7 L101.1,588.7 L94.6,591.4" />
+                  <path class="k-wind-2" d="M151.3,606.3 L164.7,589.7 M163.6,596.7 L164.7,589.7 L158.2,592.2" />
+                  <path class="k-wind-2" d="M215.8,605.3 L228.2,590.7 M226.9,597.6 L228.2,590.7 L221.6,593.1" />
+                  <path class="k-wind-2" d="M280.3,604.3 L291.7,591.7 M290.2,598.5 L291.7,591.7 L285.1,593.8" />
+                  <path class="k-wind-1" d="M344.8,603.4 L355.2,592.6 M353.5,599.4 L355.2,592.6 L348.5,594.6" />
+                  <path class="k-wind-3" d="M52.2,670.6 L67.8,649.4 M67.0,656.4 L67.8,649.4 L61.4,652.2" />
+                  <path class="k-wind-3" d="M116.5,669.5 L131.5,650.5 M130.5,657.4 L131.5,650.5 L125.0,653.1" />
+                  <path class="k-wind-3" d="M180.9,668.5 L195.1,651.5 M193.9,658.4 L195.1,651.5 L188.5,653.9" />
+                  <path class="k-wind-2" d="M246.0,666.8 L258.0,653.2 M256.6,660.1 L258.0,653.2 L251.4,655.4" />
+                  <path class="k-wind-2" d="M310.5,665.9 L321.5,654.1 M319.9,661.0 L321.5,654.1 L314.8,656.2" />
+                  <path class="k-wind-1" d="M375.1,664.9 L384.9,655.1 M383.1,661.8 L384.9,655.1 L378.1,656.9" />
+                  <path class="k-wind-3" d="M22.0,733.1 L38.0,710.9 M37.3,717.9 L38.0,710.9 L31.6,713.8" />
+                  <path class="k-wind-3" d="M86.4,732.0 L101.6,712.0 M100.7,718.9 L101.6,712.0 L95.2,714.7" />
+                  <path class="k-wind-3" d="M150.7,731.0 L165.3,713.0 M164.2,720.0 L165.3,713.0 L158.7,715.6" />
+                  <path class="k-wind-2" d="M215.2,729.9 L228.8,714.1 M227.5,720.9 L228.8,714.1 L222.2,716.4" />
+                  <path class="k-wind-2" d="M280.3,728.3 L291.7,715.7 M290.2,722.5 L291.7,715.7 L285.1,717.8" />
+                  <path class="k-wind-1" d="M344.8,727.4 L355.2,716.6 M353.5,723.4 L355.2,716.6 L348.5,718.6" />
+                  <path class="k-wind-3" d="M52.2,794.6 L67.8,773.4 M67.0,780.4 L67.8,773.4 L61.4,776.2" />
+                  <path class="k-wind-3" d="M116.5,793.5 L131.5,774.5 M130.5,781.4 L131.5,774.5 L125.0,777.1" />
+                  <path class="k-wind-3" d="M180.9,792.5 L195.1,775.5 M193.9,782.4 L195.1,775.5 L188.5,777.9" />
+                  <path class="k-wind-2" d="M246.0,790.8 L258.0,777.2 M256.6,784.1 L258.0,777.2 L251.4,779.4" />
+                  <path class="k-wind-2" d="M310.5,789.9 L321.5,778.1 M319.9,785.0 L321.5,778.1 L314.8,780.2" />
+                  <path class="k-wind-1" d="M375.1,788.9 L384.9,779.1 M383.1,785.8 L384.9,779.1 L378.1,780.9" />
+                </g>
+                <g class="ebene-blitze">
+                  <path class="k-blitz" d="M24,519 L18,529 L22,529 L20,537 L27,526 L23,526 Z" />
+                  <path class="k-blitz" d="M36,539 L30,549 L34,549 L32,557 L39,546 L35,546 Z" />
+                  <path class="k-blitz" d="M14,547 L8,557 L12,557 L10,565 L17,554 L13,554 Z" />
+                </g>
+                <g class="ebene-detail">
+                  <circle class="k-ort" cx="197" cy="321" r="4" />
+                  <text x="206" y="317">Düsseldorf</text>
+                  <circle class="k-ort" cx="275" cy="508" r="4" />
+                  <text x="284" y="513">Bonn</text>
+                  <circle class="k-ort" cx="29" cy="491" r="4" />
+                  <text x="38" y="476">Aachen</text>
+                </g>
+                <circle class="k-hier" cx="240" cy="430" r="7" />
+                <text class="k-hier-name" x="252" y="436">Köln</text>
+              </svg>
+
+              <a class="karte-kopf schwebe" href="/mockups/telefon/orte.html">
+                <span class="karte-ort">Köln <i class="fa-solid fa-chevron-down"></i></span>
+                <span class="karte-stand"><span class="frische"></span>Stand 14:18</span>
+              </a>
+
+              <div class="ebenen" role="group" aria-label="Ebenen der Karte">
+                <button class="ebene schwebe" data-ebene="blitze" aria-pressed="false" aria-label="Gewitter"><i class="fa-solid fa-bolt"></i></button>
+                <button class="ebene schwebe" data-ebene="warnungen" aria-pressed="true" aria-label="Warnungen"><i class="fa-solid fa-triangle-exclamation"></i></button>
+                <button class="ebene schwebe" data-ebene="hell" aria-pressed="true" aria-label="Helle Grundkarte"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <button class="ebene schwebe" data-ebene="detail" aria-pressed="true" aria-label="Beschriftung und Straßen"><i class="fa-solid fa-map"></i></button>
+                <button class="ebene schwebe" data-ebene="radar" aria-pressed="false" aria-label="Regenradar"><i class="fa-solid fa-cloud-rain"></i></button>
+                <button class="ebene schwebe" data-ebene="wind" aria-pressed="true" aria-label="Wind"><i class="fa-solid fa-wind"></i></button>
+              </div>
+
+              <!-- Unten über der Reiterleiste: Maßstab, Legende der Ebenen, Abspielleiste (nur mit Regenradar) -->
+              <div class="karte-unten">
+                <div class="massstab"><span></span>10 km</div>
+                <div class="karte-legende schwebe">
+                  <div class="kl-zeile kl-warnungen stufe-1">
+                    <span class="stufe-marke">1</span>
+                    <div class="kl-text"><b>Windböen</b><small>Aachen und Eifel, ab 16 Uhr</small></div>
+                  </div>
+                  <div class="kl-zeile kl-blitze">
+                    <span class="kl-blitz"><i class="fa-solid fa-bolt"></i></span>
+                    <div class="kl-text"><b>3 Blitze bei Aachen</b><small>letzte 30 Minuten, 70 km entfernt</small></div>
+                  </div>
+                  <div class="legende kl-wind">
+                    <span class="legende-titel">Wind km/h</span>
+                    <div class="legende-skala">
+                      <div class="legende-balken"><span style="background: var(--kw1)"></span><span style="background: var(--kw2)"></span><span style="background: var(--kw3)"></span><span style="background: var(--kw4)"></span></div>
+                      <div class="legende-werte"><span>0</span><span>10</span><span>20</span><span>30</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="abspiel schwebe">
+                  <div class="abspiel-zeile">
+                    <button class="knopf-rund abspielen" aria-label="Abspielen"><i class="fa-solid fa-play"></i></button>
+                    <div class="abspiel-zeit"><b class="zahl">14:15</b><small>gemessen, jetzt</small></div>
+                    <div class="abspiel-hinweis entbehrlich">Regen zieht von Westen heran</div>
+                  </div>
+                  <div class="zeitleiste" role="slider" aria-label="Zeitpunkt" aria-valuetext="14:15 gemessen">
+                    <div class="zl-bahn"><span class="zl-gemessen"></span><span class="zl-vorhersage"></span></div>
+                    <span class="zl-stunde" style="left: 0%"></span><span class="zl-stunde" style="left: 66.67%"></span><span class="zl-stunde" style="left: 100%"></span>
+                    <span class="zl-griff" style="left: 33.33%"></span>
+                  </div>
+                  <div class="zl-achse"><span style="left: 0%">-1 h</span><span class="jetzt" style="left: 33.33%">jetzt</span><span style="left: 66.67%">+1 h</span><span style="left: 100%">+2 h</span></div>
+                  <div class="legende">
+                    <span class="legende-titel">mm/h</span>
+                    <div class="legende-skala">
+                      <div class="legende-balken"><span style="background: var(--rr1)"></span><span style="background: var(--rr2)"></span><span style="background: var(--rr3)"></span><span style="background: var(--rr4)"></span><span style="background: var(--rr5)"></span><span style="background: var(--rr6)"></span><span style="background: var(--rr7)"></span><span style="background: var(--rr8)"></span></div>
+                      <div class="legende-werte"><span>0,1</span><span>0,5</span><span>1</span><span>2</span><span>5</span><span>10</span><span>20</span><span>40</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <nav class="leiste">
+              <a class="an" href="/mockups/telefon/karte.html" aria-current="page"><i class="fa-solid fa-map-location-dot"></i>Karte</a>
+              <a href="/mockups/telefon/wetter.html"><i class="fa-solid fa-cloud-sun"></i>Wetter</a>
+              <a href="/mockups/telefon/gesundheit.html"><i class="fa-solid fa-heart-pulse"></i>Gesundheit</a>
+              <a href="/mockups/telefon/mehr.html"><i class="fa-solid fa-ellipsis"></i>Mehr</a>
+            </nav>
+          </div>
+          <div class="wischleiste"></div>
+        </div>
+        <div class="geraet-unter">Dieselbe Karte im <b>hellen Kartenstil</b> mit <b>Wind</b> und <b>Warnungen</b>, Regenradar aus. Ohne Radar keine Abspielleiste.</div>
+      </div>
+
+      <div class="notiz">
+        <h1>Karte</h1>
+        <p>Linke Wischseite neben Wetter. Die Karte steht allein über die ganze Fläche. Nur hier läuft die Kartenbibliothek, Wetter und Gesundheit bleiben leicht.</p>
+        <h2>Ebenen</h2>
+        <ul>
+          <li>Rechts kleine runde Schalter, jeder einzeln und unabhängig an oder aus: <b>Gewitter</b> (Blitze der letzten 30 Minuten), <b>Warnungen</b>, <b>Hell oder dunkel</b> (Grundkarte), <b>Detailkarte</b> (Beschriftung und Straßen), <b>Regenradar</b>, <b>Wind</b>.</li>
+          <li>An ist eine getönte Fläche, kein Rand. Jeder Schalter ist 44 px groß. Die Auswahl merkt sich das Gerät. Im Entwurf lassen sich alle Schalter umlegen.</li>
+          <li>Verschieben und Zoomen mit den Fingern, deshalb keine Plus- und Minusknöpfe. Seitlich wischen auf der Karte verschiebt die Karte; zur Wetterseite geht es über die Reiterleiste.</li>
+        </ul>
+        <h2>Unten</h2>
+        <ul>
+          <li><b>Abspielleiste</b> nur bei Regenradar: Abspielen, Zeitleiste von -1 h bis +2 h, links gemessen, rechts gestrichelt Vorhersage. Darunter die Regenstufen in mm/h wie am Desktop.</li>
+          <li>Wind, Warnungen und Gewitter erklären sich in einer kleinen Legende darüber. Die Warnebene sagt, wo was gilt; Köln selbst hat keine Warnung.</li>
+          <li>Oben schwebend <b>Ort und Stand</b>. Tippen auf den Ort öffnet die Orte als Blatt.</li>
+        </ul>
+        <h2>Nachtbetrieb</h2>
+        <ul>
+          <li>Karte, Regen und Wind nur in Rot, Stufen über die Helligkeit. Die Grundkarte bleibt nachts dunkel, auch wenn hell gewählt ist.</li>
+        </ul>
+      </div>
+    </div>
+    <script src="/mockups/telefon/mikro.js"></script>
+    <script src="/mockups/telefon/entwurf.js"></script>
+    <script>
+      // Entwurf: jeder Ebenenschalter schaltet seine Ebene der Karte im selben Rahmen.
+      document.querySelectorAll(".tel .ebene[data-ebene]").forEach((k) =>
+        k.addEventListener("click", () => {
+          const an = k.getAttribute("aria-pressed") !== "true";
+          k.setAttribute("aria-pressed", String(an));
+          k.closest(".karte-flaeche").classList.toggle("an-" + k.dataset.ebene, an);
+        }),
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="de" data-theme="hell">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetterwarte - Telefon-Editor</title>
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/400.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/500.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/600.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fontsource/barlow/700.css" />
+    <link rel="stylesheet" href="/frontend/node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="/mockups/stil.css" />
+    <style>
+      /* ============================================================ Telefon-Editor (nur diese Seite)
+         Neue Bereiche mit den verbindlichen Schriftgrößen: Grundschrift 17 px, kleine Texte 15 px,
+         Marken 13 px. Kopf und Navigation kommen unverändert aus stil.css. Flächen statt Ränder. */
+
+      /* App-Raster: Spalten dürfen nie breiter als ihr Platz werden */
+      .te-app.app { grid-template-columns: 264px minmax(0, 1fr); grid-template-rows: 56px minmax(0, 1fr); }
+      .te-app .kopf, .te-app .kopf-suche, .te-app .kopf-suche input { min-width: 0; }
+      .te-nav-knopf { display: none; flex: none; }
+
+      /* ---------------- Kopf des Editors: Titel, Profil, Reiter (steht, rollt nicht mit) */
+      .te-kopf {
+        flex: none;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 20px;
+        background: var(--flaeche);
+        box-shadow: var(--schatten-1);
+        font-size: 17px;
+        z-index: 2;
+      }
+      .te-zeile { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; min-width: 0; }
+      .te-kopf h1 { margin: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+      .te-kopf h1 i { color: var(--akzent); }
+      .te-luecke { flex: 1; }
+      .te-zeile > .knopf { margin-left: auto; } /* bleibt rechts, auch nach Umbruch */
+      .te-marke-text { font-size: 15px; color: var(--text-2); }
+      .te-profile { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px; border-radius: var(--r2); background: var(--flaeche-2); }
+      .te-profile button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 8px;
+        background: none;
+        color: var(--text-2);
+        font: inherit;
+        font-size: 17px;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      .te-profile button.aktiv { background: var(--flaeche); color: var(--akzent-stark); font-weight: 600; box-shadow: var(--schatten-1); }
+      .te-app a.knopf { text-decoration: none; }
+      .te-kopf .knopf { height: 44px; padding: 0 18px; font-size: 17px; }
+      .te-reiter { display: flex; gap: 6px; }
+      .te-reiter-knopf {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 46px;
+        padding: 0 20px;
+        border-radius: var(--r2);
+        background: var(--flaeche-2);
+        color: var(--text-2);
+        font-size: 17px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .te-reiter-knopf.aktiv { background: var(--akzent-weich); color: var(--akzent-stark); }
+      .te-reiter-knopf.aktiv i { color: var(--akzent); }
+
+      /* ---------------- Arbeitsfläche: eigenes Rollfeld, Katalog und Einstellungen stehen */
+      .te-rollfeld {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: clip;
+        padding: 20px 20px 84px; /* unten Platz für die Entwurfsleiste */
+        container-type: size;
+        font-size: 17px;
+        line-height: 1.4;
+      }
+      .te-arbeit {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr) 320px;
+        grid-template-areas: "katalog mitte einst";
+        gap: 20px;
+        align-items: start;
+      }
+      .te-katalog { grid-area: katalog; }
+      .te-mitte { grid-area: mitte; }
+      .te-einst { grid-area: einst; }
+      .te-spalte {
+        position: sticky;
+        top: 0; /* bezogen auf den Inhaltsbereich des Rollfelds, also 20 px unter seiner Kante */
+        max-height: 100cqh;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--r3);
+        background: var(--flaeche);
+        box-shadow: var(--schatten-1);
+        overflow: hidden;
+      }
+      .te-spalte-kopf { flex: none; padding: 16px 16px 12px; }
+      .te-spalte-kopf h2 { margin: 0; font-size: 19px; font-weight: 700; display: flex; align-items: center; gap: 12px; line-height: 1.2; }
+      .te-spalte-kopf h2 small { display: block; font-size: 15px; font-weight: 500; color: var(--text-2); margin-top: 2px; }
+      .te-spalte-kopf p { margin: 4px 0 0; font-size: 15px; color: var(--text-2); }
+      .te-lab { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+
+      /* Symbolfeld eines Typs */
+      .te-sym { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--akzent-weich); color: var(--akzent); font-size: 18px; }
+
+      /* Gitterzeichen einer Größe: 3 x 3 Punkte, belegte Felder in Akzentfarbe (--w, --h) */
+      .te-gz {
+        --p: 9px;
+        --punkt: var(--rand-stark);
+        --voll: var(--akzent);
+        position: relative;
+        display: block;
+        flex: none;
+        width: calc(3 * var(--p));
+        height: calc(3 * var(--p));
+        background: radial-gradient(circle, var(--punkt) 0 3px, transparent 3.5px) 0 0 / var(--p) var(--p);
+      }
+      .te-gz::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: calc(var(--w) * var(--p));
+        height: calc(var(--h) * var(--p));
+        background: radial-gradient(circle, var(--voll) 0 3px, transparent 3.5px) 0 0 / var(--p) var(--p);
+      }
+
+      /* ---------------- Links: Telefon-Katalog */
+      .te-suche {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        margin-top: 12px;
+        padding: 0 12px;
+        border-radius: var(--r2);
+        background: var(--flaeche-2);
+        color: var(--text-3);
+      }
+      .te-suche:focus-within { box-shadow: 0 0 0 2px var(--akzent); }
+      .te-suche input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--text); font: inherit; font-size: 17px; }
+      .te-suche input::placeholder { color: var(--text-3); }
+      .te-katalog-liste { flex: 1; min-height: 0; overflow-y: auto; overflow-x: clip; padding: 0 16px 16px; }
+      .te-familie[hidden], .te-typ[hidden] { display: none; }
+      .te-familie h3 { margin: 14px 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+      .te-familie:first-child h3 { margin-top: 4px; }
+      .te-typ {
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 6px 12px;
+        padding: 12px;
+        border-radius: var(--r2);
+        background: var(--flaeche-2);
+        cursor: grab;
+      }
+      .te-typ + .te-typ { margin-top: 8px; }
+      .te-typ-name { font-size: 17px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .te-griff { color: var(--text-3); padding: 0 2px; }
+      .te-typ-txt { grid-column: 1 / -1; margin: 0; font-size: 15px; line-height: 1.3; color: var(--text-2); }
+      .te-groessen { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+      .te-gr {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        min-width: 42px;
+        padding: 6px 4px 4px;
+        border-radius: 8px;
+        background: var(--flaeche);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--text-2);
+        font-variant-numeric: tabular-nums;
+        cursor: grab;
+      }
+
+      /* ---------------- Mitte: Vorschau-Leiste und Telefonrahmen */
+      .te-mitte { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+      .te-werkzeug { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 12px; max-width: 100%; margin-bottom: 26px; }
+      .te-ort { position: relative; display: inline-flex; align-items: center; border-radius: var(--r2); background: var(--flaeche); box-shadow: var(--schatten-1); color: var(--text-2); }
+      .te-ort i { position: absolute; pointer-events: none; }
+      .te-ort .fa-location-dot { left: 13px; color: var(--akzent); }
+      .te-ort .fa-chevron-down { right: 13px; font-size: 13px; }
+      .te-ort select {
+        appearance: none;
+        -webkit-appearance: none;
+        min-height: 44px;
+        padding: 0 38px 0 36px;
+        border: 0;
+        outline: 0;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .te-ort:focus-within { box-shadow: 0 0 0 2px var(--akzent); }
+      .te-breite { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text-2); }
+      .te-segmente { display: inline-flex; gap: 3px; padding: 3px; border-radius: var(--r2); background: var(--flaeche); box-shadow: var(--schatten-1); }
+      .te-segmente button {
+        min-width: 54px;
+        min-height: 40px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 8px;
+        background: none;
+        color: var(--text-2);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        cursor: pointer;
+      }
+      .te-segmente button.aktiv { background: var(--akzent-weich); color: var(--akzent-stark); }
+      .te-knopf {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: var(--r2);
+        background: var(--flaeche);
+        box-shadow: var(--schatten-1);
+        color: var(--text);
+        font: inherit;
+        font-size: 17px;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      .te-knopf i { color: var(--text-2); }
+
+      /* Telefonrahmen wie .geraet in telefon.css, hier im Desktop-Stil nachgebaut. Statusleiste,
+         Insel und Wischleiste gehören zum Rahmen, der Bildschirm kommt aus dem iframe. */
+      .te-geraet {
+        position: relative;
+        flex: none;
+        width: 390px;
+        height: 844px;
+        margin: 12px 0;
+        border-radius: 54px;
+        overflow: hidden;
+        background: #000;
+        box-shadow: 0 0 0 10px #1f2329, 0 0 0 12px #3a3f47, 0 24px 60px rgba(10, 16, 24, 0.35);
+      }
+      .te-geraet iframe { display: block; }
+      .te-status {
+        position: absolute;
+        inset: 0 0 auto 0;
+        z-index: 2;
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 34px 0 50px;
+        color: #f3f5f7;
+        font-size: 17px;
+        font-weight: 600;
+        pointer-events: none;
+      }
+      .te-status::after { content: ""; position: absolute; left: 50%; top: 11px; width: 124px; height: 36px; margin-left: -62px; border-radius: 20px; background: #000; }
+      .te-status .sym { display: flex; gap: 6px; font-size: 15px; }
+      .te-wisch { position: absolute; left: 50%; bottom: 8px; z-index: 2; width: 140px; height: 5px; margin-left: -70px; border-radius: 3px; background: #f3f5f7; opacity: 0.85; pointer-events: none; }
+      .te-unter { max-width: 420px; margin: 26px 0 0; text-align: center; font-size: 15px; color: var(--text-2); }
+      .te-unter b { color: var(--text); }
+
+      /* ---------------- Rechts: Einstellungen der gewählten Kachel */
+      /* Rumpf rollt, Entfernen und Speicherhinweis stehen unten fest */
+      .te-einst-rumpf { flex: 1; min-height: 0; overflow-y: auto; overflow-x: clip; }
+      .te-einst-fuss { flex: none; padding-top: 12px; }
+      .te-block { padding: 4px 16px 14px; }
+      .te-feld {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: var(--r2);
+        outline: 0;
+        background: var(--flaeche-2);
+        color: var(--text);
+        font: inherit;
+        font-size: 17px;
+      }
+      .te-feld:focus { box-shadow: 0 0 0 2px var(--akzent); }
+      .te-hinweis { display: flex; align-items: flex-start; gap: 8px; margin: 8px 0 0; font-size: 15px; line-height: 1.35; color: var(--text-2); }
+      .te-groessenwahl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+      .te-gw {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 60px;
+        padding: 8px 4px;
+        border: 0;
+        border-radius: var(--r2);
+        background: var(--flaeche-2);
+        color: var(--text);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        cursor: pointer;
+      }
+      .te-gw.aktiv { background: var(--akzent-weich); color: var(--akzent-stark); box-shadow: 0 0 0 2px var(--akzent); }
+      .te-gw.gesperrt,
+      .te-muster { background: repeating-linear-gradient(135deg, var(--flaeche-2) 0 5px, transparent 5px 10px); }
+      .te-gw.gesperrt { color: var(--text-3); cursor: not-allowed; }
+      .te-gw.gesperrt .te-gz { --voll: var(--text-3); opacity: 0.5; }
+      .te-muster { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 5px; box-shadow: 0 0 0 1px var(--flaeche-3); }
+      .te-leer { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px; border-radius: var(--r2); background: var(--flaeche-2); font-size: 15px; line-height: 1.35; color: var(--text-2); }
+      .te-leer i { color: var(--text-3); margin-top: 2px; }
+      .te-entfernen {
+        width: 100%;
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 0;
+        border-radius: var(--r2);
+        background: var(--gefahr-weich);
+        color: var(--gefahr);
+        font: inherit;
+        font-size: 17px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .te-gespeichert { display: flex; align-items: center; gap: 8px; margin: 0; padding: 4px 16px 16px; font-size: 15px; color: var(--text-2); }
+      .te-gespeichert i { color: var(--gut); }
+
+      /* ---------------- Notizen unter der Arbeitsfläche */
+      .te-notiz {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+        gap: 8px 40px;
+        margin-top: 24px;
+        padding: 20px 24px;
+        border-radius: var(--r3);
+        background: var(--flaeche);
+        box-shadow: var(--schatten-1);
+        color: var(--text-2);
+      }
+      .te-notiz h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-size: 19px; color: var(--text); }
+      .te-notiz h2 i { color: var(--akzent); }
+      .te-notiz ul { margin: 0; padding-left: 20px; }
+      .te-notiz li { margin: 0 0 8px; }
+      .te-notiz b { color: var(--text); }
+
+      /* ---------------- Haltepunkte (an einer Stelle) */
+      /* Unter 1400 px: Navigation schwebt auf Knopfdruck, damit Katalog, Telefon und Einstellungen
+         nebeneinander Platz haben. */
+      @media (max-width: 1400px) {
+        .te-app.app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "kopf" "inhalt"; }
+        .te-app > .nav { display: none; }
+        .te-app.nav-offen > .nav { display: flex; position: fixed; top: 56px; left: 0; bottom: 0; z-index: 30; width: 280px; box-shadow: var(--schatten-2); }
+        .te-nav-knopf { display: grid; }
+      }
+      /* Unter 1150 px: Telefon links, Einstellungen und Katalog rechts untereinander */
+      @media (max-width: 1150px) {
+        .te-arbeit { grid-template-columns: minmax(0, 1fr) 320px; grid-template-areas: "mitte einst" "mitte katalog"; }
+        .te-spalte { position: static; max-height: none; }
+        .te-katalog-liste { max-height: 560px; }
+      }
+      @media (max-width: 1000px) {
+        .te-app .layout-tabs { display: none; }
+      }
+      /* Unter 830 px: alles untereinander */
+      @media (max-width: 830px) {
+        .te-arbeit { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mitte" "einst" "katalog"; }
+        .te-rollfeld { padding: 16px 16px 84px; }
+        .te-kopf { padding: 12px 16px; }
+      }
+      /* Schmale Fenster: Ortssuche und Desktop-Kachelknopf im Kopf weichen, der Katalog steht auf der Seite */
+      @media (max-width: 600px) {
+        .te-app .kopf-suche,
+        .te-app .kopf-rechts .knopf.primaer,
+        .te-kopf .te-marke-text { display: none; }
+      }
+      @media (max-width: 480px) {
+        .te-geraet { zoom: 0.8; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app te-app">
+      <!-- ======================= Kopfleiste (wie dashboard.html) ======================= -->
+      <header class="kopf">
+        <button class="icon-knopf te-nav-knopf" title="Navigation ein- und ausblenden"><i class="fa-solid fa-bars"></i></button>
+        <div class="marke">
+          <img class="mc" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          Wetterwarte
+        </div>
+        <div class="kopf-suche">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Ort suchen ..." />
+        </div>
+        <div class="layout-tabs tabgruppe">
+          <button class="aktiv"><i class="fa-solid fa-house"></i> Zuhause</button>
+          <button><i class="fa-solid fa-seedling"></i> Garten</button>
+          <button><i class="fa-solid fa-suitcase-rolling"></i> Reise</button>
+          <button><i class="fa-solid fa-triangle-exclamation"></i> Unwetter</button>
+          <button class="still" title="Neues Layout"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div class="kopf-rechts">
+          <a class="knopf primaer" href="/mockups/katalog.html"><i class="fa-solid fa-plus"></i> Kachel</a>
+          <a class="icon-knopf" href="/mockups/layouts.html" title="Layouts verwalten"><i class="fa-solid fa-pen"></i></a>
+          <a class="icon-knopf" href="/mockups/hilfe.html" title="Hilfe"><i class="fa-solid fa-circle-question"></i></a>
+        </div>
+      </header>
+
+      <!-- ======================= Navigation (wie dashboard.html, Werte vom 19. Oktober) ======================= -->
+      <nav class="nav">
+        <div class="nav-titel">Orte <button class="plus" title="Ort hinzufügen"><i class="fa-solid fa-plus"></i></button></div>
+        <a class="nav-eintrag aktiv">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/partly-cloudy-day.svg" alt="" />
+          <span class="haupt">Köln <small>Nordrhein-Westfalen</small></span>
+          <span class="grad">13&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/clear-day.svg" alt="" />
+          <span class="haupt">Frankfurt <small>Hessen</small></span>
+          <span class="grad">15&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/overcast-day.svg" alt="" />
+          <span class="haupt">Berlin <small>Berlin</small></span>
+          <span class="grad">11&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/drizzle.svg" alt="" />
+          <span class="haupt">Hamburg <small>Hamburg</small></span>
+          <span class="grad">10&deg;</span>
+        </a>
+        <a class="nav-eintrag">
+          <img class="mc winzig" src="/frontend/node_modules/@meteocons/svg/fill/cloudy.svg" alt="" />
+          <span class="haupt">München <small>Bayern</small></span>
+          <span class="grad">12&deg;</span>
+        </a>
+
+        <div class="nav-titel" style="margin-top: var(--a3)">Ansichten</div>
+        <a class="nav-eintrag" href="/mockups/karte.html"><i class="fa-solid fa-map-location-dot"></i> <span class="haupt">Große Karte</span></a>
+        <a class="nav-eintrag" href="/mockups/aufzeichnung.html"><i class="fa-solid fa-database"></i> <span class="haupt">Aufzeichnung</span></a>
+        <a class="nav-eintrag" href="/mockups/archiv.html"><i class="fa-solid fa-chart-line"></i> <span class="haupt">Archiv &amp; Analyse</span></a>
+        <a class="nav-eintrag" href="/mockups/kacheln.html"><i class="fa-solid fa-shapes"></i> <span class="haupt">Kachel-Katalog</span></a>
+
+        <div class="nav-fuss">
+          <div class="nav-quelle"><span class="pulspunkt"></span> Wetterdaten aktuell</div>
+          <div class="nav-version">Wetterwarte 0.46.4 - lokal</div>
+        </div>
+      </nav>
+
+      <!-- ======================= Inhalt: Layout-Verwaltung, Reiter Telefon ======================= -->
+      <section class="inhalt">
+        <div class="te-kopf">
+          <div class="te-zeile">
+            <h1><i class="fa-solid fa-object-group"></i> Layout-Verwaltung</h1>
+            <span class="te-marke-text">Profil</span>
+            <div class="te-profile tabgruppe">
+              <button class="aktiv"><i class="fa-solid fa-house"></i> Zuhause</button>
+              <button><i class="fa-solid fa-seedling"></i> Garten</button>
+              <button><i class="fa-solid fa-suitcase-rolling"></i> Reise</button>
+              <button><i class="fa-solid fa-triangle-exclamation"></i> Unwetter</button>
+            </div>
+            <span class="te-luecke"></span>
+            <a class="knopf primaer" href="/mockups/dashboard.html">Fertig</a>
+          </div>
+          <div class="te-zeile">
+            <div class="te-reiter" role="tablist">
+              <a class="te-reiter-knopf" role="tab" aria-selected="false" href="/mockups/layouts.html"><i class="fa-solid fa-desktop"></i> Desktop</a>
+              <span class="te-reiter-knopf aktiv" role="tab" aria-selected="true"><i class="fa-solid fa-mobile-screen"></i> Telefon</span>
+            </div>
+            <span class="te-marke-text">Telefon-Layout von Zuhause, gilt auf jedem Telefon mit diesem Profil</span>
+          </div>
+        </div>
+
+        <div class="te-rollfeld">
+          <div class="te-arbeit">
+            <!-- ============ Links: Telefon-Katalog -->
+            <aside class="te-spalte te-katalog">
+              <div class="te-spalte-kopf">
+                <h2>Telefon-Katalog</h2>
+                <p>16 Typen. Ziehen zum Hinzufügen: ganze Zeile oder eine Größe.</p>
+                <label class="te-suche" title="Filtert die Typen nach Name und Beschreibung">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" placeholder="Typ suchen ..." />
+                </label>
+              </div>
+              <div class="te-katalog-liste">
+                <section class="te-familie">
+                  <h3>Überblick</h3>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-temperature-half"></i></span>
+                    <b class="te-typ-name">Jetzt</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Temperatur, Zustand, gefühlt, Hoch und Tief</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span><span class="te-gr" title="2×2 hineinziehen"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</span><span class="te-gr" title="3×2 hineinziehen"><span class="te-gz" style="--w: 3; --h: 2"></span>3×2</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-calendar-day"></i></span>
+                    <b class="te-typ-name">Heute</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Tagesspanne, Regen ab wann, Sonne bis wann</p>
+                    <div class="te-groessen"><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-clock"></i></span>
+                    <b class="te-typ-name">Stunden</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">4 bis 24 Stunden mit Symbol, Temperatur, Regen</p>
+                    <div class="te-groessen"><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span><span class="te-gr" title="3×2 hineinziehen"><span class="te-gz" style="--w: 3; --h: 2"></span>3×2</span><span class="te-gr" title="3×3 hineinziehen"><span class="te-gz" style="--w: 3; --h: 3"></span>3×3</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-calendar-week"></i></span>
+                    <b class="te-typ-name">Tage</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Morgen bis 7 Tage, groß mit Temperaturband</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="1×3 hineinziehen"><span class="te-gz" style="--w: 1; --h: 3"></span>1×3</span><span class="te-gr" title="2×2 hineinziehen"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</span><span class="te-gr" title="3×2 hineinziehen"><span class="te-gz" style="--w: 3; --h: 2"></span>3×2</span><span class="te-gr" title="3×3 hineinziehen"><span class="te-gz" style="--w: 3; --h: 3"></span>3×3</span></div>
+                  </div>
+                </section>
+                <section class="te-familie">
+                  <h3>Regen und Unwetter</h3>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-umbrella"></i></span>
+                    <b class="te-typ-name">Regen</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Die nächsten 2 Stunden: wann Regen kommt oder endet</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-satellite-dish"></i></span>
+                    <b class="te-typ-name">Regenradar</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Kartenausschnitt mit dem letzten Radarbild</p>
+                    <div class="te-groessen"><span class="te-gr" title="2×2 hineinziehen"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</span><span class="te-gr" title="3×2 hineinziehen"><span class="te-gz" style="--w: 3; --h: 2"></span>3×2</span><span class="te-gr" title="3×3 hineinziehen"><span class="te-gz" style="--w: 3; --h: 3"></span>3×3</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                    <b class="te-typ-name">Warnungen</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Amtliche Warnungen für den Ort, höchste Stufe zuerst</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span><span class="te-gr" title="3×2 hineinziehen"><span class="te-gz" style="--w: 3; --h: 2"></span>3×2</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-bolt"></i></span>
+                    <b class="te-typ-name">Blitze</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Einschläge im Umkreis und nächster Abstand</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="2×2 hineinziehen"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</span></div>
+                  </div>
+                </section>
+                <section class="te-familie">
+                  <h3>Messwerte</h3>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-gauge"></i></span>
+                    <b class="te-typ-name">Messwert</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Ein Wert mit Verlauf, etwa Luftdruck oder Feuchte</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-wind"></i></span>
+                    <b class="te-typ-name">Wind</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Stärke, Böen und Richtung als Windrose</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="2×2 hineinziehen"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-chart-column"></i></span>
+                    <b class="te-typ-name">Monatsvergleich</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Laufender Monat zum Klimamittel</p>
+                    <div class="te-groessen"><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span><span class="te-gr" title="3×2 hineinziehen"><span class="te-gz" style="--w: 3; --h: 2"></span>3×2</span></div>
+                  </div>
+                </section>
+                <section class="te-familie">
+                  <h3>Gesundheit</h3>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-sun"></i></span>
+                    <b class="te-typ-name">UV</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">UV-Index als Bogen, Tageskurve mit Höchstwert</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-lungs"></i></span>
+                    <b class="te-typ-name">Luft</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Luftqualität als Ring, dazu die Schadstoffe</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="2×2 hineinziehen"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-seedling"></i></span>
+                    <b class="te-typ-name">Pollen</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Stärkste Arten, eigene Allergien zuerst</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="2×2 hineinziehen"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</span><span class="te-gr" title="1×3 hineinziehen"><span class="te-gz" style="--w: 1; --h: 3"></span>1×3</span></div>
+                  </div>
+                </section>
+                <section class="te-familie">
+                  <h3>Himmel</h3>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-sun"></i></span>
+                    <b class="te-typ-name">Sonne</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Sonnenbogen mit Auf- und Untergang</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span><span class="te-gr" title="3×1 hineinziehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</span></div>
+                  </div>
+                  <div class="te-typ" title="Ziehen zum Hinzufügen">
+                    <span class="te-sym"><i class="fa-solid fa-moon"></i></span>
+                    <b class="te-typ-name">Mond</b>
+                    <i class="fa-solid fa-grip-vertical te-griff"></i>
+                    <p class="te-typ-txt">Mondphase, Anteil und nächster Vollmond</p>
+                    <div class="te-groessen"><span class="te-gr" title="1×1 hineinziehen"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</span><span class="te-gr" title="2×1 hineinziehen"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</span></div>
+                  </div>
+                </section>
+              </div>
+            </aside>
+
+            <!-- ============ Mitte: Vorschau im Telefonrahmen -->
+            <div class="te-mitte">
+              <div class="te-werkzeug">
+                <label class="te-ort" title="Ort, dessen Daten die Vorschau zeigt. Ändert nichts am Layout.">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <select aria-label="Vorschau-Ort">
+                    <option selected>Köln</option>
+                    <option>Frankfurt</option>
+                    <option>Berlin</option>
+                    <option>Hamburg</option>
+                    <option>München</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </label>
+                <span class="te-breite">
+                  Breite
+                  <span class="te-segmente" title="Bildschirmbreite der Vorschau in Punkten. Die Kacheln sehen auf allen Breiten gleich aus.">
+                    <button data-breite="375" data-hoehe="812">375</button>
+                    <button data-breite="390" data-hoehe="844" class="aktiv">390</button>
+                    <button data-breite="430" data-hoehe="932">430</button>
+                  </span>
+                </span>
+                <button class="te-knopf" title="Setzt das Telefon-Layout dieses Profils auf die Vorlage zurück"><i class="fa-solid fa-rotate-left"></i> Vorlage wiederherstellen</button>
+              </div>
+
+              <div class="te-geraet">
+                <iframe src="/mockups/telefon/editor-raster.html" title="Telefon-Layout Zuhause" style="width: 390px; height: 844px; border: 0"></iframe>
+                <div class="te-status"><span>14:20</span><span class="sym"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+                <div class="te-wisch"></div>
+              </div>
+              <p class="te-unter">Echte Telefon-Kacheln mit den Daten von <b>Köln</b>. Klick wählt eine Kachel, der Griff unten rechts ändert die Größe. Im Rahmen rollen zeigt die freie Reihe am Ende.</p>
+            </div>
+
+            <!-- ============ Rechts: gewählte Kachel -->
+            <aside class="te-spalte te-einst">
+              <div class="te-spalte-kopf">
+                <span class="te-lab">Gewählte Kachel</span>
+                <h2>
+                  <span class="te-sym"><i class="fa-solid fa-wind"></i></span>
+                  <span>Wind<small>1×1 · Spalte 3, Reihe 2</small></span>
+                </h2>
+              </div>
+
+              <div class="te-einst-rumpf">
+                <div class="te-block">
+                  <label class="te-lab" for="te-titel">Titel</label>
+                  <input id="te-titel" class="te-feld" type="text" value="Wind" title="Steht im Kachelkopf. Leer zeigt den Namen des Typs." />
+                </div>
+
+                <div class="te-block">
+                  <span class="te-lab">Größe</span>
+                  <div class="te-groessenwahl" role="group" aria-label="Größe">
+                    <button class="te-gw aktiv" data-groesse="1×1" aria-pressed="true"><span class="te-gz" style="--w: 1; --h: 1"></span>1×1</button>
+                    <button class="te-gw" data-groesse="2×1" aria-pressed="false"><span class="te-gz" style="--w: 2; --h: 1"></span>2×1</button>
+                    <button class="te-gw gesperrt" aria-disabled="true" title="Größe für diesen Typ nicht vorgesehen"><span class="te-gz" style="--w: 3; --h: 1"></span>3×1</button>
+                    <button class="te-gw gesperrt" aria-disabled="true" title="Größe für diesen Typ nicht vorgesehen"><span class="te-gz" style="--w: 1; --h: 2"></span>1×2</button>
+                    <button class="te-gw" data-groesse="2×2" aria-pressed="false"><span class="te-gz" style="--w: 2; --h: 2"></span>2×2</button>
+                    <button class="te-gw gesperrt" aria-disabled="true" title="Größe für diesen Typ nicht vorgesehen"><span class="te-gz" style="--w: 3; --h: 2"></span>3×2</button>
+                    <button class="te-gw gesperrt" aria-disabled="true" title="Größe für diesen Typ nicht vorgesehen"><span class="te-gz" style="--w: 1; --h: 3"></span>1×3</button>
+                    <button class="te-gw gesperrt" aria-disabled="true" title="Größe für diesen Typ nicht vorgesehen"><span class="te-gz" style="--w: 2; --h: 3"></span>2×3</button>
+                    <button class="te-gw gesperrt" aria-disabled="true" title="Größe für diesen Typ nicht vorgesehen"><span class="te-gz" style="--w: 3; --h: 3"></span>3×3</button>
+                  </div>
+                  <p class="te-hinweis"><span class="te-muster"></span>Ausgegraut: Größe für diesen Typ nicht vorgesehen</p>
+                </div>
+
+                <div class="te-block">
+                  <span class="te-lab">Einstellungen</span>
+                  <p class="te-leer"><i class="fa-solid fa-circle-info"></i>Wind hat keine Einstellungen.</p>
+                </div>
+              </div>
+
+              <div class="te-einst-fuss">
+                <div class="te-block">
+                  <button class="te-entfernen" title="Nimmt die Kachel aus dem Telefon-Layout, die übrigen rücken nach oben"><i class="fa-solid fa-trash"></i> Entfernen</button>
+                </div>
+
+                <p class="te-gespeichert"><i class="fa-solid fa-check"></i> Änderungen werden sofort gespeichert</p>
+              </div>
+            </aside>
+          </div>
+
+          <!-- ============ Notizen: was die Seite zeigt, Regeln aus docs/TELEFON.md -->
+          <section class="te-notiz">
+            <div>
+              <h2><i class="fa-solid fa-mobile-screen"></i> Was hier zu sehen ist</h2>
+              <ul>
+                <li>Profil <b>Zuhause</b>, Reiter <b>Telefon</b>. In der Mitte die echten Telefon-Kacheln des Profils mit den Daten von Köln.</li>
+                <li><b>Wind</b> ist gewählt (Ring und Griff unten rechts), rechts stehen ihre Größen und Einstellungen.</li>
+                <li><b>Stunden</b> wird gerade unter Tage gezogen. Die gestreifte Fläche zeigt, wo sie landet, Tage ist schon nachgerückt.</li>
+                <li>Am Ende des Rasters steht eine <b>freie Reihe</b> zum Hineinziehen.</li>
+              </ul>
+            </div>
+            <div>
+              <h2><i class="fa-solid fa-list-check"></i> Regeln im Editor</h2>
+              <ul>
+                <li>Jedes Profil hat genau ein Desktop- und ein Telefon-Layout, umgeschaltet über die Reiter.</li>
+                <li>Links nur Telefon-Typen, je Größe eine kleine Vorschau zum Hineinziehen.</li>
+                <li>Rechts die Größenwahl als 3×3-Gitter, nicht vorgesehene Größen gesperrt, dazu Einstellungen des Typs und Entfernen.</li>
+                <li>Ziehen und Größe ändern in 3 Spalten mit quadratischen Feldern. Beim Loslassen rastet die Größe auf die nächste erlaubte Form ein.</li>
+                <li>Kacheln rücken nach oben zusammen, es entstehen keine Löcher.</li>
+                <li>Gespeichert wird nach jeder Änderung, wie am Desktop. Der Server prüft Typ und Größe gegen den Telefon-Katalog.</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <!-- Theme-Umschalter -->
+    <div class="mock-leiste">
+      <a class="zur-galerie" href="/mockups/index.html"><i class="fa-solid fa-table-cells"></i> Galerie</a>
+      <span class="trenn"></span>
+      <button data-theme-btn="hell" title="Hell"><i class="fa-solid fa-sun"></i></button>
+      <button data-theme-btn="dunkel" title="Dunkel"><i class="fa-solid fa-moon"></i></button>
+    </div>
+    <script>
+      const setzeThema = (t) => {
+        document.documentElement.dataset.theme = t;
+        document.querySelectorAll("[data-theme-btn]").forEach((b) => b.classList.toggle("aktiv", b.dataset.themeBtn === t));
+      };
+      document.querySelectorAll("[data-theme-btn]").forEach((b) => (b.onclick = () => setzeThema(b.dataset.themeBtn)));
+      setzeThema("hell");
+
+      // Umschalter-Gruppen (Layouts im Kopf, Profile)
+      document.querySelectorAll(".tabgruppe").forEach((g) => {
+        g.querySelectorAll("button").forEach((b) =>
+          b.addEventListener("click", () => {
+            if (b.classList.contains("still")) return;
+            g.querySelectorAll("button").forEach((x) => x.classList.remove("aktiv"));
+            b.classList.add("aktiv");
+          }),
+        );
+      });
+
+      // Navigation schwebt unter 1400 px
+      const app = document.querySelector(".te-app");
+      document.querySelector(".te-nav-knopf").onclick = () => app.classList.toggle("nav-offen");
+
+      // Vorschaubreite: Rahmen und Telefonbildschirm in 375, 390 oder 430 Punkten
+      const geraet = document.querySelector(".te-geraet");
+      const bildschirm = geraet.querySelector("iframe");
+      document.querySelectorAll("[data-breite]").forEach((k) =>
+        k.addEventListener("click", () => {
+          const b = k.dataset.breite, h = k.dataset.hoehe;
+          for (const el of [geraet, bildschirm]) {
+            el.style.width = b + "px";
+            el.style.height = h + "px";
+          }
+          bildschirm.src = `/mockups/telefon/editor-raster.html?breite=${b}&hoehe=${h}`;
+          document.querySelectorAll("[data-breite]").forEach((x) => x.classList.toggle("aktiv", x === k));
+        }),
+      );
+
+      // Größenwahl: nur vorgesehene Größen lassen sich wählen
+      const groessen = document.querySelectorAll(".te-gw");
+      groessen.forEach((b) =>
+        b.addEventListener("click", () => {
+          if (b.classList.contains("gesperrt")) return;
+          groessen.forEach((x) => {
+            if (x.classList.contains("gesperrt")) return;
+            x.classList.toggle("aktiv", x === b);
+            x.setAttribute("aria-pressed", String(x === b));
+          });
+        }),
+      );
+
+      // Katalogsuche: filtert Typen nach Name und Beschreibung, leere Familien verschwinden
+      const suche = document.querySelector(".te-suche input");
+      suche.addEventListener("input", () => {
+        const q = suche.value.trim().toLowerCase();
+        document.querySelectorAll(".te-familie").forEach((f) => {
+          let sichtbar = 0;
+          f.querySelectorAll(".te-typ").forEach((t) => {
+            t.hidden = q !== "" && !t.textContent.toLowerCase().includes(q);
+            if (!t.hidden) sichtbar++;
+          });
+          f.hidden = sichtbar === 0;
+        });
+      });
+    </script>
+  </body>
+</html>

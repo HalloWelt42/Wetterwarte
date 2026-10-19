@@ -1,0 +1,873 @@
+/* Wetterwarte - Telefonansicht (Entwurf). Eigenes Gestaltungssystem, unabhängig von der
+   Desktop-Ansicht. Alles gilt nur innerhalb von .tel (dem Telefonrahmen), damit es auch im
+   Desktop-Editor neben dem Desktop-Stil stehen kann.
+
+   Raster: 3 quadratische Felder nebeneinander, Kacheln von 1x1 bis 3x3 Feldern, Position und
+   Größe kommen aus dem Telefon-Layout des Profils (x, y, w, h). Schmale Außenränder und Fugen.
+   Schwarzer Grund, Nachtbetrieb ausschließlich rot. Schrift Barlow, Bediensymbole Font Awesome,
+   Wettersymbole Meteocons. Temperatur- und Warnfarben haben dieselben Werte wie am Desktop. */
+
+/* ============================================================ Token */
+.tel {
+  --stufe: 1; /* Schriftstufe: 1 Normal, 1.12 Groß, 1.25 Sehr groß (je Gerät gespeichert) */
+  --s13: calc(13px * var(--stufe)); /* Marken, Kachelköpfe */
+  --s15: calc(15px * var(--stufe)); /* kleine Texte */
+  --s17: calc(17px * var(--stufe)); /* Grundschrift */
+  --s19: calc(19px * var(--stufe));
+  --s22: calc(22px * var(--stufe));
+  --s26: calc(26px * var(--stufe));
+
+  --grund: #000;
+  --flaeche: #15181d;
+  --flaeche-2: #1e2229;
+  --flaeche-3: #2b3039;
+  --text: #f3f5f7;
+  --text-2: #b4bcc6;
+  --text-3: #8a95a1;
+  --akzent: #4aa8ff;
+  --akzent-weich: #10283f;
+  --gut: #4ade80;
+  --gefahr: #ff6b6b;
+  --regen: #4aa8ff;
+  --regen-2: #2c6fb3;
+  --sonne: #f2b33d;
+
+  --t-frost: #4aa8ff;
+  --t-kalt: #57c1e0;
+  --t-kuehl: #48b98a;
+  --t-mild: #7bbf4b;
+  --t-warm: #e0a52f;
+  --t-heiss: #e8734a;
+  --t-extrem: #df524f;
+
+  --w1: #e8c34a;
+  --w2: #e89a5a;
+  --w3: #ff6b6b;
+  --w4: #b06cd0;
+  --w1-weich: #2e2610;
+  --w2-weich: #33210f;
+  --w3-weich: #3a1b1b;
+  --w4-weich: #2a1633;
+
+  /* Raster */
+  --breite: 390px; /* Breite des Bildschirms; am Telefon selbst 100vw */
+  --rand: 6px;
+  --fuge: 6px;
+  --feld: calc((var(--breite) - 2 * var(--rand) - 2 * var(--fuge)) / 3);
+  --radius: 14px;
+  --innen: 10px;
+
+  --leiste-h: 56px;
+  --kopf-h: 52px;
+  --sicher-oben: 54px;
+  --sicher-unten: 34px;
+  --schnell: 0.14s ease;
+
+  font-family: "Barlow", system-ui, sans-serif;
+  font-size: var(--s17);
+  line-height: 1.3;
+  color: var(--text);
+  background: var(--grund);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.tel[data-stufe="gross"] { --stufe: 1.12; }
+.tel[data-stufe="sehr-gross"] { --stufe: 1.25; }
+
+/* Nachtbetrieb: nur Rot, gedämpft. Zustände über Helligkeit und Form, nie über Farbe. */
+.tel[data-modus="nacht"] {
+  --flaeche: #120405;
+  --flaeche-2: #1c0607;
+  --flaeche-3: #2c0b0c;
+  --text: #e0412f;
+  --text-2: #a8301f;
+  --text-3: #7c2417;
+  --akzent: #e0412f;
+  --akzent-weich: #2c0b0c;
+  --gut: #a8301f;
+  --gefahr: #e0412f;
+  --regen: #c63a2a;
+  --regen-2: #7c2417;
+  --sonne: #c63a2a;
+  --t-frost: #e0412f; --t-kalt: #e0412f; --t-kuehl: #e0412f; --t-mild: #e0412f;
+  --t-warm: #e0412f; --t-heiss: #e0412f; --t-extrem: #e0412f;
+  --w1: #e0412f; --w2: #e0412f; --w3: #e0412f; --w4: #e0412f;
+  --w1-weich: #2c0b0c; --w2-weich: #2c0b0c; --w3-weich: #2c0b0c; --w4-weich: #2c0b0c;
+}
+
+.tel *, .tel *::before, .tel *::after { box-sizing: border-box; }
+.tel button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.tel .zahl { font-variant-numeric: tabular-nums; }
+
+/* ============================================================ Entwurfsbühne
+   Am Rechner steht die Ansicht in einem Telefonrahmen (390 x 844 Punkte, iPhone 15/16),
+   am Telefon selbst füllt sie den ganzen Bildschirm. */
+body.tel-seite {
+  margin: 0;
+  min-height: 100vh;
+  background: #0b0d10;
+  font-family: "Barlow", system-ui, sans-serif;
+  overflow-x: clip;
+}
+.buehne {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 48px;
+  padding: 32px 16px 110px;
+  flex-wrap: wrap;
+}
+.buehne-spalte { display: flex; flex-direction: column; align-items: center; }
+.geraet {
+  position: relative;
+  width: 390px;
+  height: 844px;
+  border-radius: 54px;
+  box-shadow: 0 0 0 10px #1f2329, 0 0 0 12px #3a3f47, 0 30px 80px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  flex: none;
+}
+.geraet-unter {
+  text-align: center;
+  color: #b4bcc6;
+  font-size: 17px;
+  line-height: 1.4;
+  margin-top: 26px;
+  max-width: 400px;
+}
+.geraet-unter b { color: #f3f5f7; }
+.statusleiste {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 34px 0 50px;
+  font-size: 17px;
+  font-weight: 600;
+  z-index: 60;
+  pointer-events: none;
+}
+.statusleiste::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 11px;
+  width: 124px;
+  height: 36px;
+  margin-left: -62px;
+  border-radius: 20px;
+  background: #000;
+}
+.statusleiste .sym { display: flex; gap: 6px; font-size: 15px; }
+.wischleiste {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 140px;
+  height: 5px;
+  margin-left: -70px;
+  border-radius: 3px;
+  background: var(--text);
+  opacity: 0.85;
+  z-index: 60;
+  pointer-events: none;
+}
+@media (max-width: 500px) {
+  body.tel-seite { background: #000; }
+  .buehne { padding: 0; display: block; }
+  .geraet {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .geraet.tel { --breite: 100vw; --sicher-oben: env(safe-area-inset-top, 0px); --sicher-unten: env(safe-area-inset-bottom, 0px); }
+  .statusleiste, .wischleiste, .geraet-unter { display: none; }
+  .buehne-spalte + .buehne-spalte { display: none; }
+}
+
+/* ============================================================ Schale */
+.schale { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.rollfeld {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: clip;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--leiste-h) + var(--sicher-unten) + var(--rand));
+  scrollbar-width: none;
+}
+.rollfeld::-webkit-scrollbar { display: none; }
+
+/* Kopf: Ort, Stand, Ortswechsel. Bleibt stehen, der Inhalt rollt darunter durch. */
+.kopf {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: var(--sicher-oben) var(--rand) 4px;
+  background: linear-gradient(var(--grund) 78%, rgba(0, 0, 0, 0));
+}
+.kopf-zeile { height: var(--kopf-h); display: flex; align-items: center; gap: 4px; padding-left: 6px; }
+.kopf-ort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  font-size: var(--s22);
+  font-weight: 700;
+}
+.kopf-ort .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kopf-ort i { font-size: var(--s15); color: var(--text-3); }
+.kopf-ort .standort { font-size: var(--s15); color: var(--akzent); }
+.kopf-stand {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-3);
+  font-size: var(--s15);
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 0 8px;
+}
+.frische { width: 10px; height: 10px; border-radius: 50%; background: var(--gut); flex: none; }
+.kopf-stand.alt .frische { background: var(--w1); }
+.kopf-stand.weg .frische { background: var(--gefahr); }
+.tel[data-modus="nacht"] .kopf-stand.alt .frische { background: none; box-shadow: inset 0 0 0 2px var(--text-2); }
+.ort-punkte { display: flex; justify-content: center; align-items: center; gap: 7px; height: 8px; }
+.ort-punkte span { width: 6px; height: 6px; border-radius: 50%; background: var(--flaeche-3); }
+.ort-punkte span.an { background: var(--text-2); }
+
+/* Warnband: über dem Raster, solange im Layout keine Warnkachel steht. */
+.warnband {
+  margin: 4px var(--rand) var(--fuge);
+  border-radius: var(--radius);
+  padding: 9px 12px 9px 9px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+}
+.stufe-1 { background: var(--w1-weich); } .stufe-1 .stufe-marke { background: var(--w1); }
+.stufe-2 { background: var(--w2-weich); } .stufe-2 .stufe-marke { background: var(--w2); }
+.stufe-3 { background: var(--w3-weich); } .stufe-3 .stufe-marke { background: var(--w3); }
+.stufe-4 { background: var(--w4-weich); } .stufe-4 .stufe-marke { background: var(--w4); }
+.stufe-marke {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #000;
+  font-weight: 700;
+  font-size: var(--s19);
+}
+.wb-txt { min-width: 0; flex: 1; }
+.wb-titel { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wb-zeit { color: var(--text-2); font-size: var(--s15); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wb-mehr { color: var(--text-2); font-size: var(--s15); white-space: nowrap; font-weight: 600; }
+.warnband.unbekannt { background: var(--flaeche); }
+.warnband.unbekannt .stufe-marke { background: var(--flaeche-3); color: var(--text-2); }
+
+/* ============================================================ Raster */
+.raster {
+  display: grid;
+  grid-template-columns: repeat(3, var(--feld));
+  grid-auto-rows: var(--feld);
+  gap: var(--fuge);
+  padding: 0 var(--rand);
+}
+
+/* ============================================================ Kachel
+   Position und Größe aus dem Layout: --x, --y (ab 0), --w, --h (1 bis 3). */
+.k {
+  --x: 0; --y: 0; --w: 1; --h: 1;
+  grid-column: calc(var(--x) + 1) / span var(--w);
+  grid-row: calc(var(--y) + 1) / span var(--h);
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  padding: var(--innen);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  container-type: size;
+  transition: transform var(--schnell);
+}
+.k:active { transform: scale(0.97); }
+.k-kopf {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--s13);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+  min-height: 18px;
+  line-height: 1;
+}
+.k-kopf > span { overflow: hidden; text-overflow: ellipsis; }
+.k-kopf .rechts { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--text-2); }
+.k-fuss { margin-top: auto; }
+.k-mitte { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+
+/* Der dicke Wert: richtet sich nach der Kachelbreite, nicht nach dem Bildschirm */
+.wert {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-weight: 700;
+  line-height: 0.92;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.wert b { font-weight: 700; font-size: clamp(30px, 34cqi, 78px); }
+.wert small { font-size: clamp(15px, 13cqi, 26px); font-weight: 600; color: var(--text-2); letter-spacing: 0; }
+.wert.voll b { font-size: clamp(30px, 30cqi, 70px); }
+.wert.halb b { font-size: clamp(26px, 16cqi, 46px); }
+.wert.riesig b { font-size: clamp(56px, 26cqi, 104px); font-weight: 600; letter-spacing: -0.04em; }
+.wert .pfeil { font-size: clamp(15px, 14cqi, 26px); color: var(--text-2); align-self: center; margin-left: 2px; }
+.unter {
+  font-size: var(--s15);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+  line-height: 1.2;
+}
+.unter b { color: var(--text); font-weight: 700; }
+.zustand { font-size: var(--s19); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.t-frost { color: var(--t-frost); } .t-kalt { color: var(--t-kalt); } .t-kuehl { color: var(--t-kuehl); }
+.t-mild { color: var(--t-mild); } .t-warm { color: var(--t-warm); } .t-heiss { color: var(--t-heiss); }
+.t-extrem { color: var(--t-extrem); }
+.c-regen { color: var(--regen); } .c-sonne { color: var(--sonne); } .c-gut { color: var(--gut); }
+.c-w1 { color: var(--w1); } .c-w2 { color: var(--w2); } .c-w3 { color: var(--w3); } .c-w4 { color: var(--w4); }
+
+/* Wettersymbole */
+.mc { display: block; flex: none; }
+.mc-ecke { position: absolute; right: 0; top: 0; width: 46cqi; max-width: 92px; }
+.mc-ecke.klein { width: 34cqi; max-width: 60px; right: 4px; top: 4px; }
+/* Nachtbetrieb: einfarbige Symbole als Maske in Textfarbe */
+.mcm {
+  display: block;
+  flex: none;
+  aspect-ratio: 1;
+  background: var(--text);
+  -webkit-mask: var(--i) center / contain no-repeat;
+  mask: var(--i) center / contain no-repeat;
+}
+/* Die Maske hat kein eigenes Seitenverhältnis wie ein Bild: wo das Symbol die Resthöhe einer Spalte
+   füllt, nimmt sie die ganze Spaltenbreite, das Bild darin bleibt quadratisch (contain). */
+.tel .sp .mcm { align-self: stretch; width: auto; max-width: none; }
+
+/* Mikrodiagramme (mikro.js zeichnet sie in die tatsächliche Größe) */
+.mikro { display: block; width: 100%; height: 100%; overflow: visible; }
+.mikro-feld { flex: 1; min-height: 0; position: relative; }
+.mikro-feld.fest { flex: none; }
+.mikro text { font-family: "Barlow", system-ui, sans-serif; font-size: var(--s13); font-weight: 700; fill: var(--text-3); }
+.mikro text.hell { fill: var(--text-2); }
+.mikro text.wert-t { fill: var(--text); font-size: var(--s15); }
+
+/* Spalten (Stunden, Tage) */
+/* Die Spalten füllen die restliche Höhe, das Symbol nimmt, was übrig bleibt (höchstens 36 px):
+   so passt eine 1er-Reihe auch auf schmalen Telefonen mit 117er-Feldern. */
+.spalten { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; text-align: center; flex: 1; min-height: 0; margin-top: 2px; }
+.sp { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; min-width: 0; min-height: 0; }
+.sp-zeit { font-size: var(--s13); color: var(--text-3); font-weight: 700; line-height: 1.05; }
+.sp-wert { font-size: var(--s17); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.sp-klein { font-size: var(--s13); color: var(--regen); font-weight: 700; min-height: 1em; line-height: 1; }
+.sp .mc { flex: 1 1 0; min-height: 0; max-height: 36px; width: auto; max-width: 100%; aspect-ratio: 1; object-fit: contain; }
+
+/* Tageszeilen */
+.tage { display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-height: 0; padding-top: 4px; }
+.tz {
+  display: grid;
+  grid-template-columns: 3.1em 2.1em 1.9em minmax(0, 1fr) 1.9em;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.tz .tag { font-weight: 700; }
+.tz .mc { width: 100%; }
+.tz .lo { color: var(--text-3); text-align: right; font-weight: 700; }
+.tz .hi { font-weight: 700; }
+.tz .regen { font-size: var(--s13); color: var(--regen); font-weight: 700; }
+.tz.ohne-band { grid-template-columns: 3.1em 2.1em minmax(0, 1fr) auto; }
+.band { position: relative; height: 6px; border-radius: 3px; background: var(--flaeche-3); }
+.band > span { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: linear-gradient(90deg, var(--t-kuehl), var(--t-warm)); }
+.band > i { position: absolute; top: -3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2px var(--flaeche); }
+
+/* Stufenpunkte (Pollen) */
+.punkte { display: inline-flex; gap: 3px; flex: none; }
+.punkte span { width: 10px; height: 10px; border-radius: 50%; background: var(--flaeche-3); }
+.punkte.p1 span:nth-child(1) { background: var(--w1); }
+.punkte.p2 span:nth-child(-n + 2) { background: var(--w2); }
+.punkte.p3 span:nth-child(-n + 3) { background: var(--w3); }
+.tel[data-modus="nacht"] .punkte span { background: var(--flaeche-3); }
+.tel[data-modus="nacht"] .punkte.p1 span:nth-child(1),
+.tel[data-modus="nacht"] .punkte.p2 span:nth-child(-n + 2),
+.tel[data-modus="nacht"] .punkte.p3 span:nth-child(-n + 3) { background: var(--text); }
+.zeilen-k { display: flex; flex-direction: column; justify-content: space-around; flex: 1; min-height: 0; }
+.zk { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.zk .art { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zk .art.hervor { color: var(--text); font-weight: 700; }
+.zk .art.matt { color: var(--text-3); }
+.zk .wz { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Balken in Kacheln (Schadstoffe) */
+.balken-z { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) 2.2em; align-items: center; gap: 6px; font-size: var(--s15); }
+.balken-z .bz-lab { color: var(--text-2); font-weight: 600; }
+.balken-z .bz-wert { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bz-bahn { height: 8px; border-radius: 4px; background: var(--flaeche-3); overflow: hidden; }
+.bz-bahn > span { display: block; height: 100%; border-radius: 4px; }
+
+/* Hinweis in der Kachel: höchstens zwei Zeilen */
+.k-hinweis {
+  font-size: var(--s15);
+  color: var(--text-2);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Kachelzustände */
+.sk { background: linear-gradient(90deg, var(--flaeche-2), var(--flaeche-3), var(--flaeche-2)); background-size: 200% 100%; animation: schimmer 1.3s linear infinite; border-radius: 6px; }
+@keyframes schimmer { from { background-position: 200% 0; } to { background-position: 0 0; } }
+.k.fehlt .k-mitte { align-items: flex-start; gap: 4px; }
+.k.fehlt .fa-solid { color: var(--text-3); font-size: var(--s19); }
+.k-alter {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  font-size: var(--s13);
+  font-weight: 700;
+  color: var(--w1);
+  z-index: 2;
+}
+
+/* ============================================================ Reiterleiste
+   Drei Wischseiten Karte | Wetter | Gesundheit und Mehr. Wetter ist die Startseite. Die Orte sind
+   kein Reiter, sie öffnen sich als Blatt beim Tippen auf den Ortsnamen im Kopf. */
+.leiste {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  height: calc(var(--leiste-h) + var(--sicher-unten));
+  padding: 0 var(--rand) var(--sicher-unten);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: rgba(10, 11, 13, 0.9);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.leiste > a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 44px;
+  color: var(--text-3);
+  font-size: var(--s13);
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.leiste > a i { font-size: 22px; }
+.leiste > a.an { color: var(--akzent); }
+.tel[data-modus="nacht"] .leiste { background: rgba(8, 2, 2, 0.94); }
+
+/* ============================================================ Blatt (von unten) */
+.abdunkeln { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 40; }
+/* Tippen auf die Abdunkelung schließt das Blatt: als Verweis ohne Linkfarbe */
+.tel a.abdunkeln { display: block; color: inherit; text-decoration: none; }
+.blatt {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  max-height: calc(100% - var(--sicher-oben) - 8px);
+  background: var(--flaeche);
+  border-radius: 22px 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--sicher-unten);
+}
+.blatt.voll { top: calc(var(--sicher-oben) + 8px); }
+.blatt-griff { width: 40px; height: 5px; border-radius: 3px; background: var(--flaeche-3); margin: 8px auto 2px; flex: none; }
+.blatt-kopf { display: flex; align-items: center; gap: 8px; padding: 2px 4px 8px 16px; flex: none; }
+.blatt-titel { font-size: var(--s22); font-weight: 700; flex: 1; min-width: 0; line-height: 1.15; }
+.blatt-titel small { display: block; font-size: var(--s15); font-weight: 500; color: var(--text-3); }
+.blatt-inhalt { overflow-y: auto; overflow-x: clip; padding: 0 var(--rand) 16px; flex: 1; min-height: 0; scrollbar-width: none; }
+.abschnitt { margin-top: 18px; }
+.abschnitt:first-child { margin-top: 4px; }
+.abschnitt h3 { margin: 0 0 8px 8px; font-size: var(--s13); letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); font-weight: 700; }
+.abschnitt p { margin: 8px 8px 0; color: var(--text-2); font-size: var(--s15); line-height: 1.4; }
+
+.knopf-rund {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+  font-size: var(--s19);
+  flex: none;
+}
+.knopf-rund.flaeche { background: var(--flaeche-2); }
+.knopf-text {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--flaeche-2);
+}
+.knopf-text.voll { background: var(--akzent); color: #04121f; }
+.tel[data-modus="nacht"] .knopf-text.voll { color: #000; }
+
+/* Segmente */
+.segmente { display: flex; background: var(--flaeche-2); border-radius: 12px; padding: 3px; gap: 3px; }
+.segmente button { flex: 1; min-height: 42px; border-radius: 9px; font-size: var(--s15); font-weight: 700; color: var(--text-2); }
+.segmente button.an { background: var(--flaeche-3); color: var(--text); }
+
+/* Listen */
+.zeilen { display: flex; flex-direction: column; background: var(--flaeche-2); border-radius: var(--radius); overflow: hidden; }
+.zeile { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 6px 14px; }
+.zeile + .zeile { box-shadow: inset 0 1px 0 var(--flaeche-3); }
+.zeile .haupt { flex: 1; min-width: 0; }
+.zeile .haupt b { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zeile .haupt small { display: block; font-size: var(--s15); color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zeile .rechts { margin-left: auto; color: var(--text-2); display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+.zeile .rechts .fa-chevron-right { color: var(--text-3); font-size: var(--s15); }
+.zeile.an { background: var(--akzent-weich); }
+.zeile .sym { width: 30px; text-align: center; color: var(--text-2); font-size: var(--s19); flex: none; }
+.zeile .mc { width: 40px; height: 40px; }
+
+.schalter { width: 51px; height: 31px; border-radius: 16px; background: var(--flaeche-3); position: relative; flex: none; }
+.schalter::after { content: ""; position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 50%; background: var(--text); transition: left var(--schnell); }
+.schalter.an { background: var(--gut); }
+.schalter.an::after { left: 22px; }
+
+.suchfeld {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: var(--flaeche-2);
+  color: var(--text-3);
+}
+.suchfeld input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: var(--s17); user-select: text; }
+.suchfeld input::placeholder { color: var(--text-3); }
+
+/* ============================================================ Raster im Desktop-Editor */
+.raster.editor .k { cursor: grab; }
+.raster.editor .k.gewaehlt { box-shadow: 0 0 0 3px var(--akzent); }
+.raster.editor .k.zieht { transform: scale(1.04); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7), 0 0 0 3px var(--akzent); z-index: 5; opacity: 0.95; cursor: grabbing; }
+.ablage {
+  grid-column: calc(var(--x) + 1) / span var(--w);
+  grid-row: calc(var(--y) + 1) / span var(--h);
+  border-radius: var(--radius);
+  background: repeating-linear-gradient(135deg, var(--akzent-weich) 0 8px, transparent 8px 16px);
+  box-shadow: inset 0 0 0 2px var(--akzent);
+}
+.feld-leer { border-radius: var(--radius); box-shadow: inset 0 0 0 1px var(--flaeche-2); }
+.k-griff {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 18px;
+  height: 18px;
+  border-right: 3px solid var(--akzent);
+  border-bottom: 3px solid var(--akzent);
+  border-radius: 0 0 9px 0;
+  cursor: nwse-resize;
+  z-index: 3;
+}
+
+/* ============================================================ Entwurfsleiste */
+.mock-leiste {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  align-items: center;
+  max-width: calc(100vw - 28px);
+  background: #15181d;
+  border-radius: 24px;
+  padding: 4px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  font-family: "Barlow", system-ui, sans-serif;
+}
+.mock-leiste a, .mock-leiste button {
+  color: #b4bcc6;
+  text-decoration: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 19px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.mock-leiste .an { background: #10283f; color: #4aa8ff; }
+@media (max-width: 500px) {
+  .mock-leiste { bottom: calc(env(safe-area-inset-bottom, 0px) + 62px); right: 6px; opacity: 0.92; }
+}
+
+/* Kacheln sind Verweise auf ihr Detailblatt */
+.tel a.k { color: inherit; text-decoration: none; }
+
+/* ============================================================ Notizen neben dem Rahmen (nur Entwurf) */
+.notiz {
+  width: 420px;
+  max-width: 100%;
+  color: #b4bcc6;
+  font-size: 17px;
+  line-height: 1.45;
+}
+.notiz h1 { color: #f3f5f7; font-size: 26px; margin: 4px 0 6px; font-weight: 700; }
+.notiz h2 { color: #f3f5f7; font-size: 19px; margin: 22px 0 6px; font-weight: 700; }
+.notiz p { margin: 0 0 10px; }
+.notiz ul { margin: 0; padding-left: 20px; }
+.notiz li { margin: 0 0 6px; }
+.notiz b { color: #f3f5f7; }
+.notiz code { font-size: 15px; color: #f3f5f7; background: #1e2229; padding: 1px 6px; border-radius: 6px; }
+.notiz a { color: #4aa8ff; }
+
+/* Große Schrift: entbehrliche Inhalte fallen zuerst weg, nie läuft eine Kachel über.
+   In der App entscheidet die Kachel das selbst anhand ihrer gemessenen Höhe. */
+.tel[data-stufe="sehr-gross"] .entbehrlich,
+.tel[data-stufe="sehr-gross"] .entbehrlich-gross,
+.tel[data-stufe="gross"] .entbehrlich-gross { display: none; }
+
+
+/* ============================================================ Kachelbausteine
+   Aus dem Kachelkatalog (mockups/telefon/kacheln.html): Anordnung, Kennzahlen, Listen, Wert im Ring,
+   Warnfarben der Fläche, Tageszeilen. */
+/* Kachelfläche in Warnstufenfarbe (wie das Warnband) */
+.tel .k.stufe-1 { background: var(--w1-weich); }
+.tel .k.stufe-2 { background: var(--w2-weich); }
+.tel .k.stufe-3 { background: var(--w3-weich); }
+.tel .k.stufe-4 { background: var(--w4-weich); }
+
+/* Dicker Wert, der Breite UND Höhe der Kachel ausnutzt (1x1 groß, in 2x1 und 3x1 so hoch wie möglich) */
+.tel .wert.dick b { font-size: clamp(30px, min(40cqi, 50cqb), 96px); }
+
+/* Inhalte nebeneinander: Reihe füllt die Resthöhe, Blöcke behalten ihre Breite */
+.tel .k-reihe { display: flex; align-items: flex-end; gap: 10px; flex: 1; min-height: 0; min-width: 0; }
+.tel .k-reihe.mitte { align-items: center; }
+.tel .k-reihe.fest { flex: none; }
+.tel .k-reihe > .mikro-feld { align-self: stretch; }
+.tel .k-block { flex: none; min-width: 0; }
+.tel .k-block.dehnen { flex: 1; }
+.tel .ans-ende { margin-left: auto; }
+
+/* Satzanfang über dem dicken Wert ("beginnt in", "trocken bis") */
+.tel .vor { font-size: var(--s15); color: var(--text-2); line-height: 1.2; white-space: nowrap; margin-bottom: 3px; }
+
+/* Zwei bis drei kurze Zeilen, rechtsbündig (Hoch und Tief, Auf und Unter) */
+.tel .zeilen-klein { display: flex; flex-direction: column; gap: 2px; font-size: var(--s15); color: var(--text-2); line-height: 1.2; white-space: nowrap; text-align: right; }
+.tel .zeilen-klein b { color: var(--text); font-size: var(--s17); font-weight: 700; font-variant-numeric: tabular-nums; }
+.tel .zeilen-klein.links { text-align: left; }
+
+/* Kennzahl: mittlerer Wert über kleiner Marke */
+.tel .kz-reihe { display: flex; gap: 14px; }
+.tel .kz { display: flex; flex-direction: column; min-width: 0; }
+.tel .kz b { font-size: var(--s19); font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tel .kz small { font-size: var(--s13); font-weight: 600; color: var(--text-3); line-height: 1.15; white-space: nowrap; }
+
+/* Liste mit Bediensymbol, Wert und Zusatz */
+.tel .liste-klein { display: flex; flex-direction: column; gap: 3px; font-size: var(--s15); color: var(--text-2); line-height: 1.2; white-space: nowrap; }
+.tel .liste-klein i { width: 1.2em; margin-right: 5px; text-align: center; color: var(--text-3); }
+.tel .liste-klein b { color: var(--text); font-size: var(--s17); font-variant-numeric: tabular-nums; }
+
+/* Titel über höchstens zwei Zeilen; wächst mit der Schriftstufe nur, solange das längste Wort
+   ("Warnungen") noch in die Kachelbreite passt */
+.tel .titel-2 { font-size: min(var(--s19), 18.5cqi); font-weight: 700; line-height: 1.12; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tel .titel-1 { font-size: var(--s19); font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Ring mit Wert in der Mitte; der Wert wächst mit dem Ring */
+.tel .ringwert { position: relative; flex: none; aspect-ratio: 1; container-type: size; }
+.tel .ringwert > .mikro-feld { position: absolute; inset: 0; }
+.tel .ringwert > b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 38cqh; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+/* Einheit am halben Wert halb so groß wie die Zahl (sonst wirkt "Uhr" in 2x1 schwerer als "17") */
+.tel .wert.halb small { font-size: clamp(15px, 8cqi, 22px); }
+
+/* Mondauf- und -untergang im Kachelkopf */
+.tel .k-kopf .rechts.auf-unter i { margin: 0 3px 0 8px; color: var(--text-3); }
+
+/* Größere Kennzahl (Tageslänge) */
+.tel .kz b.gross { font-size: var(--s22); }
+
+/* Ehrlicher Hinweis in einem leeren Diagramm (nächste 2 h trocken, nicht "keine Daten") */
+.tel .im-feld { position: absolute; inset: 0 0 4px; display: grid; place-items: center; font-size: var(--s13); font-weight: 700; color: var(--text-3); white-space: nowrap; }
+.tel .im-feld.mit-achse { bottom: 18px; }
+
+/* Tiefgestellte Ziffern der Schadstoffe, ohne die Zeile zu erhöhen */
+.tel .bz-lab sub { font-size: var(--s13); line-height: 0; vertical-align: -0.15em; }
+
+/* Tagesspanne: Tief, Band mit Jetzt-Marke, Hoch */
+.tel .spanne { display: flex; align-items: center; gap: 10px; }
+.tel .spanne .band { flex: 1; }
+.tel .spanne .wert { flex: none; }
+.tel .band > em { position: absolute; bottom: 11px; transform: translateX(-50%); font-style: normal; font-size: var(--s13); font-weight: 700; color: var(--text); line-height: 1; white-space: nowrap; }
+
+/* Tage: schmale Spalte (1x3), vier Tage (2x2), sieben Tage mit Regen (3x3) */
+.tel .tage-schmal { display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-height: 0; padding-top: 6px; }
+.tel .ts-tag { font-size: var(--s13); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); line-height: 1.1; }
+.tel .ts-zeile { display: flex; align-items: center; gap: 4px; }
+.tel .ts-zeile .mc { width: 36px; height: 36px; }
+.tel .ts-zeile b { font-size: var(--s22); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.tel .ts-zeile small { margin-left: auto; font-size: var(--s15); font-weight: 700; color: var(--text-3); }
+.tel .tz.vier { grid-template-columns: 3.1em 2.1em minmax(0, 1fr) 1.9em 1.9em; }
+.tel .tz.mit-regen { grid-template-columns: 3.1em 2.1em minmax(0, 2.4em) 1.9em minmax(0, 1fr) 1.9em; }
+.tel .tz .regen { text-align: right; white-space: nowrap; }
+.tel .tz.vier .hi { text-align: right; }
+
+/* Stunden: feste Zeilen und Achsen mit n Plätzen (Inhalt mittig über dem Platz i) */
+.tel .spalten.fest { flex: none; }
+.tel .achse-n { position: relative; flex: none; }
+.tel .achse-n > * { position: absolute; top: 0; left: calc((var(--i) + 0.5) * 100% / var(--n)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap; }
+.tel .achse-n .mc { width: 30px; height: 30px; }
+.tel .achse-n .sp-zeit { line-height: 1.1; }
+.tel .wind-pfeil i { font-size: var(--s15); color: var(--text-2); line-height: 1.1; }
+.tel .wind-pfeil b { font-size: var(--s13); font-weight: 700; color: var(--text-2); line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+/* Pollen: gewählte Allergien hervorgehoben */
+.tel .zk-rechts { display: flex; align-items: center; gap: 8px; flex: none; }
+.tel .zk .stufe { font-size: var(--s15); color: var(--text-2); font-weight: 600; }
+.tel .zk .stufe.matt { color: var(--text-3); }
+.tel .zk .art i { margin-right: 5px; font-size: 0.85em; color: var(--akzent); }
+.tel .zk.allergie { margin: 0 -6px; padding: 3px 6px; border-radius: 10px; background: var(--flaeche-2); }
+.tel .zk.allergie .art { color: var(--text); font-weight: 700; }
+.tel .pollen-schmal { display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-height: 0; padding-top: 4px; }
+.tel .pollen-schmal .ps { display: flex; flex-direction: column; gap: 3px; }
+.tel .pollen-schmal .ps.allergie { margin: 0 -6px; padding: 4px 6px; border-radius: 10px; background: var(--flaeche-2); }
+.tel .pollen-schmal .art { font-size: var(--s15); font-weight: 600; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
+.tel .pollen-schmal .allergie .art { color: var(--text); font-weight: 700; }
+.tel .pollen-schmal .art i { margin-right: 4px; font-size: var(--s13); color: var(--akzent); }
+
+/* Warnungen: Stufenmarke für ruhig und unbekannt, Zeilen je Warnung */
+.tel .stufe-marke.ruhig { background: var(--flaeche-2); color: var(--gut); }
+.tel .stufe-marke.unbekannt { background: var(--flaeche-3); color: var(--text-2); }
+.tel .stufe-marke.gross { width: 46px; height: 46px; border-radius: 12px; font-size: var(--s22); }
+.tel .warn-kopf { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tel .warn-kopf .mehr { font-size: var(--s15); font-weight: 700; color: var(--text-2); }
+.tel .warn-liste { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; flex: 1; min-height: 0; padding-top: 6px; }
+.tel .warn-zeile { display: flex; align-items: center; gap: 10px; flex: 1; min-height: 0; padding: 4px 10px 4px 6px; border-radius: 12px; }
+.tel .warn-zeile .stufe-marke { width: 34px; height: 34px; border-radius: 9px; font-size: var(--s17); }
+.tel .warn-zeile .wz-txt { min-width: 0; flex: 1; }
+.tel .warn-zeile .wz-titel { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.tel .warn-zeile .wz-zeit { font-size: var(--s15); color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+
+/* Sonne: Restzeit im Bogen */
+.tel .im-bogen { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.tel .im-bogen small { font-size: var(--s15); color: var(--text-2); }
+.tel .im-bogen b { font-size: var(--s26); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+
+/* Regenradar in der Kachel: Ort immer in der Mitte, 1 Einheit = 1 Punkt (nie skaliert), dadurch
+   passt dasselbe Bild in 2x2, 3x2 und 3x3. Farben nur über Variablen, im Nachtbetrieb rot.
+   Stufen r1 bis r6 wie die Regenstärke, Blitze als eigene Form. */
+.tel .radar-bild { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tel .radar-bild .r-land { fill: var(--flaeche); }
+.tel .radar-bild .r-stadt { fill: var(--flaeche-2); }
+.tel .radar-bild .r-strasse { fill: none; stroke: var(--flaeche-3); stroke-width: 2; }
+.tel .radar-bild .r-fluss { fill: none; stroke: var(--regen-2); stroke-width: 5; stroke-linecap: round; opacity: 0.45; }
+.tel .radar-bild .r1 { fill: var(--regen-2); opacity: 0.6; }
+.tel .radar-bild .r2 { fill: var(--regen); opacity: 0.75; }
+.tel .radar-bild .r3 { fill: var(--w1); opacity: 0.85; }
+.tel .radar-bild .r4 { fill: var(--w2); opacity: 0.9; }
+.tel .radar-bild .r5 { fill: var(--w3); }
+.tel .radar-bild .r6 { fill: var(--w4); }
+.tel[data-modus="nacht"] .radar-bild .r3 { opacity: 0.35; }
+.tel[data-modus="nacht"] .radar-bild .r4 { opacity: 0.5; }
+.tel[data-modus="nacht"] .radar-bild .r5 { opacity: 0.7; }
+.tel .radar-bild .r-blitz { fill: var(--text); stroke: var(--grund); stroke-width: 1.5; stroke-linejoin: round; paint-order: stroke; }
+/* Nachts liegen rote Blitze auf roten Zellen: umgekehrt zeichnen, die Form trägt */
+.tel[data-modus="nacht"] .radar-bild .r-blitz { fill: var(--grund); stroke: var(--text); }
+.tel .radar-bild .r-ort { fill: var(--text); stroke: var(--grund); stroke-width: 3; }
+.tel .radar-bild .r-nachbar { fill: var(--text-2); }
+.tel .radar-bild text { font-family: "Barlow", system-ui, sans-serif; font-size: var(--s15); font-weight: 700; fill: var(--text); stroke: var(--grund); stroke-width: 3px; stroke-linejoin: round; paint-order: stroke; }
+.tel .radar-bild text.neben { font-size: var(--s13); font-weight: 600; fill: var(--text-2); }
+.tel .radar-schleier { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(var(--flaeche), transparent 50px), linear-gradient(0deg, var(--flaeche), transparent 54px); }
+.tel .radar-kopf { position: relative; padding: 10px 10px 0; }
+.tel .radar-unter { position: absolute; left: 10px; right: 10px; bottom: 10px; margin: 0; }
+
+/* Aus Unwetter, Zustände und Nacht (mockups/telefon/unwetter.html, zustaende.html, nacht.html) */
+.tel a.warnband { color: inherit; text-decoration: none; }
+.tel .sk { display: block; flex: none; }
+.tel .sk.rund { border-radius: 50%; }
+.tel .sk-stapel { display: flex; flex-direction: column; gap: 8px; }
+.tel .hinweiszeile { display: flex; align-items: center; gap: 8px; margin: 0 var(--rand) var(--fuge); padding: 10px 12px; border-radius: var(--radius); background: var(--flaeche); color: var(--text-2); font-size: var(--s15); }
+.tel .hinweiszeile i { color: var(--w1); }
+.tel .warnband.unbekannt .wb-zeit { white-space: normal; }
+.tel .ersatz { display: none; }
+.tel[data-stufe="sehr-gross"] .ersatz { display: inline; }
+.tel[data-stufe="sehr-gross"] .ersatz-fuer { display: none; }
+.tel .mc-ecke, .tel .tz .mc { aspect-ratio: 1; }
+
+
+/* ============================================================ Gesundheit und Warnungen
+   Neue Formen aus dem Telefon-Katalog: UV 3x1 und 2x2, Luft 3x1 und 3x2, Pollen 3x2 und 3x3,
+   Warnungen 1x1 (nur Stufe und Anzahl) und 2x1 (Stufe und Ereignis). */
+
+/* Wettersymbole in fester Größe neben dem dicken Wert (gilt auch für die Maske im Nachtbetrieb) */
+.tel .mc.mittel { width: 50px; height: 50px; }
+.tel .mc.gross { width: 72px; height: 72px; margin-left: -6px; }
+
+/* Schadstoffbalken untereinander, über die Resthöhe verteilt */
+.tel .balken-stapel { display: flex; flex-direction: column; justify-content: space-around; gap: 6px; min-width: 0; }
+
+/* Pollen: Arten in Zeilen, gewählte Allergien zuerst und hinterlegt.
+   Zwei Spalten (3x2, heute) oder eine Spalte mit heute und morgen (3x3). */
+.tel .zeilen-k.zwei-spalten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); grid-auto-flow: column; column-gap: 18px; align-items: center; padding-top: 4px; }
+.tel .pollen-tafel { --pt-spalte: calc(var(--s13) * 5.2); display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-height: 0; padding-top: 4px; }
+.tel .pt-zeile { display: grid; grid-template-columns: minmax(0, 1fr) var(--pt-spalte) var(--pt-spalte); align-items: center; column-gap: 4px; }
+.tel .pt-zeile .art { font-weight: 600; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.tel .pt-zeile .art i { margin-right: 5px; font-size: 0.85em; color: var(--akzent); }
+.tel .pt-zeile .punkte { justify-self: center; }
+.tel .pt-zeile.allergie { margin: 0 -6px; padding: 4px 6px; border-radius: 10px; background: var(--flaeche-2); }
+.tel .pt-zeile.allergie .art { color: var(--text); font-weight: 700; }
+.tel .pt-kopf { font-size: var(--s13); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); line-height: 1.1; }
+.tel .pt-kopf > span { text-align: center; }
+
+/* Warnungen 1x1: Stufe als große Marke in Warnfarbe, daneben die Anzahl. Keine Ereignistexte. */
+.tel .stufe-marke.riesig { width: min(54px, 52cqi); height: min(54px, 52cqi); border-radius: 14px; font-size: calc(var(--s26) * 1.15); }
+.tel .anzahl { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; font-variant-numeric: tabular-nums; }
+.tel .anzahl b { font-size: clamp(30px, 30cqi, 44px); font-weight: 700; letter-spacing: -0.02em; }
+.tel .anzahl small { margin-top: 3px; font-size: var(--s13); font-weight: 700; color: var(--text-2); }
