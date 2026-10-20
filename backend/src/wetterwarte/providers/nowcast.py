@@ -22,11 +22,12 @@ async def hole(punkte: dict[str, int]) -> dict:
     basis_url = f"{settings.dwd_radar_base}/composite/rv/"
     async with httpx.AsyncClient() as client:
         listing = (await radar._hole(client, basis_url)).decode("latin-1", "replace")
-        stempel = sorted(set(re.findall(r"DE1200_RV(\d{10})\.tar\.bz2", listing)))
-        if not stempel:
+        archive = radar.rv_archive(listing)
+        if not archive:
             raise RuntimeError("kein RADVOR-Archiv im Verzeichnis")
-        daten = await radar._hole(client, f"{basis_url}DE1200_RV{stempel[-1]}.tar.bz2")
-    return await asyncio.to_thread(reihen, daten, stempel[-1], punkte)
+        neuest = sorted(archive)[-1]
+        daten = await radar._hole(client, f"{basis_url}{archive[neuest]}")
+    return await asyncio.to_thread(reihen, daten, neuest, punkte)
 
 
 def reihen(daten: bytes, stempel: str, punkte: dict[str, int]) -> dict:
@@ -34,9 +35,9 @@ def reihen(daten: bytes, stempel: str, punkte: dict[str, int]) -> dict:
     slugs = [s for s, i in punkte.items() if i >= 0]
     indizes = np.array([punkte[s] for s in slugs], dtype=np.int64)
     schritte: dict[int, np.ndarray] = {}
-    with tarfile.open(fileobj=io.BytesIO(daten), mode="r|bz2") as tar:
+    with tarfile.open(fileobj=io.BytesIO(daten), mode="r|*") as tar:
         for m in tar:
-            treffer = re.search(r"_(\d{3})$", m.name)
+            treffer = radar.RV_STUFE.search(m.name)
             datei = tar.extractfile(m) if treffer else None
             if datei is not None and treffer is not None:
                 schritte[int(treffer.group(1))] = radar.werte_an(datei.read(), indizes)

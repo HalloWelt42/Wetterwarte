@@ -3,8 +3,13 @@ das RADOLAN-Binaerformat, reprojiziert per vorab gebackener Indexkarte nach
 Web-Mercator und rendert farbige PNG-Kacheln fuer das Karten-Overlay.
 
 Zwei Produkte, mm/h, eine gemeinsame Bild-Ausgabe (deckungsgleich):
-- RY  (radolan/ry):     gemessene Regenrate, 5 min, Gitter 900x900  -> Vergangenheit
+- RY  (radolan/ry):     gemessene Regenrate, 5 min                 -> Vergangenheit
 - RV  (composite/rv):   RADVOR-Nowcast, Analyse + bis +2 h, DE1200  -> jetzt + Vorhersage
+
+Formate: Seit dem 20.10.2026 (06:50 UTC bei RY, 08:00 UTC bei RV) liefert der DWD nur noch ODIM-HDF5
+(RY im DE1200-Gitter 1200x1100, RV als composite_rv_JJJJMMTT_HHMM.tar). Vorher RADOLAN-Binär (RY 900x900,
+RV als DE1200_RV....tar.bz2). Beide Formate werden am Dateiinhalt erkannt und auf dasselbe Ergebnis gebracht:
+Regenrate mm/h im RADOLAN-Gitter, Zeile 0 im Süden (HDF5 liegt nordoben und wird gekippt).
 
 Zur Laufzeit werden nur numpy und pillow gebraucht (keine Geo-Bibliotheken):
 die stereographische Reprojektion steckt fertig in den Indexkarten (data/*.npz),
@@ -25,6 +30,9 @@ import numpy as np
 from PIL import Image
 
 from ..config import settings
+
+# HDF5-Dateien beginnen mit dieser Signatur
+_HDF5 = b"\x89HDF\r\n\x1a\n"
 
 # --- Indexkarten laden (Reprojektion RADOLAN-Gitter -> gemeinsames Mercator-Raster) ---
 
@@ -102,9 +110,64 @@ def _decode(rohbytes: bytes, ny: int, nx: int) -> np.ndarray:
     return wert
 
 
+def _decode_h5(rohbytes: bytes) -> np.ndarray:
+    """ODIM-HDF5 (RY: RATE in mm/h, RV: ACRR in mm je Intervall) -> Regenrate mm/h im RADOLAN-Gitter.
+
+    Abgleich am 20.10.2026 gegen dieselben Zeitpunkte im Binärformat: HDF5 liegt nordoben (gekippt deckungsgleich),
+    RATE entspricht mm/h, ACRR ist die Höhe eines 5-Minuten-Intervalls."""
+    import h5py  # nur hier gebraucht
+
+    with h5py.File(io.BytesIO(rohbytes), "r") as datei:
+        was = datei["dataset1/data1/what"].attrs
+        roh = datei["dataset1/data1/data"][()]
+        groesse = str(_text(was.get("quantity", b"")))
+        zeitraum = datei["dataset1/what"].attrs
+        wert = roh.astype("f4") * float(was.get("gain", 1.0)) + float(was.get("offset", 0.0))
+        wert[roh == was.get("undetect", 0)] = 0.0
+        wert[roh == was.get("nodata", -1)] = np.nan
+        if groesse == "ACRR":
+            minuten = _minuten(_text(zeitraum["starttime"]), _text(zeitraum["endtime"])) or 5
+            wert *= 60.0 / minuten
+    wert[wert < 0] = 0.0
+    wert[wert > 2400] = np.nan  # über 200 mm in 5 Minuten ist kein Niederschlag
+    return np.flipud(wert)
+
+
+def _text(wert: object) -> str:
+    return wert.decode() if isinstance(wert, bytes) else str(wert)
+
+
+def _minuten(start: str, ende: str) -> int:
+    """Minuten zwischen zwei Uhrzeiten HHMMSS (über Mitternacht hinweg)."""
+    a = int(start[:2]) * 60 + int(start[2:4])
+    b = int(ende[:2]) * 60 + int(ende[2:4])
+    return (b - a) % (24 * 60)
+
+
+def werte(rohbytes: bytes) -> np.ndarray:
+    """Regenrate mm/h aus einer Datei beliebigen Formats (HDF5 oder RADOLAN-Binär, Größe aus dem Kopf)."""
+    if rohbytes.startswith(_HDF5):
+        return _decode_h5(rohbytes)
+    kopf = rohbytes[: rohbytes.find(b"\x03")].decode("latin-1", "replace")
+    gs = re.search(r"GS\s*(\d+)", kopf)
+    zeilen, spalten = (1200, 1100) if "1200" in kopf or (gs and int(gs.group(1)) > 900 * 900 * 2) else (900, 900)
+    return _decode(rohbytes, zeilen, spalten)
+
+
+def index_fuer(wert: np.ndarray) -> dict:
+    """Passende Indexkarte zum Gitter (900x900 alt, 1200x1100 DE1200)."""
+    return _IDX_900 if wert.shape == (900, 900) else _IDX_1200
+
+
 def werte_an(rohbytes: bytes, indizes: np.ndarray) -> np.ndarray:
-    """Regenrate (mm/h) an einzelnen Gitterpunkten (flache Indizes, -1 = außerhalb), ohne das ganze Gitter
-    zu dekodieren; NaN ohne Messung. Für den Nowcast je Ort."""
+    """Regenrate (mm/h) an einzelnen Gitterpunkten (flache Indizes, -1 = außerhalb); NaN ohne Messung.
+    Für den Nowcast je Ort. HDF5 wird ganz gelesen, Binär nur an den Punkten."""
+    if rohbytes.startswith(_HDF5):
+        gitter = _decode_h5(rohbytes).ravel()
+        ergebnis = np.full(indizes.shape, np.nan, dtype="f4")
+        gueltig = (indizes >= 0) & (indizes < gitter.size)
+        ergebnis[gueltig] = gitter[indizes[gueltig]]
+        return ergebnis
     etx, genauigkeit, je_stunde = _kopf(rohbytes)
     roh = np.frombuffer(rohbytes, dtype="u1", offset=etx + 1)
     ergebnis = np.full(indizes.shape, np.nan, dtype="f4")
@@ -136,6 +199,20 @@ def _render(wert: np.ndarray, idx: dict) -> bytes:
     return puffer.getvalue()
 
 
+# Vorhersagestufe im Archiv: alt ..._005, neu ..._005-hd5
+RV_STUFE = re.compile(r"_(\d{3})(?:-hd5)?$")
+
+
+def rv_archive(listing: str) -> dict[str, str]:
+    """Zeitstempel 'YYMMDDHHMM' -> Dateiname aller RV-Archive im Verzeichnis, neues Format bevorzugt."""
+    archive: dict[str, str] = {}
+    for kompakt in re.findall(r"DE1200_RV(\d{10})\.tar\.bz2", listing):
+        archive[kompakt] = f"DE1200_RV{kompakt}.tar.bz2"
+    for tag, zeit in re.findall(r"composite_rv_(\d{8})_(\d{4})\.tar", listing):
+        archive[tag[2:] + zeit] = f"composite_rv_{tag}_{zeit}.tar"
+    return archive
+
+
 def _ts(kompakt: str) -> datetime:
     """RADOLAN-Zeitstempel 'YYMMDDHHMM' (UTC) -> datetime."""
     return datetime.strptime(kompakt, "%y%m%d%H%M").replace(tzinfo=timezone.utc)
@@ -160,13 +237,16 @@ async def _ry_frames(client: httpx.AsyncClient) -> list[dict]:
     """Die letzten RY-Frames (gemessen) holen, dekodieren, rendern - mit Cache je Zeit."""
     basis = f"{settings.dwd_radar_base}/radolan/ry/"
     listing = (await _hole(client, basis)).decode("latin-1", "replace")
-    namen = re.findall(r"raa01-ry_10000-(\d{10})-dwd---bin\.bz2", listing)
-    namen = sorted(set(namen))[-RY_ANZAHL:]
+    dateien: dict[str, str] = {}
+    for kompakt, endung in re.findall(r"raa01-ry_10000-(\d{10})-dwd---bin\.(bz2|hdf5)", listing):
+        if endung == "hdf5" or kompakt not in dateien:
+            dateien[kompakt] = f"raa01-ry_10000-{kompakt}-dwd---bin.{endung}"
+    namen = sorted(dateien)[-RY_ANZAHL:]
     ergebnis = []
     for kompakt in namen:
         fid = f"ry-{kompakt}"
         if fid not in _cache:
-            gepackt = await _hole(client, f"{basis}raa01-ry_10000-{kompakt}-dwd---bin.bz2")
+            gepackt = await _hole(client, f"{basis}{dateien[kompakt]}")
             # Entpacken, Dekodieren und Zeichnen kosten je Bild Hunderte Millisekunden: nicht im Event-Loop.
             _cache[fid] = await asyncio.to_thread(_ry_bild, gepackt)
         ergebnis.append({"id": fid, "zeit": _ts(kompakt), "art": "gemessen"})
@@ -177,11 +257,11 @@ async def _rv_frames(client: httpx.AsyncClient) -> list[dict]:
     """Aktuelle RV-Nowcast-Frames (Analyse + Vorhersage) aus dem neuesten Archiv."""
     basis = f"{settings.dwd_radar_base}/composite/rv/"
     listing = (await _hole(client, basis)).decode("latin-1", "replace")
-    stempel = re.findall(r"DE1200_RV(\d{10})\.tar\.bz2", listing)
-    if not stempel:
+    archive = rv_archive(listing)
+    if not archive:
         return []
-    neuest = sorted(set(stempel))[-1]
-    daten = await _hole(client, f"{basis}DE1200_RV{neuest}.tar.bz2")
+    neuest = sorted(archive)[-1]
+    daten = await _hole(client, f"{basis}{archive[neuest]}")
     basiszeit = _ts(neuest)
     stufen = await asyncio.to_thread(_rv_bilder, daten, neuest, set(_cache))
     ergebnis = []
@@ -192,23 +272,25 @@ async def _rv_frames(client: httpx.AsyncClient) -> list[dict]:
     return ergebnis
 
 
-def _ry_bild(gepackt: bytes) -> bytes:
-    return _render(_decode(bz2.decompress(gepackt), 900, 900), _IDX_900)
+def _ry_bild(datei: bytes) -> bytes:
+    roh = datei if datei.startswith(_HDF5) else bz2.decompress(datei)
+    wert = werte(roh)
+    return _render(wert, index_fuer(wert))
 
 
 def _rv_bilder(daten: bytes, neuest: str, vorhanden: set[str]) -> dict[str, tuple[bytes | None, int]]:
     """Alle Vorhersagestufen eines RV-Archivs: je Stufe (Bild oder None, wenn schon vorhanden; Offset)."""
     ergebnis: dict[str, tuple[bytes | None, int]] = {}
-    with tarfile.open(fileobj=io.BytesIO(daten), mode="r:bz2") as tar:
+    with tarfile.open(fileobj=io.BytesIO(daten), mode="r:*") as tar:
         for m in tar.getmembers():
-            treffer = re.search(r"_(\d{3})$", m.name)
+            treffer = RV_STUFE.search(m.name)
             if not treffer:
                 continue
             offset = int(treffer.group(1))
             if offset == 0:
                 continue  # 0 min deckt bereits der gemessene RY-Strang ab
             fid = f"rv-{neuest}-{offset:03d}"
-            png = None if fid in vorhanden else _render(_decode(tar.extractfile(m).read(), 1200, 1100), _IDX_1200)
+            png = None if fid in vorhanden else _render(werte(tar.extractfile(m).read()), _IDX_1200)
             ergebnis[fid] = (png, offset)
     return ergebnis
 
