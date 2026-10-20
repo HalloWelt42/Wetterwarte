@@ -5,7 +5,7 @@
   // unabhaengig. Zentriert auf den Ort dieser Kachel; Aufklappen -> grosse Ansicht.
   import { onMount } from "svelte";
   import maplibregl from "maplibre-gl";
-  import { karteAnlegen, OHNE_WEBGL } from "../kern/webgl";
+  import { karteAnlegen, kartenfehlerMelden, OHNE_WEBGL } from "../kern/webgl";
   import { wetter } from "./wetter.svelte";
   import { orteState } from "../kern/orte.svelte";
   import { gehe } from "./route.svelte";
@@ -113,6 +113,7 @@
       ohneKarte = true;
       return;
     }
+    kartenfehlerMelden(map);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);
     map.on("load", () => {

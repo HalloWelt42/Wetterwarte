@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import { karteAnlegen, OHNE_WEBGL } from "../kern/webgl";
+  import { karteAnlegen, kartenfehlerMelden, OHNE_WEBGL } from "../kern/webgl";
   import { neuLadenAufhalten } from "../kern/fassung.svelte";
   import maplibregl from "maplibre-gl";
   import { wetter } from "./wetter.svelte";
@@ -54,6 +54,7 @@
       ohneKarte = true;
       return;
     }
+    kartenfehlerMelden(map);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     // Pinnnadel am aktiven Ort (Heimat).
     ortMarker = new maplibregl.Marker({ color: "#2f7ce0" }).setLngLat(aktiverOrt()).addTo(map);

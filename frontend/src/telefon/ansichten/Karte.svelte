@@ -6,7 +6,7 @@
   // hier nicht die Seite (nur die Reiterleiste). Beim Verlassen baut sich alles ab: Takte, Abrufe, Karte.
   import { onMount, tick, untrack } from "svelte";
   import type { Map as KartenBibliothek, Marker } from "maplibre-gl";
-  import { karteAnlegen, OHNE_WEBGL } from "../../kern/webgl";
+  import { karteAnlegen, kartenfehlerMelden, OHNE_WEBGL } from "../../kern/webgl";
   import { orteState } from "../../kern/orte.svelte";
   import { neuLadenAufhalten } from "../../kern/fassung.svelte";
   import { uhr } from "../../kern/uhr.svelte";
@@ -94,6 +94,7 @@
       ohneKarte = true;
       return;
     }
+    kartenfehlerMelden(m);
     m.touchZoomRotate.disableRotation();
     map = m;
     const punkt = document.createElement("div");

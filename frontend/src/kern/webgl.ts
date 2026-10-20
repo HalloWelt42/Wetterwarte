@@ -28,3 +28,12 @@ export function karteAnlegen<T>(anlegen: () => T): T | null {
     return null;
   }
 }
+
+/** Fehlermeldungen der Karte: ein abgebrochener Bildabruf (AbortError, etwa wenn die Radarwiedergabe schneller zum
+ *  nächsten Bild springt, als das vorige lädt) ist gewollt und keiner; alle anderen gehen wie bisher in die Konsole. */
+export function kartenfehlerMelden(karte: { on: (art: "error", f: (e: { error?: unknown }) => void) => unknown }): void {
+  karte.on("error", (e) => {
+    if (e.error instanceof Error && e.error.name === "AbortError") return;
+    console.error(e.error ?? e);
+  });
+}
