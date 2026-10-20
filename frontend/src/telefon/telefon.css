@@ -58,7 +58,7 @@
   --oben-luft: 0px; /* Abstand unter Uhr und Kamera-Insel, siehe unten (vom Home-Bildschirm) */
   --kopf-h: 52px;
   --sicher-oben: calc(env(safe-area-inset-top, 0px) + var(--oben-luft));
-  --sicher-unten: env(safe-area-inset-bottom, 0px);
+  --sicher-unten: 0px; /* kein Abstand über dem Home-Balken: die Leiste steht ganz unten (Nutzervorgabe 20.10.2026) */
   --schnell: 0.14s ease;
 
   font-family: "Barlow", system-ui, sans-serif;
