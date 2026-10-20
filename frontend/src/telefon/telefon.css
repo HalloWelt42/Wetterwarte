@@ -55,8 +55,9 @@
   --innen: 10px;
 
   --leiste-h: 56px;
+  --oben-luft: 0px; /* Abstand unter Uhr und Kamera-Insel, siehe unten (vom Home-Bildschirm) */
   --kopf-h: 52px;
-  --sicher-oben: env(safe-area-inset-top, 0px);
+  --sicher-oben: calc(env(safe-area-inset-top, 0px) + var(--oben-luft));
   --sicher-unten: env(safe-area-inset-bottom, 0px);
   --schnell: 0.14s ease;
 
@@ -811,3 +812,9 @@
 /* Karte ohne WebGL (kern/webgl.ts): Hinweis an Stelle der Karte */
 .tel .karte-ohne{ position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; color: var(--text-2); font-size: var(--s15); background: var(--flaeche); }
 .tel .karte-ohne i{ font-size: var(--s26); color: var(--text-3); }
+
+/* Vom Home-Bildschirm (iOS 26): Unmittelbar unter Uhr und Kamera-Insel fängt das System Berührungen für die
+   Mitteilungszentrale ab; Knöpfe dort waren nicht mehr erreichbar. Darum etwas Luft unter dem sicheren Rand. */
+@media (display-mode: standalone) and (pointer: coarse) {
+  .tel { --oben-luft: 14px; }
+}

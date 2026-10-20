@@ -84,8 +84,7 @@
       },
       center: lon !== undefined && lat !== undefined ? [lon, lat] : MITTE_DEUTSCHLAND,
       zoom: ort ? ZOOM : 5,
-      minZoom: 3,
-      maxZoom: 13,
+      minZoom: 3, // nach oben ohne Grenze wie die Desktop-Karte: bis auf Straßen und Häuser
       attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,
