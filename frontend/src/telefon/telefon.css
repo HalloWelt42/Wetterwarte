@@ -813,8 +813,9 @@
 .tel .karte-ohne{ position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; color: var(--text-2); font-size: var(--s15); background: var(--flaeche); }
 .tel .karte-ohne i{ font-size: var(--s26); color: var(--text-3); }
 
-/* Vom Home-Bildschirm (iOS 26): Unmittelbar unter Uhr und Kamera-Insel fängt das System Berührungen für die
-   Mitteilungszentrale ab; Knöpfe dort waren nicht mehr erreichbar. Darum etwas Luft unter dem sicheren Rand. */
+/* Vom Home-Bildschirm (iOS 26/27): Unter Uhr und Kamera-Insel legt das System eine Glasfläche und fängt dort
+   Berührungen ab, gut 1 cm hoch. Knöpfe in dieser Zone sind nicht erreichbar; darum rückt alles um so viel nach
+   unten. Der Wert ist die einzige Stellschraube dafür. */
 @media (display-mode: standalone) and (pointer: coarse) {
-  .tel { --oben-luft: 14px; }
+  .tel { --oben-luft: 64px; }
 }
