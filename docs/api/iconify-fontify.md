@@ -2,7 +2,7 @@
 
 Zwei selbst gehostete Dienste auf dem Pi, die Icons (Iconify) und Webschriften (Fontify) ohne fremdes CDN bereitstellen. Die Wetterwarte bindet darüber alle SVG-Icons und die Schrift Barlow direkt vom eigenen Server ein, damit die App vollständig unabhängig und offline lauffähig bleibt.
 
-Beide Dienste laufen auf demselben Rechner (Pi unter `192.168.178.49`). Aufrufe erfolgen per HTTP GET, es wird kein Schlüssel benötigt. Beide bieten unter `/health` eine Statusabfrage und unter `/docs` bzw. `/openapi.json` eine maschinenlesbare Beschreibung.
+Beide Dienste laufen auf demselben Rechner (Pi, im Beispiel `192.168.1.20`). Aufrufe erfolgen per HTTP GET, es wird kein Schlüssel benötigt. Beide bieten unter `/health` eine Statusabfrage und unter `/docs` bzw. `/openapi.json` eine maschinenlesbare Beschreibung.
 
 ---
 
@@ -13,7 +13,7 @@ Liefert SVG-Icons aus mehreren freien Icon-Sets, entweder als fertige SVG-Datei 
 ## Basis-URL
 
 ```
-http://192.168.178.49:8766
+http://192.168.1.20:8766
 ```
 
 ## Verfügbare Icon-Sets
@@ -40,7 +40,7 @@ Wichtige Antwortfelder je Set: `id`, `name`, `styles` (Liste der verfügbaren St
 `GET /api/sets` - optionaler Parameter `license_category` filtert nach Lizenzart (z. B. `permissive`).
 
 ```bash
-curl "http://192.168.178.49:8766/api/sets?license_category=permissive"
+curl "http://192.168.1.20:8766/api/sets?license_category=permissive"
 ```
 
 ```json
@@ -77,7 +77,7 @@ Parameter:
 Antwort: die rohe SVG-Datei mit `Content-Type: image/svg+xml`.
 
 ```bash
-curl "http://192.168.178.49:8766/api/icons/material-symbols/home/svg?style=rounded"
+curl "http://192.168.1.20:8766/api/icons/material-symbols/home/svg?style=rounded"
 ```
 
 ```xml
@@ -89,10 +89,10 @@ curl "http://192.168.178.49:8766/api/icons/material-symbols/home/svg?style=round
 Der Dienst legt jedes Icon zusätzlich als statische Datei ab und liefert sie direkt aus. Der Pfad spiegelt den Aufbau auf der Platte:
 
 - Sets mit nur einem Stil (`default`): `GET /icons/{set_id}/{icon_name}.svg`
-  - Beispiel: `http://192.168.178.49:8766/icons/mdi/home.svg`
+  - Beispiel: `http://192.168.1.20:8766/icons/mdi/home.svg`
 - Sets mit mehreren Stilen oder Kategorien: `GET /icons/{set_id}/{style}/{icon_name}.svg`
-  - Beispiel: `http://192.168.178.49:8766/icons/material-symbols/rounded/home.svg`
-  - Beispiel: `http://192.168.178.49:8766/icons/fontawesome/solid/house.svg`
+  - Beispiel: `http://192.168.1.20:8766/icons/material-symbols/rounded/home.svg`
+  - Beispiel: `http://192.168.1.20:8766/icons/fontawesome/solid/house.svg`
 
 Achtung: Beim direkten Pfad muss der Stil-Ordner exakt stimmen, sonst kommt `404`. Ein Aufruf ohne Stil-Segment (`/icons/material-symbols/home.svg`) schlägt bei Mehr-Stil-Sets fehl. Den genau passenden Pfad liefert die Suche im Feld `path` (siehe unten) - dort allerdings ohne die Endung `.svg`, die man beim direkten Abruf anhängen muss.
 
@@ -112,7 +112,7 @@ Parameter:
 - `size` (Query, optional) - Kantenlänge in Pixel, Standard `24`
 
 ```bash
-curl "http://192.168.178.49:8766/api/icons/mdi/home/code?color=%23ff0000&size=32"
+curl "http://192.168.1.20:8766/api/icons/mdi/home/code?color=%23ff0000&size=32"
 ```
 
 ```json
@@ -144,7 +144,7 @@ Parameter:
 - `per_page` (Query, optional) - Treffer je Seite, Standard `120`, Minimum `10`
 
 ```bash
-curl "http://192.168.178.49:8766/api/icons/search?q=cloud&scope=all&per_page=10&page=1"
+curl "http://192.168.1.20:8766/api/icons/search?q=cloud&scope=all&per_page=10&page=1"
 ```
 
 ```json
@@ -201,7 +201,7 @@ Verwaltet lokale Webschriften und liefert daraus fertiges `@font-face`-CSS sowie
 ## Basis-URL
 
 ```
-http://192.168.178.49:8765
+http://192.168.1.20:8765
 ```
 
 ## Fertiges CSS für eine Schrift
@@ -218,7 +218,7 @@ Parameter:
 Antwort: `Content-Type: text/css`.
 
 ```bash
-curl "http://192.168.178.49:8765/api/fonts/Barlow/css"
+curl "http://192.168.1.20:8765/api/fonts/Barlow/css"
 ```
 
 ```css
@@ -243,11 +243,11 @@ Ohne `base_url` enthält das CSS relative Pfade der Form `/fonts/{Ordner}/web/..
 
 Wird `base_url` gesetzt, ersetzt der Wert das Präfix vollständig. Der Dienst hängt dahinter direkt `/{Ordner}/web/...` an - also ohne das Segment `/fonts`. Damit die Adressen gültig bleiben, muss `base_url` das `/fonts` selbst enthalten:
 
-- Richtig: `base_url=http://192.168.178.49:8765/fonts` ergibt `http://192.168.178.49:8765/fonts/Barlow/web/...` (funktioniert)
-- Falsch: `base_url=http://192.168.178.49:8765` ergibt `http://192.168.178.49:8765/Barlow/web/...` (liefert `404`, weil das `/fonts`-Segment fehlt)
+- Richtig: `base_url=http://192.168.1.20:8765/fonts` ergibt `http://192.168.1.20:8765/fonts/Barlow/web/...` (funktioniert)
+- Falsch: `base_url=http://192.168.1.20:8765` ergibt `http://192.168.1.20:8765/Barlow/web/...` (liefert `404`, weil das `/fonts`-Segment fehlt)
 
 ```bash
-curl "http://192.168.178.49:8765/api/fonts/Barlow/css?base_url=http://192.168.178.49:8765/fonts"
+curl "http://192.168.1.20:8765/api/fonts/Barlow/css?base_url=http://192.168.1.20:8765/fonts"
 ```
 
 ## Schriftdateien direkt laden
@@ -261,7 +261,7 @@ GET /fonts/{Ordner}/web/{Dateiname}
 Beispiel:
 
 ```bash
-curl -o barlow-400.woff2 "http://192.168.178.49:8765/fonts/Barlow/web/barlow-latin-400-normal.woff2"
+curl -o barlow-400.woff2 "http://192.168.1.20:8765/fonts/Barlow/web/barlow-latin-400-normal.woff2"
 ```
 
 Die Dateinamen folgen dem Muster `{schrift}-{subset}-{gewicht}-{stil}.{format}`, z. B. `barlow-latin-400-normal.woff2` (Subset `latin`, Gewicht 400, Stil normal). Verfügbare Subsets bei Barlow sind unter anderem `latin`, `latin-ext` und `vietnamese`. Diese Pfade müssen nicht selbst zusammengesetzt werden - das CSS aus dem vorigen Endpunkt referenziert sie bereits korrekt, und die Detailabfrage (siehe unten) listet jede Datei mit fertigem `path` auf.
@@ -275,7 +275,7 @@ Die Dateinamen folgen dem Muster `{schrift}-{subset}-{gewicht}-{stil}.{format}`,
 Parameter (alle optional): `page`, `per_page` (Minimum 5), `sort`, `order`, `filter`, `letter` (Anfangsbuchstabe), `search`.
 
 ```bash
-curl "http://192.168.178.49:8765/api/fonts?page=1&per_page=20&sort=name&order=asc"
+curl "http://192.168.1.20:8765/api/fonts?page=1&per_page=20&sort=name&order=asc"
 ```
 
 ```json
@@ -304,7 +304,7 @@ Alle Schriften ohne Blättern liefert `GET /api/fonts/all`.
 `GET /api/fonts/{font_name}` - liefert die vollständige Beschreibung inklusive jeder einzelnen Datei mit fertigem Pfad.
 
 ```bash
-curl "http://192.168.178.49:8765/api/fonts/Barlow"
+curl "http://192.168.1.20:8765/api/fonts/Barlow"
 ```
 
 ```json
@@ -337,7 +337,7 @@ Jede Datei in `web.files` trägt die Felder `name`, `format`, `weight`, `style`,
 - `GET /api/fonts/search/online?q=...&limit=...` - schlägt herunterladbare Schriften aus Online-Quellen vor (`q` Pflicht, `limit` optional). Antwort: `{ "query", "results": [ { "family", "category", "variants" } ], "count" }`.
 
 ```bash
-curl "http://192.168.178.49:8765/api/fonts/search/online?q=roboto&limit=2"
+curl "http://192.168.1.20:8765/api/fonts/search/online?q=roboto&limit=2"
 ```
 
 ```json
@@ -375,7 +375,7 @@ Für das reine Einbinden vorhandener Schriften nicht nötig, aber zur Vollständ
 # Hinweise zur Nutzung in der Wetterwarte
 
 - Icons und Schriften immer vom eigenen Pi laden, nie von einem fremden CDN. Beide Dienste sind genau dafür da und halten die Wetterwarte unabhängig und offline lauffähig.
-- Schrift Barlow einbinden: entweder das fertige CSS von `GET /api/fonts/Barlow/css` einbetten oder - für maximale Unabhängigkeit - die benötigten `woff2`-Dateien einmalig herunterladen und lokal im Projekt ausliefern, mit einem eigenen `@font-face`-Block. Wird das CSS aus einem anderen Ursprung geladen, `base_url=http://192.168.178.49:8765/fonts` mitgeben (das `/fonts`-Segment nicht vergessen).
+- Schrift Barlow einbinden: entweder das fertige CSS von `GET /api/fonts/Barlow/css` einbetten oder - für maximale Unabhängigkeit - die benötigten `woff2`-Dateien einmalig herunterladen und lokal im Projekt ausliefern, mit einem eigenen `@font-face`-Block. Wird das CSS aus einem anderen Ursprung geladen, `base_url=http://192.168.1.20:8765/fonts` mitgeben (das `/fonts`-Segment nicht vergessen).
 - Nur die tatsächlich genutzten Schnitte laden. Barlow bietet aktuell 100 bis 400; für die Kacheln reichen in der Regel 400 (normal) und, sofern vorhanden, ein kräftigeres Gewicht für Überschriften.
 - Icons per API-Endpunkt `GET /api/icons/{set_id}/{icon_name}/svg?style=...` holen, weil er den Stil zuverlässig auflöst. Wenn ein Icon inline eingefärbt werden soll, das SVG einbetten und die Farbe per CSS (`color`/`fill`) an das Kachel-Design binden.
 - Für Wetter-Symbole (Sonne, Wolke, Regen, Wind usw.) zuerst über `GET /api/icons/search?scope=all` nach dem passenden Namen suchen und dabei ein Set mit einheitlichem Stil wählen (z. B. durchgängig `material-symbols` im Stil `rounded`), damit alle Kacheln optisch zusammenpassen.

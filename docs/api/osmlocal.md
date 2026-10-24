@@ -6,10 +6,10 @@ OSMLocal liefert Vektorkacheln, Kartenstile, Schriften, Symbole und eine Ortssuc
 
 ## Basis-URL
 
-- API (Backend): `http://192.168.178.49:8120/api/v1`
-- Weboberfläche (Frontend): `http://192.168.178.49:8121`
-- Gesundheitscheck: `http://192.168.178.49:8120/health`
-- Maschinenlesbare Schnittstellenbeschreibung: `http://192.168.178.49:8120/openapi.json`
+- API (Backend): `http://192.168.1.20:8120/api/v1`
+- Weboberfläche (Frontend): `http://192.168.1.20:8121`
+- Gesundheitscheck: `http://192.168.1.20:8120/health`
+- Maschinenlesbare Schnittstellenbeschreibung: `http://192.168.1.20:8120/openapi.json`
 
 Alle im Folgenden gezeigten Pfade hängen an der API-Basis-URL. Der Server antwortet mit JSON, mit binären Kacheln (Protobuf) oder mit Bildern (PNG), je nach Endpunkt.
 
@@ -50,7 +50,7 @@ Wichtige Antwortfelder:
 Beispiel-Aufruf:
 
 ```bash
-curl "http://192.168.178.49:8120/api/v1/style/colorful.json"
+curl "http://192.168.1.20:8120/api/v1/style/colorful.json"
 ```
 
 Beispiel-Antwort (gekürzt):
@@ -60,12 +60,12 @@ Beispiel-Antwort (gekürzt):
   "version": 8,
   "name": "versatiles-colorful",
   "metadata": { "license": "https://creativecommons.org/publicdomain/zero/1.0/" },
-  "glyphs": "http://192.168.178.49:8120/api/v1/glyphs/{fontstack}/{range}.pbf",
-  "sprite": [ { "id": "basics", "url": "http://192.168.178.49:8120/api/v1/sprites/sprites" } ],
+  "glyphs": "http://192.168.1.20:8120/api/v1/glyphs/{fontstack}/{range}.pbf",
+  "sprite": [ { "id": "basics", "url": "http://192.168.1.20:8120/api/v1/sprites/sprites" } ],
   "sources": {
     "versatiles-shortbread": {
       "type": "vector",
-      "tiles": ["http://192.168.178.49:8120/api/v1/tiles/germany/{z}/{x}/{y}.pbf?v=1785120002"],
+      "tiles": ["http://192.168.1.20:8120/api/v1/tiles/germany/{z}/{x}/{y}.pbf?v=1785120002"],
       "attribution": "(c) OpenStreetMap contributors",
       "minzoom": 0,
       "maxzoom": 14
@@ -92,7 +92,7 @@ Wichtige Antwortfelder je Eintrag:
 Beispiel-Aufruf:
 
 ```bash
-curl "http://192.168.178.49:8120/api/v1/styles"
+curl "http://192.168.1.20:8120/api/v1/styles"
 ```
 
 Beispiel-Antwort:
@@ -128,7 +128,7 @@ Beispiel-Aufruf:
 
 ```bash
 curl -D - -o kachel.pbf \
-  "http://192.168.178.49:8120/api/v1/tiles/germany/6/33/21.pbf"
+  "http://192.168.1.20:8120/api/v1/tiles/germany/6/33/21.pbf"
 ```
 
 Beispiel-Antwort (nur Kopfzeilen, der Rumpf ist Binärdaten):
@@ -165,7 +165,7 @@ Wichtige Antwortfelder:
 Beispiel-Aufruf:
 
 ```bash
-curl "http://192.168.178.49:8120/api/v1/tilejson/germany.json"
+curl "http://192.168.1.20:8120/api/v1/tilejson/germany.json"
 ```
 
 Beispiel-Antwort (gekürzt):
@@ -206,7 +206,7 @@ Beispiel-Aufruf:
 
 ```bash
 curl -o kachel.png \
-  "http://192.168.178.49:8120/api/v1/raster/colorful/6/33/21.png"
+  "http://192.168.1.20:8120/api/v1/raster/colorful/6/33/21.png"
 ```
 
 Beispiel-Antwort (nur Kopfzeilen, der Rumpf ist ein PNG-Bild):
@@ -237,7 +237,7 @@ Beispiel-Aufruf:
 
 ```bash
 curl -D - -o glyphs.pbf \
-  "http://192.168.178.49:8120/api/v1/glyphs/noto_sans_regular/0-255.pbf"
+  "http://192.168.1.20:8120/api/v1/glyphs/noto_sans_regular/0-255.pbf"
 ```
 
 Beispiel-Antwort (nur Kopfzeilen, der Rumpf ist Binärdaten):
@@ -273,7 +273,7 @@ Wichtige Antwortfelder (in `sprites.json`) je Symbol:
 Beispiel-Aufruf:
 
 ```bash
-curl "http://192.168.178.49:8120/api/v1/sprites/sprites.json"
+curl "http://192.168.1.20:8120/api/v1/sprites/sprites.json"
 ```
 
 Beispiel-Antwort (gekürzt):
@@ -314,7 +314,7 @@ Wichtige Antwortfelder:
 Beispiel-Aufruf:
 
 ```bash
-curl "http://192.168.178.49:8120/api/v1/suche?q=Buxtehude&limit=3"
+curl "http://192.168.1.20:8120/api/v1/suche?q=Buxtehude&limit=3"
 ```
 
 Beispiel-Antwort (gekürzt):
@@ -350,7 +350,7 @@ Antwort: eine Liste von Treffern (gleiche Felder wie bei der Vorwärtssuche: `na
 Beispiel-Aufruf:
 
 ```bash
-curl "http://192.168.178.49:8120/api/v1/suche/umkehr?lat=52.52&lng=13.405"
+curl "http://192.168.1.20:8120/api/v1/suche/umkehr?lat=52.52&lng=13.405"
 ```
 
 Beispiel-Antwort:
@@ -384,7 +384,7 @@ Für Status und Frische stehen zusätzliche Lese-Endpunkte bereit:
 Beispiel:
 
 ```bash
-curl "http://192.168.178.49:8120/api/v1/daten/status"
+curl "http://192.168.1.20:8120/api/v1/daten/status"
 ```
 
 ```json
@@ -393,11 +393,11 @@ curl "http://192.168.178.49:8120/api/v1/daten/status"
 
 ### Aktualisierung
 
-Die OSM-Daten und die daraus erzeugten Kacheln werden über die Weboberfläche (`http://192.168.178.49:8121`) gepflegt und periodisch neu erzeugt (der letzte Build dauerte etwa 50 Minuten). Bei einem neuen Build ändert sich die Kachelversion; der Stil hängt diese als `?v=...` an die Kachel-URL an, sodass Clients automatisch frische Kacheln laden, obwohl die Antworten selbst als `immutable` zwischengespeichert werden dürfen. Wer immer den aktuellen Stand braucht, lädt den Stil (Abschnitt 1) neu, weil dort die jeweils gültige Kachelversion eingebettet ist.
+Die OSM-Daten und die daraus erzeugten Kacheln werden über die Weboberfläche (`http://192.168.1.20:8121`) gepflegt und periodisch neu erzeugt (der letzte Build dauerte etwa 50 Minuten). Bei einem neuen Build ändert sich die Kachelversion; der Stil hängt diese als `?v=...` an die Kachel-URL an, sodass Clients automatisch frische Kacheln laden, obwohl die Antworten selbst als `immutable` zwischengespeichert werden dürfen. Wer immer den aktuellen Stand braucht, lädt den Stil (Abschnitt 1) neu, weil dort die jeweils gültige Kachelversion eingebettet ist.
 
 ## Hinweise zur Nutzung in der Wetterwarte
 
-- Basiskarte mit MapLibre: die Karte wird mit einer einzigen Stil-URL initialisiert, zum Beispiel `style: "http://192.168.178.49:8120/api/v1/style/colorful.json"`. Schriften, Symbole und Kacheln lädt MapLibre dann selbstständig, weil im Stil bereits absolute URLs zum Pi stehen.
+- Basiskarte mit MapLibre: die Karte wird mit einer einzigen Stil-URL initialisiert, zum Beispiel `style: "http://192.168.1.20:8120/api/v1/style/colorful.json"`. Schriften, Symbole und Kacheln lädt MapLibre dann selbstständig, weil im Stil bereits absolute URLs zum Pi stehen.
 - Hell und Dunkel: für einen Themenwechsel den Stil zwischen `colorful` (hell) und `eclipse` (dunkel) umschalten. Die Liste dafür liefert `/api/v1/styles`.
 - Sinnvolle Kartengrenzen setzen: `maxZoom` auf 14 begrenzen und die Ansicht per `maxBounds` auf Deutschland beschränken, damit keine leeren Bereiche entstehen (Bounding-Box siehe TileJSON, Abschnitt 4).
 - Ortssuche: die Standortauswahl der Wetterwarte kann `/api/v1/suche` für die Eingabe nutzen und `nahe=lng,lat` mit dem aktuellen Kartenmittelpunkt füttern, damit nahe Treffer oben stehen.

@@ -42,7 +42,7 @@ unveraendert - nur die Herkunft der Daten wechselt.
 Hinweise:
 - Host-Entscheidung: in der Entwicklung auf dem Mac (localhost, vom Backend
   erreichbar), im Betrieb auf dem Pi. Datenverzeichnis auf dem Pi auf die externe
-  SSD `/mnt/data` legen.
+  SSD legen.
 - Speicher/Bandbreite: ein Basis-Setup (DWD-ICON) belegt einige GB; die
   Sync-Dienste laden regelmaessig nach. Mit kleinem `--past-days` bleibt das Volume klein.
 - ARM64 (Mac/Pi): liegt kein passendes Image-Manifest vor, das Image lokal bauen:

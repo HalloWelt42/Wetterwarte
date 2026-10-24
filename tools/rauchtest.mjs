@@ -3,7 +3,7 @@
 // Entwicklerwerkzeuge (etwa Eingabefelder ohne id und name) und jede Anfrage mit Status ab 400 oder ohne Antwort. Nur lesend und stumm (Ansagen bleiben aus, keine Mitteilungen).
 //
 //   node tools/rauchtest.mjs --app http://localhost:6181        Probelauf des Produktionsaufbaus vor dem Ausrollen
-//   node tools/rauchtest.mjs --app http://192.168.178.49:8061   Betrieb nach dem Ausrollen
+//   node tools/rauchtest.mjs --app http://<server>:8061         Betrieb nach dem Ausrollen (./wetter rauchtest)
 //
 // Jede Ansicht bekommt einen eigenen Chrome (kopflos, Software-WebGL): ein zweites Laden sperrt dort WebGL, dann
 // meldete die Karte einen Fehler, der keiner der App ist. Ausgang 1, sobald es einen Befund gibt.

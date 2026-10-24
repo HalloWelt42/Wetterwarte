@@ -1,5 +1,7 @@
 # Liefert die gebaute SPA aus und leitet API- und Karten-Anfragen weiter
 # (same-origin, kein CORS noetig - identisch zum Vite-Proxy in der Entwicklung).
+# Vorlage: nginx setzt beim Start OSMLOCAL_KARTEN und LIGHTNING_BASE aus der Umgebung ein (docker-compose.prod.yml);
+# eigene Variablen von nginx wie $host bleiben, weil es keine gleichnamigen Umgebungsvariablen gibt.
 server {
     listen 80;
     server_name _;
@@ -18,7 +20,7 @@ server {
     # Kartenkacheln an den lokalen osmlocal-Dienst (/karte -> /api/v1).
     location ^~ /karte/ {
         rewrite ^/karte/(.*)$ /api/v1/$1 break;
-        proxy_pass http://192.168.178.49:8121;
+        proxy_pass ${OSMLOCAL_KARTEN};
         proxy_set_header Host $host;
     }
 
@@ -32,13 +34,13 @@ server {
 
     # Live-Blitze (bbox-Abfrage) vom lightningmap-Dienst (/blitze -> /api/strikes).
     location = /blitze {
-        proxy_pass http://192.168.178.49:8100/api/strikes;
+        proxy_pass ${LIGHTNING_BASE}/api/strikes;
         proxy_set_header Host $host;
     }
 
     # Live-Blitz-WebSocket fuer die Wellen-Simulation (/ws-blitze -> /ws).
     location = /ws-blitze {
-        proxy_pass http://192.168.178.49:8100/ws;
+        proxy_pass ${LIGHTNING_BASE}/ws;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";

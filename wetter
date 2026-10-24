@@ -11,9 +11,17 @@ load_env() { set -a; . ./.env 2>/dev/null || true; set +a; }
 # Produktion: ein Compose steuert alles (Backend, Frontend, DB, Redis).
 PROD="docker compose -f docker-compose.prod.yml --env-file .env.prod"
 
-# Ziel-Server fuer den Deploy vom Entwicklungsrechner (per SSH/rsync).
-PI_HOST="${PI_HOST:-pi@192.168.178.49}"
-PI_PFAD="${PI_PFAD:-/home/pi/wetterwarte}"
+# Ziel auf dem Server fuer Deploy, Zertifikat und Rauchtest vom Entwicklungsrechner: aus der privaten Wahrheit des
+# Hauses (handbuch ziel wetterwarte). PI_HOST, PI_PFAD, ZERT_NAMEN und WETTERWARTE_ADRESSE aus der Umgebung gehen vor.
+ziel_wert() {
+  if [ -n "${2:-}" ]; then printf '%s' "$2"; return 0; fi
+  command -v handbuch >/dev/null 2>&1 || { echo "Ziel fehlt: $1 (Werkzeug handbuch oder Umgebung)" >&2; return 1; }
+  handbuch ziel wetterwarte "$1" || { echo "Ziel fehlt: handbuch ziel wetterwarte $1" >&2; return 1; }
+}
+ziel_laden() {
+  PI_HOST="$(ziel_wert rechner "${PI_HOST:-}")" || exit 1
+  PI_PFAD="$(ziel_wert wurzel "${PI_PFAD:-}")" || exit 1
+}
 ensure_prod_env() {
   [ -f .env.prod ] && return 0
   echo "Es fehlt .env.prod. Aus der Vorlage anlegen:  cp .env.prod.example .env.prod"
@@ -53,6 +61,7 @@ case "${1:-}" in
     ensure_prod_env; shift; $PROD logs -f "$@" ;;
   deploy)
     # Vom Entwicklungsrechner: Quellcode zum Server syncen und dort neu bauen/starten.
+    ziel_laden
     echo "Sync -> $PI_HOST:$PI_PFAD"
     rsync -az --delete \
       --exclude '.git' --exclude 'node_modules' --exclude '.venv' --exclude 'dist' \
@@ -64,7 +73,8 @@ case "${1:-}" in
   zertifikat)
     # Blattzertifikat der Hausstelle (mkcert auf diesem Mac) für die sichere Adresse ausstellen und nach
     # $PI_PFAD/zertifikate legen; danach ./wetter deploy (Dienst vorne). Namen über ZERT_NAMEN änderbar.
-    NAMEN="${ZERT_NAMEN:-192.168.178.49 raspberrypi-3.fritz.box raspberrypi-3 wetterwarte.fritz.box wetterwarte.local}"
+    ziel_laden
+    NAMEN="$(ziel_wert namen "${ZERT_NAMEN:-}")" || exit 1
     command -v mkcert >/dev/null || { echo "mkcert fehlt auf diesem Rechner"; exit 1; }
     ARBEIT="$(mktemp -d)"
     trap 'rm -rf "$ARBEIT"' EXIT
@@ -77,8 +87,10 @@ case "${1:-}" in
       && echo "Zertifikat auf $PI_HOST:$PI_PFAD/zertifikate, $(openssl x509 -in "$ARBEIT/wetterwarte.pem" -noout -enddate)" ;;
   rauchtest)
     # Alle Ansichten im echten Aufbau öffnen, Konsolenfehler und gescheiterte Anfragen sammeln (tools/rauchtest.mjs).
-    # Ohne Adresse: der Betrieb auf dem Pi (nur lesend).
-    node tools/rauchtest.mjs --app "${2:-http://192.168.178.49:8061}" ;;
+    # Ohne Adresse: der Betrieb auf dem Pi (nur lesend), Adresse aus der privaten Wahrheit.
+    ADRESSE="${2:-}"
+    [ -n "$ADRESSE" ] || ADRESSE="$(ziel_wert adresse "${WETTERWARTE_ADRESSE:-}")" || exit 1
+    node tools/rauchtest.mjs --app "$ADRESSE" ;;
   mockup)
     ./start-mockups.sh "${2:-start}" ;;
   *)

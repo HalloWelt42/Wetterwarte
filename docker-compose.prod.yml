@@ -1,6 +1,7 @@
 # Produktions-Setup: alles als Container, ein Compose steuert die ganze App.
 # Nur das Frontend ist nach aussen offen; Backend/DB/Redis bleiben im internen
-# Netz. Daten liegen als Bind-Mount unter ${DATA_DIR} (auf dem Pi: /mnt/data).
+# Netz. Daten liegen als Bind-Mount unter ${DATA_DIR} (auf dem Server: die externe SSD). Adressen des Hauses
+# (HAUPTADRESSE, LIGHTNING_BASE, OSMLOCAL_BASE, OSMLOCAL_KARTEN) stehen nur in .env.prod, Vorlage .env.prod.example.
 # Gebaut wird aus dem Projektwurzelverzeichnis, damit version.json (einzige Quelle der Fassung) in beide Abbilder
 # kommt; was in den Baukontext darf, steht in .dockerignore.
 name: wetterwarte-prod
@@ -35,10 +36,11 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-wetterwarte}:${POSTGRES_PASSWORD:-wetterwarte}@postgres:5432/${POSTGRES_DB:-wetterwarte}
       REDIS_URL: redis://redis:6379/0
-      LIGHTNING_BASE: ${LIGHTNING_BASE:-http://192.168.178.49:8100}
+      LIGHTNING_BASE: ${LIGHTNING_BASE:?LIGHTNING_BASE fehlt in .env.prod (Blitz-Dienst)}
+      OSMLOCAL_BASE: ${OSMLOCAL_BASE:?OSMLOCAL_BASE fehlt in .env.prod (Schnittstelle des Kartendienstes)}
       KACHEL_CACHE_DIR: /cache
       # Die Oberfläche verweist ohne HTTPS dorthin (nur dort gibt es Mitteilungen aufs Telefon).
-      SICHERE_ADRESSE: https://${HAUPTADRESSE:-192.168.178.49}:${HTTPS_PORT:-8062}
+      SICHERE_ADRESSE: https://${HAUPTADRESSE:?HAUPTADRESSE fehlt in .env.prod (Adresse des Servers)}:${HTTPS_PORT:-8062}
     volumes:
       # Offline-Kachel-Cache auf der externen SSD (kann mehrere GB werden).
       - ${DATA_DIR:-./data}/kachelcache:/cache
@@ -56,6 +58,10 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+    environment:
+      # nginx setzt sie beim Start in seine Vorlage ein (frontend/nginx.conf.template)
+      LIGHTNING_BASE: ${LIGHTNING_BASE:?}
+      OSMLOCAL_KARTEN: ${OSMLOCAL_KARTEN:?OSMLOCAL_KARTEN fehlt in .env.prod (Kacheln des Kartendienstes)}
     ports:
       - "${WEB_PORT:-8060}:80"
     depends_on:
@@ -73,7 +79,7 @@ services:
     ports:
       - "${HTTPS_PORT:-8062}:443"
     environment:
-      WETTERWARTE_HAUPTADRESSE: ${HAUPTADRESSE:-192.168.178.49}
+      WETTERWARTE_HAUPTADRESSE: ${HAUPTADRESSE:?}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./zertifikate:/zertifikate:ro

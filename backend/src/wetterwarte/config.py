@@ -46,17 +46,17 @@ class Settings(BaseSettings):
     geocoding_base: str = "https://geocoding-api.open-meteo.com/v1"
     # DWD-Warnungen vorerst ueber Bright Sky (DWD-Aufbereitung); spaeter eigener Ingester.
     bright_sky_base: str = "https://api.brightsky.dev"
-    # Live-Blitze + Welt-Kacheln vom lokal gehosteten lightningmap-Dienst.
-    lightning_base: str = "http://192.168.178.49:8100"
-    # Eigener OSM-Vektor-/Raster-Renderdienst (Deutschland) - Backend-API.
-    osmlocal_base: str = "http://192.168.178.49:8120"
+    # Live-Blitze + Welt-Kacheln vom lokal gehosteten lightningmap-Dienst (LIGHTNING_BASE in der .env).
+    lightning_base: str = "http://localhost:8100"
+    # Eigener OSM-Vektor-/Raster-Renderdienst (Deutschland) - Backend-API (OSMLOCAL_BASE in der .env).
+    osmlocal_base: str = "http://localhost:8120"
     # DWD OpenData: RADOLAN-Radar. RY = gemessene Regenrate (5 min, mm/h, 900x900);
     # RV = RADVOR-Nowcast (Analyse + bis +2 h, mm/h, DE1200). Selbst geholt und gerendert.
     dwd_radar_base: str = "https://opendata.dwd.de/weather/radar"
     # DWD GeoServer (WFS): amtliche Warn-Polygone (zusammengefasst) fuer das Karten-Overlay.
     dwd_warn_wfs: str = "https://maps.dwd.de/geoserver/dwd/ows"
     # Verzeichnis fuer den Offline-Kachel-Cache (themengetrennt je Anbieter). Dev: fest
-    # im Backend-Ordner; Prod: Bind-Mount auf die externe SSD (/cache -> /mnt/data/...).
+    # im Backend-Ordner; Prod: Bind-Mount auf die externe SSD (/cache -> ${DATA_DIR}/kachelcache).
     kachel_cache_dir: str = str(_BACKEND / ".kachelcache")
     # Kontakt im VAPID-Anspruch (sub) für Web Push: mailto:name@host oder https://host ohne Pfad (so prüft es
     # py_vapid); die Push-Dienste verlangen eine Angabe, nutzen sie aber nur für Rückfragen.

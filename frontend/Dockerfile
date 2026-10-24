@@ -13,6 +13,7 @@ COPY gemeinsam /app/gemeinsam
 RUN npm run build
 
 FROM nginx:alpine
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+# Vorlage: der Start von nginx setzt die Adressen aus der Umgebung ein und legt sie als conf.d/default.conf ab
+COPY frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
 EXPOSE 80

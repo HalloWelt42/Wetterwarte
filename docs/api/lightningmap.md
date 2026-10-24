@@ -5,7 +5,7 @@ Der lightningmap-Dienst läuft lokal auf dem Pi und liefert weltweite Blitzeinsc
 ## Basis-URL
 
 ```
-http://192.168.178.49:8100
+http://192.168.1.20:8100
 ```
 
 Alle Datenendpunkte liegen unter dem Präfix `/api`. Der Dienst ist nur im lokalen Netz erreichbar, benötigt keine Authentifizierung und antwortet mit JSON (Ausnahme: der Kachel-Proxy liefert PNG-Bilder).
@@ -61,7 +61,7 @@ Fehlt eine der vier Box-Grenzen, antwortet der Dienst mit HTTP 422 und einer Fel
 **Beispiel-Aufruf**
 
 ```bash
-curl "http://192.168.178.49:8100/api/strikes?north=55&south=47&east=15&west=5&since=1&limit=500"
+curl "http://192.168.1.20:8100/api/strikes?north=55&south=47&east=15&west=5&since=1&limit=500"
 ```
 
 **Beispiel-Antwort (gekürzt)**
@@ -105,7 +105,7 @@ Ein Zeitfenster (`since`) gibt es hier nicht, da der ganze Tag betrachtet wird. 
 **Beispiel-Aufruf**
 
 ```bash
-curl "http://192.168.178.49:8100/api/strikes/history?date=2026-07-29&north=55&south=47&east=15&west=5&limit=500"
+curl "http://192.168.1.20:8100/api/strikes/history?date=2026-07-29&north=55&south=47&east=15&west=5&limit=500"
 ```
 
 **Beispiel-Antwort (gekürzt)**
@@ -129,7 +129,7 @@ Liefert die Liste aller Tage, für die Archivdaten vorliegen. Ohne Parameter. Pr
 **Beispiel-Aufruf**
 
 ```bash
-curl "http://192.168.178.49:8100/api/strikes/dates"
+curl "http://192.168.1.20:8100/api/strikes/dates"
 ```
 
 **Beispiel-Antwort (gekürzt)**
@@ -158,7 +158,7 @@ Liefert Kennzahlen zu Speicher, MQTT-Verbindung und aktiven WebSocket-Clients. O
 **Beispiel-Aufruf**
 
 ```bash
-curl "http://192.168.178.49:8100/api/stats"
+curl "http://192.168.1.20:8100/api/stats"
 ```
 
 **Beispiel-Antwort (gekürzt)**
@@ -186,7 +186,7 @@ Liefert die statischen Eckdaten der MQTT-Quelle. Ohne Parameter.
 **Beispiel-Aufruf**
 
 ```bash
-curl "http://192.168.178.49:8100/api/source"
+curl "http://192.168.1.20:8100/api/source"
 ```
 
 **Beispiel-Antwort**
@@ -203,7 +203,7 @@ curl "http://192.168.178.49:8100/api/source"
 
 ### WebSocket /ws - Live-Broadcast
 
-Für Anzeigen, die neue Blitze sofort erhalten sollen, gibt es einen WebSocket unter `ws://192.168.178.49:8100/ws`. Der Server sendet unmittelbar nach dem Verbindungsaufbau eine Begrüßungsnachricht und danach fortlaufend neu eintreffende Blitze an alle verbundenen Clients. Anders als die HTTP-Endpunkte filtert der Broadcast nicht nach Ausschnitt; die Auswahl des relevanten Bereichs übernimmt der Client.
+Für Anzeigen, die neue Blitze sofort erhalten sollen, gibt es einen WebSocket unter `ws://192.168.1.20:8100/ws`. Der Server sendet unmittelbar nach dem Verbindungsaufbau eine Begrüßungsnachricht und danach fortlaufend neu eintreffende Blitze an alle verbundenen Clients. Anders als die HTTP-Endpunkte filtert der Broadcast nicht nach Ausschnitt; die Auswahl des relevanten Bereichs übernimmt der Client.
 
 **Begrüßungsnachricht (direkt nach Verbindung)**
 
@@ -246,7 +246,7 @@ Bei Erfolg HTTP 200 mit `Content-Type: image/png`. Der Header `X-Tile-Cache` zei
 **Beispiel-Aufruf**
 
 ```bash
-curl -o kachel.png "http://192.168.178.49:8100/api/tile/voyager/3/4/2"
+curl -o kachel.png "http://192.168.1.20:8100/api/tile/voyager/3/4/2"
 ```
 
 **Beispiel-Antwort (Header-Auszug)**
@@ -266,7 +266,7 @@ Liefert je Stil die Anzahl und Größe der gespeicherten Kacheln sowie eine glob
 **Beispiel-Aufruf**
 
 ```bash
-curl "http://192.168.178.49:8100/api/tile/_status"
+curl "http://192.168.1.20:8100/api/tile/_status"
 ```
 
 **Beispiel-Antwort (gekürzt)**
@@ -291,7 +291,7 @@ curl "http://192.168.178.49:8100/api/tile/_status"
 
 ## Nutzung in der Wetterwarte
 
-Die Blitz-Kachel der Wetterwarte spricht diesen Dienst über den Client `backend/src/wetterwarte/providers/blitze.py` an. Die Basis-URL steht in `config.py` als `lightning_base` (Standard `http://192.168.178.49:8100`).
+Die Blitz-Kachel der Wetterwarte spricht diesen Dienst über den Client `backend/src/wetterwarte/providers/blitze.py` an. Die Basis-URL steht in `config.py` als `lightning_base` und kommt aus `LIGHTNING_BASE` in der `.env` (ohne Angabe `http://localhost:8100`).
 
 - **Abfrage**: Die Kachel ruft `GET /api/strikes` mit einer Box rund um den gewählten Ort auf (etwa plus/minus 1.3 Grad Breite und plus/minus 2.08 Grad Länge) und `limit=500`.
 - **Auswertung**: Aus der Antwort zählt sie die Blitze der letzten Stunde (`anzahl`) und bildet für die drei jüngsten Einschläge je einen Eintrag mit Alter (`vor X Min`), Entfernung in Kilometern (Haversine) und Himmelsrichtung.

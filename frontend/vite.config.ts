@@ -77,11 +77,12 @@ export default defineConfig(({ mode }) => {
       port: frontendPort,
       strictPort: true,
       // same-origin: /api ans Backend, /karte an den lokalen Kartenserver (osmlocal).
-      // So werden Karten-Kacheln same-origin geladen (kein CORS noetig).
+      // So werden Karten-Kacheln same-origin geladen (kein CORS noetig). Adressen von Kartendienst und
+      // Blitz-Dienst wie im Betrieb aus OSMLOCAL_KARTEN und LIGHTNING_BASE (.env im Hauptordner).
       proxy: {
         "/api": { target: `http://localhost:${backendPort}`, changeOrigin: true },
         "/karte": {
-          target: env.KARTEN_HOST || "http://192.168.178.49:8121",
+          target: env.OSMLOCAL_KARTEN || "http://localhost:8121",
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/karte/, "/api/v1"),
         },
@@ -93,13 +94,13 @@ export default defineConfig(({ mode }) => {
         },
         // Live-Blitze (bbox-Abfrage) vom lightningmap-Dienst.
         "/blitze": {
-          target: env.KACHEL_HOST || "http://192.168.178.49:8100",
+          target: env.LIGHTNING_BASE || "http://localhost:8100",
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/blitze/, "/api/strikes"),
         },
         // Live-Blitz-WebSocket (fuer die optionale Wellen-Simulation).
         "/ws-blitze": {
-          target: env.KACHEL_HOST || "http://192.168.178.49:8100",
+          target: env.LIGHTNING_BASE || "http://localhost:8100",
           changeOrigin: true,
           ws: true,
           rewrite: (p) => p.replace(/^\/ws-blitze/, "/ws"),
