@@ -43,6 +43,7 @@ backend/     FastAPI (SQLModel, asyncpg, Alembic) - API und Datenschicht
 frontend/    Svelte 5 + Vite + TypeScript - kachelbasiertes Dashboard
 mockups/     Durchklickbares HTML/CSS-Mockup (verbindliche Design-Vorlage)
 tools/       setup-env.sh (projekt-eindeutige Ports und Namen via cksum)
+             sicherung.sh (Sicherung der Datenbank im Betrieb, ./wetter sicherung)
 docker-compose.yml   Postgres und Redis (nur als Container)
 wetter       Einstiegspunkt für Einrichtung und Betrieb
 ```
@@ -65,6 +66,8 @@ cd frontend && npm install && npm run dev
 
 Die Ports stehen in der erzeugten `.env` (Standardbereich ab 6150). Das Frontend spricht das
 Backend same-origin über den Vite-Proxy an (kein CORS nötig).
+
+Betrieb auf dem Server, Ausrollen und die Sicherung der Datenbank: [docs/DEPLOY-PI.md](docs/DEPLOY-PI.md).
 
 ## Design-Vorlage ansehen
 

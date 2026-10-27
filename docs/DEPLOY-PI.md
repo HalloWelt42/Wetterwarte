@@ -18,6 +18,7 @@ Server, Ordner und Namen im Zertifikat stehen nicht im Repo: `./wetter deploy`, 
 - `docker-compose.prod.yml` - steuert alle vier Container, `restart: unless-stopped`.
 - `.env.prod` - Passwort, Ports, Datenverzeichnis und Adressen im Heimnetz (aus `.env.prod.example`, nie ins Repo).
 - `deploy/wetterwarte.service` - systemd-Unit fuer den Autostart beim Booten.
+- `tools/sicherung.sh` - Sicherung der Datenbank (`./wetter sicherung`, siehe Abschnitt Sicherung).
 
 ## Erstinstallation
 
@@ -75,14 +76,49 @@ Auslieferung), danach gegen den Pi. Ausgang 1 bei jedem Befund.
 ./wetter prod-restart   # neu bauen + starten (nach einem Update)
 ./wetter prod-status    # Container-Status
 ./wetter prod-logs      # Logs folgen
+./wetter sicherung      # Datenbank sichern, wenn fällig (siehe Sicherung)
 ```
 
 ## Aktualisieren
 
-Neuen Stand per `rsync` (Schritt 1) uebertragen, dann `./wetter prod-restart`.
+Vom Mac `./wetter deploy`: gleicht den Quellcode ab, sichert auf dem Pi die Datenbank (wenn fällig) und baut neu.
+Von Hand: neuen Stand per `rsync` (Schritt 1) übertragen, dann auf dem Pi
+`./wetter sicherung vor-ausrollen && ./wetter prod-restart`.
 
 ## Sicherung
 
-Das Datenverzeichnis `DATA_DIR` enthaelt Postgres und Redis.
-Fuer ein Backup die App kurz stoppen und den Ordner sichern, oder `pg_dump`
-gegen den Postgres-Container laufen lassen.
+Gesichert wird ein Auszug der Postgres (`pg_dump`, mit `gzip -n` gepackt) nach `DATA_DIR/sicherungen`, je Stand eine
+Datei `wetterwarte-JJJJMMTT-hhmmss.sql.gz` (Zeitpunkt, zu dem der Auszug begann; ebenso ihre Änderungszeit). Darin
+stehen Profile und Ansichten, Orte, Einstellungen, Geräte samt Schlüssel für Web Push und das Langzeit-Archiv der
+Messwerte. Nicht gesichert wird, was von selbst neu entsteht: Redis (Zwischenspeicher mit Ablaufzeit), der
+Kachel-Cache und der Inhalt der Tabellen `radararchivframe` (Radarbilder, rollend höchstens zwei Wochen) und
+`klimanormale` (holt das Backend bei Bedarf neu); ihr Aufbau ist im Auszug.
+
+Regel (Vorgaben in `tools/sicherung.sh`, in `.env.prod` oder der Umgebung überschreibbar):
+
+- `./wetter sicherung` sichert, wenn die jüngste Sicherung `SICHERUNG_ABSTAND_TAGE` alt ist (Vorgabe 7).
+- `./wetter deploy` ruft vor dem Neustart `./wetter sicherung vor-ausrollen`: gesichert wird nur, wenn die jüngste
+  älter ist als `SICHERUNG_VOR_AUSROLLEN_AB_STUNDEN` (Vorgabe 24). Scheitert die Sicherung, bricht das Ausrollen ab
+  und der laufende Stand bleibt.
+- Nie ohne Änderung: gleicht der neue Auszug inhaltlich der jüngsten Sicherung, wird er verworfen.
+- Höchstens `SICHERUNG_BEHALTEN` Stände (Vorgabe 3), bei jedem Lauf durchgesetzt. Angefasst werden nur Dateien nach
+  dem Muster oben; Teildateien während des Laufs beginnen mit einem Punkt, Begleitdateien gibt es nicht.
+
+Alter wird in ganzen Tagen bzw. Stunden gemessen (gerundet). Ob fällig, entscheidet der Lauf selbst, ein zu früher
+Aufruf tut nichts. Regelmäßig ruft ihn cron auf dem Pi, einmal je Woche (`crontab -e` als Nutzer `pi`):
+
+```
+15 4 * * 0 <ordner>/wetter sicherung 2>&1 | logger -t wetterwarte-sicherung
+```
+
+Ausgaben der Läufe: `journalctl -t wetterwarte-sicherung`.
+
+Zurückspielen (auf dem Pi im `<ordner>`, Datei aus `DATA_DIR/sicherungen`):
+
+```bash
+P="docker compose -f docker-compose.prod.yml --env-file .env.prod"
+$P stop backend
+$P exec -T postgres sh -c 'dropdb -U "$POSTGRES_USER" "$POSTGRES_DB" && createdb -U "$POSTGRES_USER" "$POSTGRES_DB"'
+gzip -dc <datei> | $P exec -T postgres sh -c 'psql -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+./wetter prod-up
+```

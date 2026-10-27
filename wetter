@@ -59,8 +59,13 @@ case "${1:-}" in
     ensure_prod_env; $PROD ps ;;
   prod-logs)
     ensure_prod_env; shift; $PROD logs -f "$@" ;;
+  sicherung)
+    # Datenbank des Betriebs sichern (tools/sicherung.sh): regelmaessig über cron, vor-ausrollen ruft deploy.
+    # Der Lauf entscheidet selbst nach Alter und Änderung, ob eine neue Sicherung entsteht.
+    ensure_prod_env; . tools/sicherung.sh; sicherung_lauf "${2:-regelmaessig}" ;;
   deploy)
-    # Vom Entwicklungsrechner: Quellcode zum Server syncen und dort neu bauen/starten.
+    # Vom Entwicklungsrechner: Quellcode zum Server syncen, dort die Datenbank sichern (falls fällig) und neu
+    # bauen/starten. Scheitert die Sicherung, bleibt der laufende Stand stehen.
     ziel_laden
     echo "Sync -> $PI_HOST:$PI_PFAD"
     rsync -az --delete \
@@ -68,7 +73,7 @@ case "${1:-}" in
       --exclude 'data' --exclude '.env' --exclude '.env.prod' --exclude '__pycache__' \
       --exclude '.DS_Store' --exclude '.run' --exclude 'mockups' --exclude 'zertifikate' \
       -e ssh ./ "$PI_HOST:$PI_PFAD/" \
-      && ssh "$PI_HOST" "cd '$PI_PFAD' && ./wetter prod-restart" \
+      && ssh "$PI_HOST" "cd '$PI_PFAD' && ./wetter sicherung vor-ausrollen && ./wetter prod-restart" \
       && echo "Deploy fertig. Prüfen: ./wetter rauchtest" ;;
   zertifikat)
     # Blattzertifikat der Hausstelle (mkcert auf diesem Mac) für die sichere Adresse ausstellen und nach
@@ -94,5 +99,5 @@ case "${1:-}" in
   mockup)
     ./start-mockups.sh "${2:-start}" ;;
   *)
-    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs|zertifikat|deploy|rauchtest]" ;;
+    echo "Nutzung: ./wetter [setup|up|down|status|logs|psql|mockup|prod-up|prod-down|prod-restart|prod-status|prod-logs|sicherung [vor-ausrollen]|zertifikat|deploy|rauchtest]" ;;
 esac
