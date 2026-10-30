@@ -9,6 +9,7 @@
   import { karteAnlegen, kartenfehlerMelden, OHNE_WEBGL } from "../../kern/webgl";
   import { orteState } from "../../kern/orte.svelte";
   import { neuLadenAufhalten } from "../../kern/fassung.svelte";
+  import { serverErreichbar } from "../../kern/api";
   import { uhr } from "../../kern/uhr.svelte";
   import { uhrzeit } from "../../kern/zeit";
   import { ansicht, nachtAktiv, nachtUmschalten, oeffne } from "../ansicht.svelte";
@@ -25,11 +26,13 @@
   const WARN_TAKT_MS = 3 * 60_000;
   const RADAR_TAKT_MS = 3 * 60_000;
   const WIND_TAKT_MS = 10 * 60_000;
+  const WIEDER_DA_TAKT_MS = 10_000; // ohne Verbindung so oft prüfen, ob der Server wieder antwortet
+  const OHNE_VERBINDUNG = "Die Karte lädt, sobald die Wetterwarte wieder erreichbar ist.";
 
   let wurzel: HTMLDivElement;
   let flaeche: HTMLDivElement;
   let map: KartenBibliothek | undefined;
-  let ohneKarte = $state(false); // kein WebGL: Hinweis statt Karte (kern/webgl.ts)
+  let ohneKarte = $state<string | null>(null); // Hinweis statt Karte: kein WebGL (kern/webgl.ts) oder ohne Verbindung
   let marker: Marker | undefined;
   let grundDunkel: boolean | undefined; // welche Kacheln die Grundkarte gerade lädt (dunkel oder hell)
   let bereit = $state(false); // Stil geladen, Quellen und Ebenen angelegt
@@ -70,9 +73,23 @@
     }
   }
 
+  // Kartenbibliothek nachladen; null, wenn sie nicht zu holen ist (keine Verbindung zum Server).
+  async function ladeBibliothek() {
+    try {
+      const [{ default: bibliothek }] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
+      return bibliothek;
+    } catch {
+      return null;
+    }
+  }
+
   async function baue(abgebaut: () => boolean): Promise<void> {
-    const [{ default: bibliothek }] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
+    const bibliothek = await ladeBibliothek();
     if (abgebaut()) return;
+    if (!bibliothek) {
+      ohneKarte = OHNE_VERBINDUNG;
+      return;
+    }
     const dunkel = kartenWahl.dunkel;
     grundDunkel = dunkel;
     const m = karteAnlegen(() => new bibliothek.Map({
@@ -91,7 +108,7 @@
       touchPitch: false,
     }));
     if (!m) {
-      ohneKarte = true;
+      ohneKarte = OHNE_WEBGL;
       return;
     }
     kartenfehlerMelden(m);
@@ -274,11 +291,27 @@
       abspieler.stoppe();
     };
   });
+
+  // Ohne Verbindung war die Kartenbibliothek nicht zu holen. Ein gescheiterter Modulabruf bleibt im Browser
+  // gescheitert, darum lädt die Seite neu, sobald der Server wieder antwortet; sie landet wieder auf der Karte.
+  $effect(() => {
+    if (ohneKarte !== OHNE_VERBINDUNG) return;
+    const pruefe = async () => {
+      if (await serverErreichbar()) location.reload();
+    };
+    const takt = setInterval(() => void pruefe(), WIEDER_DA_TAKT_MS);
+    const wiederOnline = () => void pruefe();
+    addEventListener("online", wiederOnline);
+    return () => {
+      clearInterval(takt);
+      removeEventListener("online", wiederOnline);
+    };
+  });
 </script>
 
 <div class="karte-solo" bind:this={wurzel}>
   <div class="karte-flaeche" bind:this={flaeche}></div>
-  {#if ohneKarte}<div class="karte-ohne"><i class="fa-solid fa-map"></i><span>{OHNE_WEBGL}</span></div>{/if}
+  {#if ohneKarte}<div class="karte-ohne"><i class="fa-solid fa-map"></i><span>{ohneKarte}</span></div>{/if}
   <!-- Nachtbetrieb: färbt die Karte über die Textfarbe rot (multiply statt CSS-filter, der leere Kacheln erzeugt) -->
   {#if nacht}<div class="nachtfarbe" aria-hidden="true"></div>{/if}
 

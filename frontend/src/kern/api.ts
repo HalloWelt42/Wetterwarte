@@ -15,6 +15,15 @@ export async function holeMitMeta<T>(pfad: string, signal?: AbortSignal): Promis
   return (await antwort.json()) as { data: T; meta: Meta };
 }
 
+/** Antwortet der Server gerade? Gesundheitsabfrage ohne Zwischenspeicher. */
+export async function serverErreichbar(): Promise<boolean> {
+  try {
+    return (await fetch("/api/v1/health", { cache: "no-store" })).ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function hole<T>(pfad: string): Promise<T> {
   const antwort = await fetch(`/api/v1${pfad}`);
   if (!antwort.ok) throw new Error(`GET ${pfad}: ${antwort.status}`);

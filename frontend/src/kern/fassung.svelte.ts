@@ -4,7 +4,9 @@
 // später beim nächsten Ortswechsel (Ansicht, Ort, Profil, Zurück/Vor) oder wenn das Fenster wieder nach vorn kommt.
 // Nie, solange ein Teil der Oberfläche meldet, dass ein Neuladen etwas abbräche (offener Dialog, Ortssuche, laufende
 // Radar-Wiedergabe); dann wartet sie bis danach. Dazwischen steht ein Band mit Knopf. Je Server-Fassung nur ein
-// selbsttätiger Versuch (Merker in der Sitzung), damit ein hängender Zwischenspeicher keine Schleife auslöst.
+// selbsttätiger Versuch (Merker in der Sitzung), damit ein hängender Zwischenspeicher keine Schleife auslöst. Neu geladen
+// wird nur, wenn der Server unmittelbar davor antwortet; ohne Verbindung bleibt die laufende Fassung stehen.
+import { untrack } from "svelte";
 import { SvelteSet } from "svelte/reactivity";
 import { hole } from "./api";
 
@@ -44,21 +46,45 @@ function erlaubt(neu: string): boolean {
   return true;
 }
 
-export function vielleichtNeuLaden(anlass: Anlass): void {
-  const neu = fassung.neu;
-  if (!neu || anlass === "takt" || !ruhig()) return;
-  if (anlass === "start" && performance.now() > START_FENSTER_MS) return;
-  if (erlaubt(neu)) location.reload();
+// Ob der Anlass ein Neuladen erlaubt (eine neue Fassung wartet, nichts ist im Gange, beim Start nur anfangs).
+function anlassPasst(anlass: Anlass): boolean {
+  if (!fassung.neu || anlass === "takt" || !ruhig()) return false;
+  return anlass !== "start" || performance.now() <= START_FENSTER_MS;
 }
 
-export async function fassungPruefen(anlass: Anlass): Promise<void> {
+// Ein Wechsel von Ansicht, Ort oder Profil: neu laden, wenn eine neue Fassung wartet und der Server erreichbar ist.
+// Ohne Abhängigkeit gelesen: ruft ein $effect dies beim Wechsel auf, darf das Eintreffen einer neuen Fassung (oder
+// das Ende einer Tätigkeit) den Effekt nicht erneut auslösen, sonst lüde die Seite ohne Wechsel mitten in der Arbeit.
+export function vielleichtNeuLaden(anlass: Anlass): void {
+  if (untrack(() => anlassPasst(anlass))) void neuLadenWennErreichbar();
+}
+
+// Fassung des Servers holen und merken; ohne Verbindung null (dann bleibt der letzte Stand stehen).
+async function serverFassung(): Promise<string | null> {
   try {
     const server = (await hole<{ version: string }>("/health")).version;
     fassung.neu = server !== OBERFLAECHE_FASSUNG ? server : null;
+    return server;
   } catch {
-    return; // ohne Verbindung kein Vergleich; der nächste Takt versucht es wieder
+    return null;
   }
-  vielleichtNeuLaden(anlass);
+}
+
+// Neu laden nur, wenn der Server gerade antwortet: ohne Verbindung endete das Neuladen auf der Fehlerseite des
+// Browsers, und der Wechsel, der es ausgelöst hat (etwa "Große Karte öffnen"), wäre verloren. Die Ansicht ist zu
+// diesem Zeitpunkt schon gewechselt; das Neuladen landet dort.
+async function neuLadenWennErreichbar(): Promise<void> {
+  if ((await serverFassung()) !== null) neuLaden();
+}
+
+function neuLaden(): void {
+  const neu = fassung.neu;
+  if (neu && ruhig() && erlaubt(neu)) location.reload();
+}
+
+export async function fassungPruefen(anlass: Anlass): Promise<void> {
+  if ((await serverFassung()) === null) return; // ohne Verbindung kein Vergleich; der nächste Takt versucht es wieder
+  if (anlassPasst(anlass)) neuLaden();
 }
 
 function sichtbar(): void {

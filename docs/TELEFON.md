@@ -45,9 +45,11 @@ gewählten Ort. Wählbar außerdem "Aus" und "An". Der Mond- bzw. Sonnenknopf im
 schaltet jederzeit von Hand um; bei Zeitsteuerung gilt das bis zum nächsten Sonnenauf- oder -untergang,
 danach übernimmt wieder die Automatik (Hinweis unter Mehr).
 
-Nach dem Ausrollen lädt die Ansicht von selbst neu wie am Desktop (`kern/fassung.svelte.ts`). Die App-
+Nach dem Ausrollen lädt die Ansicht von selbst neu wie am Desktop (`kern/fassung.svelte.ts`), aber nur,
+wenn der Server unmittelbar davor antwortet; ohne Verbindung bleibt die laufende Fassung stehen. Die App-
 Schale wird nie zwischengespeichert, nur Daten. Ohne Verbindung zeigt sie den letzten Stand je Ort aus
-dem Gerätespeicher mit Uhrzeit.
+dem Gerätespeicher mit Uhrzeit. Die Kartenbibliothek lädt erst der Karten-Reiter; ohne Verbindung steht
+dort ein Hinweis, und die Seite lädt neu, sobald der Server wieder antwortet.
 
 **Weiche:** `index.html` leitet Telefone (Touch und kürzere Bildschirmseite unter 600 Punkten) auf
 `/telefon` weiter, Ort und Profil bleiben in der Adresse. "Zur Desktop-Ansicht" unter Mehr merkt sich
