@@ -15,15 +15,16 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <title>Wetterwarte</title>
     <script>
-      // Telefone bekommen die eigene Telefonansicht (docs/TELEFON.md). Die Wahl in der Ansicht
-      // ("Zur Desktop-Ansicht" bzw. "Telefonansicht") merkt sich das Gerät; Ort und Profil bleiben.
+      // Telefone bekommen immer die eigene Telefonansicht (docs/TELEFON.md); die Desktop-Ansicht ist dort nicht
+      // wählbar. Ort und Profil bleiben in der Adresse. Die frühere gemerkte Wahl "wetterwarte.ansicht" gilt nicht mehr.
       (function () {
         try {
-          var wahl = JSON.parse(localStorage.getItem("wetterwarte.ansicht") || "null");
-          // Telefon = Touch und kurze Bildschirmseite unter 600 Punkten (unabhängig von der Drehung; Tablets nicht).
-          var telefon = wahl ? wahl === "telefon" : matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;
-          if (telefon) location.replace("/telefon" + location.search);
+          localStorage.removeItem("wetterwarte.ansicht");
         } catch (e) {}
+        // Telefon = Touch und kurze Bildschirmseite unter 600 Punkten (unabhängig von der Drehung; Tablets nicht).
+        if (matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600) {
+          location.replace("/telefon" + location.search);
+        }
       })();
     </script>
   </head>

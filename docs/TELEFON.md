@@ -38,7 +38,7 @@ Entwürfe: `mockups/telefon/` (Galerie `mockups/index.html`, Abschnitt Telefon).
 | Gesundheit | Kachelraster der Seite "gesundheit": UV, Luft, Pollen, Messwerte. |
 | Karte | Vollbild-Karte am Ort mit kleinen runden Symbolschaltern, jeder einzeln und unabhängig, je Gerät gemerkt: Gewitter (Blitze), Warnungen, Hell/Dunkel, Detailkarte (Beschriftung, Straßen), Regenradar (mit Abspielleiste gemessen bis +2 h), Wind. MapLibre wird erst hier geladen. |
 | Detailblatt | Tippen auf eine Kachel öffnet ihr Blatt von unten (Griff, nach unten ziehen schließt). Die Kachel zeigt nur das Wesentliche, das Blatt alles. Die Regenradar-Kachel öffnet die Karte. |
-| Mehr | Profil wählen, Schriftstufe, Nachtbetrieb, alle Kachelformen ansehen, zur Desktop-Ansicht, Fassung und Quellen. |
+| Mehr | Profil wählen, Schriftstufe, Nachtbetrieb, alle Kachelformen ansehen, Fassung und Quellen. |
 
 **Nachtbetrieb:** Standard ist "Nach Sonnenuntergang": zwischen Sonnenuntergang und -aufgang am
 gewählten Ort. Wählbar außerdem "Aus" und "An". Der Mond- bzw. Sonnenknopf im Kopf (und auf der Karte)
@@ -52,8 +52,8 @@ dem Gerätespeicher mit Uhrzeit. Die Kartenbibliothek lädt erst der Karten-Reit
 dort ein Hinweis, und die Seite lädt neu, sobald der Server wieder antwortet.
 
 **Weiche:** `index.html` leitet Telefone (Touch und kürzere Bildschirmseite unter 600 Punkten) auf
-`/telefon` weiter, Ort und Profil bleiben in der Adresse. "Zur Desktop-Ansicht" unter Mehr merkt sich
-das Gerät. Eigenes Manifest `telefon.webmanifest` (Start `/telefon`, schwarz).
+`/telefon` weiter, Ort und Profil bleiben in der Adresse. Am Telefon gibt es nur diese Ansicht, die
+Desktop-Ansicht ist dort nicht wählbar (Nutzer 30.10.2026). Eigenes Manifest `telefon.webmanifest` (Start `/telefon`, schwarz).
 
 ## Raster
 

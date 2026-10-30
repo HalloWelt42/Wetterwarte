@@ -33,9 +33,3 @@ export function setzeUebersteuerung(u: Uebersteuerung | null): void {
   geraet.uebersteuerung = u;
   schreib("telefon.nacht.uebersteuerung", u);
 }
-
-/** Zur Desktop-Ansicht wechseln und die Wahl für dieses Gerät merken (index.html liest sie). */
-export function zurDesktopAnsicht(): void {
-  schreib("ansicht", "desktop");
-  location.href = "/" + location.search;
-}

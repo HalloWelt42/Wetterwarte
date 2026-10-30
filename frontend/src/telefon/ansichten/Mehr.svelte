@@ -1,14 +1,14 @@
 <script lang="ts">
   import { profilSymbol } from "../../kern/profilsymbol";
   // Reiter Mehr (Entwurf mockups/telefon/mehr.html): Profil wählen, Schriftstufe und Nachtbetrieb für
-  // dieses Gerät, Meldungen (Blatt), alle Kachelformen, Wechsel zur Desktop-Ansicht, Fassung und Datenquellen.
+  // dieses Gerät, Meldungen (Blatt), alle Kachelformen, Fassung und Datenquellen.
   // Nur, was am Telefon wirklich gewählt werden kann; eingerichtet wird am Rechner.
   import { orteState } from "../../kern/orte.svelte";
   import { OBERFLAECHE_FASSUNG } from "../../kern/fassung.svelte";
   import { uhrzeit } from "../../kern/zeit";
   import { uhr } from "../../kern/uhr.svelte";
   import { ansicht, oeffne } from "../ansicht.svelte";
-  import { geraet, setzeNacht, setzeStufe, zurDesktopAnsicht, type Nachtwahl, type Stufe } from "../geraet.svelte";
+  import { geraet, setzeNacht, setzeStufe, type Nachtwahl, type Stufe } from "../geraet.svelte";
   import { profile, waehleProfil } from "../profil.svelte";
   import { standVon } from "../wetter.svelte";
   import { konto } from "../meldungen/konto.svelte";
@@ -108,11 +108,6 @@
           <span class="sym"><i class="fa-solid fa-table-cells"></i></span>
           <span class="haupt"><b>Alle Kachelformen</b><small>Jede Kachel in jeder Größe mit den Daten des Orts</small></span>
           <span class="rechts"><i class="fa-solid fa-chevron-right"></i></span>
-        </button>
-        <button class="zeile" onclick={zurDesktopAnsicht}>
-          <span class="sym"><i class="fa-solid fa-desktop"></i></span>
-          <span class="haupt"><b>Zur Desktop-Ansicht</b><small>Dieses Gerät merkt sich die Wahl</small></span>
-          <span class="rechts"><i class="fa-solid fa-arrow-right"></i></span>
         </button>
       </div>
     </section>
