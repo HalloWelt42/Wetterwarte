@@ -6,6 +6,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import "gridstack/dist/gridstack.min.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./app.css";
+import "./tippen.css";
 
 import { mount } from "svelte";
 import App from "./App.svelte";

@@ -6,6 +6,7 @@ import "@fontsource/barlow/700.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./seite.css";
 import "./telefon.css";
+import "../tippen.css";
 
 import { mount } from "svelte";
 import Telefon from "./Telefon.svelte";
