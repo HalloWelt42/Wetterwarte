@@ -71,7 +71,7 @@ services:
   # Sichere Adresse (docs/WARNUNGEN.md): Caddy mit dem Zertifikat der Hausstelle vor dem Frontend. Das Zertifikat legt
   # ./wetter zertifikat vom Mac aus nach ./zertifikate; ohne es startet nur dieser Dienst nicht, 8061 bleibt.
   vorne:
-    image: caddy:2.11.6-alpine
+    image: caddy:2.11.7-alpine
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]
     depends_on:
