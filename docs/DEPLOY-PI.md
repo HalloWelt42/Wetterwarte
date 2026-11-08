@@ -44,13 +44,17 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now wetterwarte
 ```
 
-Die App ist dann unter `http://<server>:<WEB_PORT>` erreichbar.
+Frontend und Schnittstelle lauschen nur am Server selbst (`127.0.0.1:<WEB_PORT>`, `127.0.0.1:<API_PORT>`); im Heimnetz
+ist die App nur über die sichere Adresse erreichbar (nächster Abschnitt). Blitz- und Kartendienst desselben Servers
+spricht sie über das Docker-Netz `haus` an (`./wetter` legt es an); `./wetter deploy` setzt die Adressen des Hauses
+in `.env.prod` aus `handbuch ziel wetterwarte --env`.
 
 ## Sichere Adresse (HTTPS) für Mitteilungen
 
 Mitteilungen aufs Telefon (Web Push) und der Service Worker brauchen HTTPS. Vor dem Frontend steht dafür
 ein Caddy (`vorne` in `docker-compose.prod.yml`, `deploy/Caddyfile`) auf `HTTPS_PORT` (8062) mit dem
-Blattzertifikat der Hausstelle, wie bei Kiste, Kellerwolke und Transkription. Die Adresse auf 8061 bleibt.
+Blattzertifikat der Hausstelle, wie bei Kiste, Kellerwolke und Transkription. Die frühere Adresse auf 8061 leitet im
+Heimnetz auf sie um (Vorbau des Pi, HELF-169).
 
 ```bash
 ./wetter zertifikat   # vom Mac: mit mkcert ausstellen und nach <ordner>/zertifikate legen

@@ -8,8 +8,10 @@ cd "$HIER"
 ensure_env() { [ -f .env ] || bash tools/setup-env.sh; }
 load_env() { set -a; . ./.env 2>/dev/null || true; set +a; }
 
-# Produktion: ein Compose steuert alles (Backend, Frontend, DB, Redis).
+# Produktion: ein Compose steuert alles (Backend, Frontend, DB, Redis). Das Docker-Netz haus (Blitz- und Kartendienst
+# auf demselben Rechner) legt es an, wenn es fehlt.
 PROD="docker compose -f docker-compose.prod.yml --env-file .env.prod"
+haus_netz() { docker network inspect haus >/dev/null 2>&1 || docker network create haus >/dev/null; }
 
 # Ziel auf dem Server fuer Deploy, Zertifikat und Rauchtest vom Entwicklungsrechner: aus der privaten Wahrheit des
 # Hauses (handbuch ziel wetterwarte). PI_HOST, PI_PFAD, ZERT_NAMEN und WETTERWARTE_ADRESSE aus der Umgebung gehen vor.
@@ -21,6 +23,18 @@ ziel_wert() {
 ziel_laden() {
   PI_HOST="$(ziel_wert rechner "${PI_HOST:-}")" || exit 1
   PI_PFAD="$(ziel_wert wurzel "${PI_PFAD:-}")" || exit 1
+}
+# Werte des Hauses (Adressen, Ordner) aus der privaten Wahrheit in die .env.prod auf dem Server: ihre Schlüssel werden
+# gesetzt, alle anderen Zeilen (Geheimnisse, die nur dort stehen) bleiben unberührt und werden nie gelesen
+umgebung_setzen() {
+  local umgebung
+  umgebung="$(handbuch ziel wetterwarte --env | grep -v '^$')" || { echo "Ziel fehlt: handbuch ziel wetterwarte --env" >&2; return 1; }
+  printf '%s\n' "$umgebung" | ssh "$PI_HOST" "cd '$PI_PFAD' && touch .env.prod && chmod 600 .env.prod && python3 -c '
+import sys
+neu = dict(z.split(\"=\", 1) for z in sys.stdin.read().splitlines() if \"=\" in z)
+alt = [z for z in open(\".env.prod\").read().splitlines() if z.split(\"=\", 1)[0] not in neu]
+open(\".env.prod\", \"w\").write(\"\".join(z + chr(10) for z in alt + [k + \"=\" + w for k, w in neu.items()]))
+'" && echo "Umgebung aus der privaten Wahrheit: $(printf '%s\n' "$umgebung" | cut -d= -f1 | paste -sd ' ' -)"
 }
 ensure_prod_env() {
   [ -f .env.prod ] && return 0
@@ -54,7 +68,7 @@ case "${1:-}" in
     ensure_prod_env; $PROD down ;;
   prod-restart)
     # Caddy (vorne) liest das eingebundene deploy/Caddyfile nur beim Start, darum nach dem Bauen neu starten
-    ensure_prod_env; $PROD up -d --build && $PROD restart vorne ;;
+    ensure_prod_env; haus_netz; $PROD up -d --build && $PROD restart vorne ;;
   prod-status)
     ensure_prod_env; $PROD ps ;;
   prod-logs)
@@ -73,6 +87,7 @@ case "${1:-}" in
       --exclude 'data' --exclude '.env' --exclude '.env.prod' --exclude '__pycache__' \
       --exclude '.DS_Store' --exclude '.run' --exclude 'mockups' --exclude 'zertifikate' \
       -e ssh ./ "$PI_HOST:$PI_PFAD/" \
+      && umgebung_setzen \
       && ssh "$PI_HOST" "cd '$PI_PFAD' && ./wetter sicherung vor-ausrollen && ./wetter prod-restart" \
       && echo "Deploy fertig. Prüfen: ./wetter rauchtest" ;;
   zertifikat)

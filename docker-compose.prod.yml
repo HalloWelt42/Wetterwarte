@@ -1,6 +1,7 @@
 # Produktions-Setup: alles als Container, ein Compose steuert die ganze App.
-# Nur das Frontend ist nach aussen offen; Backend/DB/Redis bleiben im internen
-# Netz. Daten liegen als Bind-Mount unter ${DATA_DIR} (auf dem Server: die externe SSD). Adressen des Hauses
+# Im Heimnetz nur TLS (HELF-169): nach außen lauscht allein "vorne"; Backend und Frontend veröffentlichen ihre Ports nur
+# am Rechner selbst (127.0.0.1), DB und Redis gar nicht. Blitz- und Kartendienst auf demselben Rechner erreichen Backend
+# und Frontend über das Docker-Netz haus (./wetter legt es an, wenn es fehlt); ihre Namen dort stehen in .env.prod. Daten liegen als Bind-Mount unter ${DATA_DIR} (auf dem Server: die externe SSD). Adressen des Hauses
 # (HAUPTADRESSE, LIGHTNING_BASE, OSMLOCAL_BASE, OSMLOCAL_KARTEN) stehen nur in .env.prod, Vorlage .env.prod.example.
 # Gebaut wird aus dem Projektwurzelverzeichnis, damit version.json (einzige Quelle der Fassung) in beide Abbilder
 # kommt; was in den Baukontext darf, steht in .dockerignore.
@@ -45,8 +46,9 @@ services:
       # Offline-Kachel-Cache auf der externen SSD (kann mehrere GB werden).
       - ${DATA_DIR:-./data}/kachelcache:/cache
     ports:
-      # Kompatibilitaets-API der alten weathercache-Konsumenten (Cutover: 8060).
-      - "${API_PORT:-8062}:8000"
+      # Schnittstelle direkt, nur am Rechner selbst; im Heimnetz über "vorne" (HTTPS)
+      - "127.0.0.1:${API_PORT:-8060}:8000"
+    networks: [default, haus]
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,7 +65,9 @@ services:
       LIGHTNING_BASE: ${LIGHTNING_BASE:?}
       OSMLOCAL_KARTEN: ${OSMLOCAL_KARTEN:?OSMLOCAL_KARTEN fehlt in .env.prod (Kacheln des Kartendienstes)}
     ports:
-      - "${WEB_PORT:-8060}:80"
+      # nur am Rechner selbst; im Heimnetz über "vorne" (HTTPS), die frühere Adresse leitet dorthin um
+      - "127.0.0.1:${WEB_PORT:-8061}:80"
+    networks: [default, haus]
     depends_on:
       - backend
     restart: unless-stopped
@@ -83,3 +87,10 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./zertifikate:/zertifikate:ro
+
+networks:
+  default: {}
+  # gemeinsames Netz der Apps auf diesem Rechner (Blitz- und Kartendienst), nicht im Heimnetz
+  haus:
+    external: true
+    name: haus
